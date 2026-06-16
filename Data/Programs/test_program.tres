@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://bj0tm7knl8ywf"]
+
+[ext_resource type="Texture2D" uid="uid://cu81w1rbrbgmk" path="res://icon.svg" id="1_ttcai"]
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_whm0s"]
+[ext_resource type="PackedScene" uid="uid://c4xnnljh2ot26" path="res://Scenes/Windows/TestWindow.tscn" id="3_jj20s"]
+
+[resource]
+script = ExtResource("1_whm0s")
+program_id = &"test"
+display_name = "test.exe"
+icon = ExtResource("1_ttcai")
+window_scene = ExtResource("3_jj20s")
+default_window_position = Vector2(250, 150)
+metadata/_custom_type_script = "uid://cwpxv30ekbea1"

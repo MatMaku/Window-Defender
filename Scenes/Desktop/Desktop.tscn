@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://ba5majxrrij6h"]
+
+[ext_resource type="Script" uid="uid://ctkvsercrioxw" path="res://Scripts/Desktop/Desktop.gd" id="1_77fwn"]
+[ext_resource type="Texture2D" uid="uid://bhxkb0045o08f" path="res://Sprites/XP-4k-scaled.jpg" id="1_wi6t1"]
+[ext_resource type="Script" uid="uid://cnh1vcjudavem" path="res://Scripts/Windows/WindowManager.gd" id="2_k5q52"]
+[ext_resource type="PackedScene" uid="uid://bj8opkohmwxuj" path="res://Scenes/Desktop/DesktopExecutable.tscn" id="2_rj8ej"]
+[ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="3_x17rd"]
+[ext_resource type="Resource" uid="uid://cl1spmxbip176" path="res://Data/Programs/test_shortcut.tres" id="4_coqgv"]
+
+[node name="Desktop" type="Control" unique_id=583655013]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(960, 540)
+script = ExtResource("1_77fwn")
+executable_scene = ExtResource("2_rj8ej")
+shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv")])
+
+[node name="Wallpaper" type="TextureRect" parent="." unique_id=1808162104]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1_wi6t1")
+expand_mode = 3
+
+[node name="IconLayer" type="Control" parent="." unique_id=684964200]
+unique_name_in_owner = true
+z_index = 9
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="WindowLayer" type="Control" parent="." unique_id=820827125]
+unique_name_in_owner = true
+z_index = 10
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="WindowManager" type="Node" parent="." unique_id=948347316 node_paths=PackedStringArray("window_layer")]
+unique_name_in_owner = true
+script = ExtResource("2_k5q52")
+window_layer = NodePath("../WindowLayer")
