@@ -7,16 +7,25 @@ signal close_requested(window: AppWindow)
 @export var draggable: bool = true
 @export var keep_inside_parent: bool = true
 
+@export_category("Open Animation")
+@export var use_open_animation: bool = true
+@export var open_animation_duration: float = 0.12
+@export var open_start_scale: Vector2 = Vector2(0.92, 0.92)
+
 @onready var title_bar: Control = %TitleBar
 @onready var window_icon: TextureRect = %WindowIcon
 @onready var title_label: Label = %TitleLabel
 @onready var close_button: Button = %CloseButton
 @onready var content_root: Control = %ContentRoot
 
+@export_category("Gameplay")
+@export var blocks_shots: bool = true
+
 var program_id: StringName
 
 var _is_dragging: bool = false
 var _drag_offset: Vector2 = Vector2.ZERO
+var _open_tween: Tween
 
 
 func _ready() -> void:
@@ -39,6 +48,36 @@ func setup(program_data: ProgramData) -> void:
 	if program_data.default_window_size != Vector2.ZERO:
 		custom_minimum_size = program_data.default_window_size
 		size = program_data.default_window_size
+
+
+func play_open_animation() -> void:
+	if not use_open_animation:
+		return
+
+	if _open_tween != null and _open_tween.is_running():
+		_open_tween.kill()
+
+	pivot_offset = size * 0.5
+	scale = open_start_scale
+
+	var original_modulate := modulate
+	modulate = Color(
+		original_modulate.r,
+		original_modulate.g,
+		original_modulate.b,
+		0.0
+	)
+
+	_open_tween = create_tween()
+	_open_tween.set_parallel(true)
+
+	_open_tween.tween_property(self, "scale", Vector2.ONE, open_animation_duration)\
+		.set_trans(Tween.TRANS_BACK)\
+		.set_ease(Tween.EASE_OUT)
+
+	_open_tween.tween_property(self, "modulate:a", original_modulate.a, open_animation_duration)\
+		.set_trans(Tween.TRANS_SINE)\
+		.set_ease(Tween.EASE_OUT)
 
 
 func _gui_input(event: InputEvent) -> void:

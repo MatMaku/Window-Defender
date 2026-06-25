@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://c6wibp66c2w8f"]
+
+[ext_resource type="Texture2D" uid="uid://baxa7xovkc1x3" path="res://Sprites/Reload Icon.png" id="1_fpjbk"]
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_tyr2m"]
+[ext_resource type="PackedScene" uid="uid://dh3bmsmuvrv7k" path="res://Apps/Reload/ReloadWindow.tscn" id="3_6jxn7"]
+
+[resource]
+script = ExtResource("1_tyr2m")
+program_id = &"Reload"
+display_name = "Reload.exe"
+icon = ExtResource("1_fpjbk")
+window_scene = ExtResource("3_6jxn7")
+default_window_size = Vector2(400, 180)
+metadata/_custom_type_script = "uid://cwpxv30ekbea1"

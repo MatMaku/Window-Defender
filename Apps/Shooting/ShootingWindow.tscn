@@ -1,0 +1,90 @@
+[gd_scene format=3 uid="uid://b7cya07hvsdgs"]
+
+[ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_1r5jn"]
+[ext_resource type="Texture2D" uid="uid://dbh1pn4nwcnxs" path="res://Sprites/Windows/Window_Base_Hollow.png" id="2_40n83"]
+[ext_resource type="Script" uid="uid://dccdwjcis2v1s" path="res://Scripts/Shooting/ShootingWindow.gd" id="3_gwdb8"]
+[ext_resource type="Texture2D" uid="uid://bdor4452mbnwj" path="res://Sprites/Mira.png" id="3_iwu7j"]
+[ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="3_jo36e"]
+[ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="4_ytpol"]
+[ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="5_gwdb8"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_iwu7j"]
+texture = ExtResource("2_40n83")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_jo36e"]
+texture = ExtResource("3_jo36e")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ytpol"]
+texture = ExtResource("4_ytpol")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5t8gp"]
+texture = ExtResource("5_gwdb8")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_1r5jn")]
+anchor_right = 0.141
+anchor_bottom = 0.33100003
+offset_right = -0.7200012
+offset_bottom = -25.480042
+theme_override_styles/panel = SubResource("StyleBoxTexture_iwu7j")
+script = ExtResource("3_gwdb8")
+feedback_expand_duration = 0.06
+
+[node name="TitleLabel" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="1" unique_id=278973000]
+text = "Shooting.exe"
+
+[node name="ShootingVBox" type="VBoxContainer" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=451342275]
+layout_mode = 2
+
+[node name="ShootButton" type="Button" parent="MainVBox/ContentRoot/ShootingVBox" index="0" unique_id=615286321]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxTexture_jo36e")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_ytpol")
+theme_override_styles/hover = SubResource("StyleBoxTexture_5t8gp")
+text = "SHOOT"
+
+[node name="AimArea" type="CenterContainer" parent="MainVBox/ContentRoot/ShootingVBox" index="1" unique_id=1122651708]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="CrosshairTexture" type="TextureRect" parent="MainVBox/ContentRoot/ShootingVBox/AimArea" index="0" unique_id=610036102]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("3_iwu7j")
+
+[node name="CooldownArea" type="Control" parent="MainVBox/ContentRoot/ShootingVBox" index="2" unique_id=1889404875]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="CooldownIndicator" type="ColorRect" parent="MainVBox/ContentRoot/ShootingVBox/CooldownArea" index="0" unique_id=642850316]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.009
+anchor_right = 0.99
+anchor_bottom = 0.8
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

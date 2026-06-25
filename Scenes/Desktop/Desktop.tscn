@@ -6,6 +6,11 @@
 [ext_resource type="PackedScene" uid="uid://bj8opkohmwxuj" path="res://Scenes/Desktop/DesktopExecutable.tscn" id="2_rj8ej"]
 [ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="3_x17rd"]
 [ext_resource type="Resource" uid="uid://cl1spmxbip176" path="res://Data/Programs/test_shortcut.tres" id="4_coqgv"]
+[ext_resource type="Resource" uid="uid://b7q5qnb1mwvw2" path="res://Apps/Shooting/ShootingShortcut.tres" id="5_coqgv"]
+[ext_resource type="Resource" uid="uid://bebagr0nogmsq" path="res://Apps/Ammo/AmmoShortcut.tres" id="6_dq2pw"]
+[ext_resource type="Resource" uid="uid://cmmihnrelh2tw" path="res://Apps/Reload/ReloadShortcut.tres" id="7_li5bo"]
+[ext_resource type="Script" uid="uid://c3ffiaivx0vxc" path="res://Scripts/Shooting/ShootingManager.gd" id="7_lrxve"]
+[ext_resource type="Script" uid="uid://b4dmhqdc3nh6l" path="res://Scripts/Shooting/ReloadManager.gd" id="9_ynoiy"]
 
 [node name="Desktop" type="Control" unique_id=583655013]
 layout_mode = 3
@@ -17,7 +22,29 @@ grow_vertical = 2
 pivot_offset = Vector2(960, 540)
 script = ExtResource("1_77fwn")
 executable_scene = ExtResource("2_rj8ej")
-shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv")])
+shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv"), ExtResource("5_coqgv"), ExtResource("6_dq2pw"), ExtResource("7_li5bo")])
+
+[node name="WindowManager" type="Node" parent="." unique_id=948347316 node_paths=PackedStringArray("window_layer")]
+unique_name_in_owner = true
+script = ExtResource("2_k5q52")
+window_layer = NodePath("../WindowLayer")
+
+[node name="ShootingManager" type="Node" parent="." unique_id=893765685 node_paths=PackedStringArray("window_manager")]
+unique_name_in_owner = true
+script = ExtResource("7_lrxve")
+window_manager = NodePath("../WindowManager")
+fire_cooldown_seconds = 1.0
+
+[node name="CooldownTimer" type="Timer" parent="ShootingManager" unique_id=1399407429]
+unique_name_in_owner = true
+one_shot = true
+
+[node name="ReloadManager" type="Node" parent="." unique_id=402409124 node_paths=PackedStringArray("window_manager", "shooting_manager")]
+unique_name_in_owner = true
+script = ExtResource("9_ynoiy")
+window_manager = NodePath("../WindowManager")
+shooting_manager = NodePath("../ShootingManager")
+perfect_finish_delay = 0.3
 
 [node name="Wallpaper" type="TextureRect" parent="." unique_id=1808162104]
 z_index = -1
@@ -52,8 +79,3 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="WindowManager" type="Node" parent="." unique_id=948347316 node_paths=PackedStringArray("window_layer")]
-unique_name_in_owner = true
-script = ExtResource("2_k5q52")
-window_layer = NodePath("../WindowLayer")

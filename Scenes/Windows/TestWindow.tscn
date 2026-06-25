@@ -2,6 +2,9 @@
 
 [ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_4ewvg"]
 
+[sub_resource type="LabelSettings" id="LabelSettings_4ewvg"]
+font_color = Color(0, 0, 0, 1)
+
 [node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_4ewvg")]
 
 [node name="TitleLabel" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="1" unique_id=278973000]
@@ -10,5 +13,6 @@ text = "Test.exe      "
 [node name="Label" type="Label" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=1741419527]
 layout_mode = 2
 text = "Ventana de prueba"
+label_settings = SubResource("LabelSettings_4ewvg")
 horizontal_alignment = 1
 vertical_alignment = 1
