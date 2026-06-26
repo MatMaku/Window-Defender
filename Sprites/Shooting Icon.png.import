@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cb2atklas7iqf"
-path="res://.godot/imported/Mira Icon.png-e41a923a71f039a11ac90581ee7a4af1.ctex"
+uid="uid://bl2teg5rnrslj"
+path="res://.godot/imported/Shooting Icon.png-a2309904bc31950600640c6b4d22395c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprites/Mira Icon.png"
-dest_files=["res://.godot/imported/Mira Icon.png-e41a923a71f039a11ac90581ee7a4af1.ctex"]
+source_file="res://Sprites/Shooting Icon.png"
+dest_files=["res://.godot/imported/Shooting Icon.png-a2309904bc31950600640c6b4d22395c.ctex"]
 
 [params]
 

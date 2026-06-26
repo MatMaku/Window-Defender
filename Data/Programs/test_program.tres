@@ -10,5 +10,6 @@ program_id = &"test"
 display_name = "test.exe"
 icon = ExtResource("1_ttcai")
 window_scene = ExtResource("3_jj20s")
+allow_multiple_instances = true
 default_window_size = Vector2(360, 400)
 metadata/_custom_type_script = "uid://cwpxv30ekbea1"

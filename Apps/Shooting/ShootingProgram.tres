@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://dgemqxjydyfyj"]
 
-[ext_resource type="Texture2D" uid="uid://cb2atklas7iqf" path="res://Sprites/Mira Icon.png" id="1_28v4j"]
+[ext_resource type="Texture2D" uid="uid://bl2teg5rnrslj" path="res://Sprites/Shooting Icon.png" id="1_28v4j"]
 [ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_fx0ib"]
 [ext_resource type="PackedScene" uid="uid://b7cya07hvsdgs" path="res://Apps/Shooting/ShootingWindow.tscn" id="2_35hor"]
 

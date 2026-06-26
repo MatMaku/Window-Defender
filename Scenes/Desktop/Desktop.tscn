@@ -44,7 +44,8 @@ unique_name_in_owner = true
 script = ExtResource("9_ynoiy")
 window_manager = NodePath("../WindowManager")
 shooting_manager = NodePath("../ShootingManager")
-perfect_finish_delay = 0.3
+perfect_finish_delay = 0.35000000000000003
+perfect_zone_start = 0.5
 
 [node name="Wallpaper" type="TextureRect" parent="." unique_id=1808162104]
 z_index = -1
