@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://baxa7xovkc1x3"
-path="res://.godot/imported/Reload Icon.png-7a63ec802d11b379d2b825e866a5edbb.ctex"
+path="res://.godot/imported/Reload Icon.png-26dc104255145d3dbefd072f091793b0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprites/Reload Icon.png"
-dest_files=["res://.godot/imported/Reload Icon.png-7a63ec802d11b379d2b825e866a5edbb.ctex"]
+source_file="res://Sprites/Icons/Reload Icon.png"
+dest_files=["res://.godot/imported/Reload Icon.png-26dc104255145d3dbefd072f091793b0.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bl2teg5rnrslj"
-path="res://.godot/imported/Shooting Icon.png-a2309904bc31950600640c6b4d22395c.ctex"
+uid="uid://bc4y5qirs8rlj"
+path="res://.godot/imported/System Icon.png-04e22981c823bbdf05adad26e9097d09.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprites/Shooting Icon.png"
-dest_files=["res://.godot/imported/Shooting Icon.png-a2309904bc31950600640c6b4d22395c.ctex"]
+source_file="res://Sprites/Icons/System Icon.png"
+dest_files=["res://.godot/imported/System Icon.png-04e22981c823bbdf05adad26e9097d09.ctex"]
 
 [params]
 

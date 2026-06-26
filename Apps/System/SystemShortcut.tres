@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="DesktopShortcutData" format=3 uid="uid://43e4civ5fiho"]
+
+[ext_resource type="Resource" uid="uid://dyfvyhng1jnks" path="res://Apps/System/SystemProgram.tres" id="1_xdmh5"]
+[ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="2_s4h4h"]
+
+[resource]
+script = ExtResource("2_s4h4h")
+program_data = ExtResource("1_xdmh5")
+start_position = Vector2(450, 40)
+metadata/_custom_type_script = "uid://cyngw31l11lkj"

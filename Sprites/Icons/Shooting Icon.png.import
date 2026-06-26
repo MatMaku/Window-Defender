@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cj8fr28mfg1xf"
-path="res://.godot/imported/Ammo Icon.png-3a70c40095e7ed01dbb55e7c2d39fc49.ctex"
+uid="uid://bl2teg5rnrslj"
+path="res://.godot/imported/Shooting Icon.png-8df5d818846abee107a22873ca22fe5c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprites/Ammo Icon.png"
-dest_files=["res://.godot/imported/Ammo Icon.png-3a70c40095e7ed01dbb55e7c2d39fc49.ctex"]
+source_file="res://Sprites/Icons/Shooting Icon.png"
+dest_files=["res://.godot/imported/Shooting Icon.png-8df5d818846abee107a22873ca22fe5c.ctex"]
 
 [params]
 

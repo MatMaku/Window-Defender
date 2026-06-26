@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://vp1u4ago21ju"]
 
-[ext_resource type="Texture2D" uid="uid://cj8fr28mfg1xf" path="res://Sprites/Ammo Icon.png" id="1_5lgfb"]
+[ext_resource type="Texture2D" uid="uid://cj8fr28mfg1xf" path="res://Sprites/Icons/Ammo Icon.png" id="1_5lgfb"]
 [ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_kipy5"]
 [ext_resource type="PackedScene" uid="uid://ck16i8diuiklh" path="res://Apps/Ammo/AmmoWindow.tscn" id="3_4divd"]
 

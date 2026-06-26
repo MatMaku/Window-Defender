@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://dyfvyhng1jnks"]
+
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_klju8"]
+[ext_resource type="Texture2D" uid="uid://bc4y5qirs8rlj" path="res://Sprites/Icons/System Icon.png" id="1_sesad"]
+[ext_resource type="PackedScene" uid="uid://cmekx15nbhtjf" path="res://Apps/System/SystemWindow.tscn" id="2_3ll6y"]
+
+[resource]
+script = ExtResource("1_klju8")
+program_id = &"System"
+display_name = "System.exe"
+icon = ExtResource("1_sesad")
+window_scene = ExtResource("2_3ll6y")
+default_window_size = Vector2(250, 320)
+metadata/_custom_type_script = "uid://cwpxv30ekbea1"

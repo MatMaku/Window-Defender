@@ -2,14 +2,6 @@
 
 [ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_wu70s"]
 [ext_resource type="Script" uid="uid://clwf4xxu463g1" path="res://Scripts/Shooting/AmmoWindow.gd" id="2_0awnj"]
-[ext_resource type="Texture2D" uid="uid://57lclbru5xvk" path="res://Sprites/Windows/Windows_Inner_Frame_Inverted.png" id="2_dbhf0"]
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_maugy"]
-texture = ExtResource("2_dbhf0")
-texture_margin_left = 5.0
-texture_margin_top = 5.0
-texture_margin_right = 5.0
-texture_margin_bottom = 5.0
 
 [node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_wu70s")]
 anchor_right = 0.115
@@ -32,7 +24,6 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 40
-theme_override_styles/normal = SubResource("StyleBoxTexture_maugy")
 text = "00/00"
 horizontal_alignment = 1
 vertical_alignment = 1
