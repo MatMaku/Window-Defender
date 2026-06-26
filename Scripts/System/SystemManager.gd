@@ -6,8 +6,8 @@ signal system_target_registered(
 )
 
 signal system_integrity_changed(
-	current_integrity: int,
-	max_integrity: int
+	current_integrity: float,
+	max_integrity: float
 )
 
 signal system_destroyed
@@ -70,11 +70,11 @@ func get_attack_target_global_rect() -> Rect2:
 	return Rect2()
 
 
-func damage_system(damage_amount: int) -> int:
+func damage_system(damage_amount: float) -> float:
 	return GameState.take_system_damage(damage_amount)
 
 
-func heal_system(amount: int) -> int:
+func heal_system(amount: float) -> float:
 	return GameState.heal_system(amount)
 
 
@@ -141,8 +141,8 @@ func _on_window_closed(window: AppWindow) -> void:
 
 
 func _on_system_integrity_changed(
-	current_integrity: int,
-	max_integrity: int
+	current_integrity: float,
+	max_integrity: float
 ) -> void:
 	_update_system_window(
 		current_integrity,
@@ -163,8 +163,8 @@ func _on_system_destroyed() -> void:
 
 
 func _update_system_window(
-	current_integrity: int,
-	max_integrity: int
+	current_integrity: float,
+	max_integrity: float
 ) -> void:
 	if not is_instance_valid(_system_window):
 		return

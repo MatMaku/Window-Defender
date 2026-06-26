@@ -169,7 +169,6 @@ func _get_existing_single_instance_window(
 
 	return window
 
-
 func _is_window_above(
 	candidate: AppWindow,
 	reference_window: AppWindow
@@ -178,3 +177,23 @@ func _is_window_above(
 		return candidate.z_index > reference_window.z_index
 
 	return candidate.get_index() > reference_window.get_index()
+
+func is_global_point_covered_by_window(
+	global_point: Vector2
+) -> bool:
+	if window_layer == null:
+		return false
+
+	for child: Node in window_layer.get_children():
+		var window: AppWindow = child as AppWindow
+
+		if window == null:
+			continue
+
+		if not window.is_visible_in_tree():
+			continue
+
+		if window.get_global_rect().has_point(global_point):
+			return true
+
+	return false

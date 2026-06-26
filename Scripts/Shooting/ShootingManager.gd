@@ -18,7 +18,7 @@ signal cooldown_finished()
 
 signal shot_fired(
 	target_global_position: Vector2,
-	damage_amount: int
+	damage_amount: float
 )
 
 signal shot_rejected(reason: ShotRejectionReason)

@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://durl3mh3lugpi"]
+
+[ext_resource type="Script" uid="uid://dos0w2cynp2i2" path="res://Scripts/Virus/BasicVirus.gd" id="1_44ujv"]
+[ext_resource type="Texture2D" uid="uid://de5gndqubvfy1" path="res://Sprites/Bad Godot.png" id="1_vuhmb"]
+
+[node name="BasicVirus" type="Control" unique_id=721592266]
+layout_mode = 3
+anchor_left = -0.012
+anchor_top = -0.022000002
+anchor_right = 0.012
+anchor_bottom = 0.022000002
+offset_left = -0.9599991
+offset_top = -0.23999786
+offset_right = 0.9599991
+offset_bottom = 0.23999786
+pivot_offset = Vector2(24, 24)
+script = ExtResource("1_44ujv")
+attack_overlap_distance = 40.0
+
+[node name="VirusTexture" type="TextureRect" parent="." unique_id=18419978]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1_vuhmb")
+expand_mode = 1
+stretch_mode = 5

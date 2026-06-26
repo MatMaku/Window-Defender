@@ -2,8 +2,8 @@ extends Node
 class_name RuntimeGameState
 
 signal system_integrity_changed(
-	current_integrity: int,
-	max_integrity: int
+	current_integrity: float,
+	max_integrity: float
 )
 
 signal system_destroyed
@@ -14,7 +14,7 @@ signal ammo_changed(
 )
 
 signal weapon_stats_changed(
-	damage: int,
+	damage: float,
 	fire_cooldown_seconds: float
 )
 
@@ -30,8 +30,8 @@ signal ram_changed(
 # SYSTEM
 # -------------------------------------------------------------------
 
-var max_system_integrity: int = 100
-var current_system_integrity: int = 100
+var max_system_integrity: float = 100.0
+var current_system_integrity: float = 100.0
 
 var _system_destroyed: bool = false
 
@@ -40,7 +40,7 @@ var _system_destroyed: bool = false
 # WEAPON
 # -------------------------------------------------------------------
 
-var shot_damage: int = 1
+var shot_damage: float = 1.0
 var fire_cooldown_seconds: float = 1
 
 var max_ammo: int = 6
@@ -52,7 +52,7 @@ var current_ammo: int = 6
 # -------------------------------------------------------------------
 
 var normal_reload_duration: float = 1.45
-var perfect_reload_finish_delay: float = 0.35
+var perfect_reload_finish_delay: float = 0.10
 var reload_failure_penalty_duration: float = 0.85
 
 
@@ -74,54 +74,58 @@ func _ready() -> void:
 # SYSTEM INTEGRITY
 # -------------------------------------------------------------------
 
-func take_system_damage(amount: int) -> int:
-	if amount <= 0:
-		return 0
+func take_system_damage(amount: float) -> float:
+	if amount <= 0.0:
+		return 0.0
 
 	if _system_destroyed:
-		return 0
+		return 0.0
 
-	var previous_integrity: int = current_system_integrity
+	var previous_integrity: float = current_system_integrity
 
-	current_system_integrity = maxi(
+	current_system_integrity = maxf(
 		current_system_integrity - amount,
-		0
+		0.0
 	)
 
-	var applied_damage: int = previous_integrity - current_system_integrity
+	var applied_damage: float = (
+		previous_integrity - current_system_integrity
+	)
 
-	if applied_damage <= 0:
-		return 0
+	if applied_damage <= 0.0:
+		return 0.0
 
 	system_integrity_changed.emit(
 		current_system_integrity,
 		max_system_integrity
 	)
 
-	if current_system_integrity == 0:
+	if current_system_integrity <= 0.0:
 		_system_destroyed = true
 		system_destroyed.emit()
 
 	return applied_damage
 
 
-func heal_system(amount: int) -> int:
-	if amount <= 0:
-		return 0
+func heal_system(amount: float) -> float:
+	if amount <= 0.0:
+		return 0.0
 
 	if _system_destroyed:
-		return 0
+		return 0.0
 
-	var previous_integrity: int = current_system_integrity
+	var previous_integrity: float = current_system_integrity
 
-	current_system_integrity = mini(
+	current_system_integrity = minf(
 		current_system_integrity + amount,
 		max_system_integrity
 	)
 
-	var healed_amount: int = current_system_integrity - previous_integrity
+	var healed_amount: float = (
+		current_system_integrity - previous_integrity
+	)
 
-	if healed_amount > 0:
+	if healed_amount > 0.0:
 		system_integrity_changed.emit(
 			current_system_integrity,
 			max_system_integrity
@@ -131,15 +135,15 @@ func heal_system(amount: int) -> int:
 
 
 func set_max_system_integrity(
-	new_maximum: int,
+	new_maximum: float,
 	fill_integrity: bool = false
 ) -> void:
-	max_system_integrity = maxi(1, new_maximum)
+	max_system_integrity = maxf(1.0, new_maximum)
 
 	if fill_integrity:
 		current_system_integrity = max_system_integrity
 	else:
-		current_system_integrity = mini(
+		current_system_integrity = minf(
 			current_system_integrity,
 			max_system_integrity
 		)
@@ -151,7 +155,7 @@ func set_max_system_integrity(
 
 
 func get_system_integrity_ratio() -> float:
-	return float(current_system_integrity) / float(max_system_integrity)
+	return current_system_integrity / max_system_integrity
 
 
 func is_system_destroyed() -> bool:
@@ -205,8 +209,8 @@ func set_max_ammo(
 	)
 
 
-func set_shot_damage(new_damage: int) -> void:
-	shot_damage = maxi(1, new_damage)
+func set_shot_damage(new_damage: float) -> void:
+	shot_damage = maxf(0.01, new_damage)
 
 	weapon_stats_changed.emit(
 		shot_damage,
@@ -310,11 +314,11 @@ func get_available_ram() -> int:
 # -------------------------------------------------------------------
 
 func reset_run() -> void:
-	max_system_integrity = 100
+	max_system_integrity = 100.0
 	current_system_integrity = max_system_integrity
 	_system_destroyed = false
 
-	shot_damage = 1
+	shot_damage = 1.0
 	fire_cooldown_seconds = 0.4
 
 	max_ammo = 6

@@ -13,6 +13,8 @@
 [ext_resource type="Resource" uid="uid://43e4civ5fiho" path="res://Apps/System/SystemShortcut.tres" id="8_cj3g8"]
 [ext_resource type="Script" uid="uid://b4dmhqdc3nh6l" path="res://Scripts/Shooting/ReloadManager.gd" id="9_ynoiy"]
 [ext_resource type="Script" uid="uid://da3egfnte6tlb" path="res://Scripts/System/SystemManager.gd" id="11_ivpt1"]
+[ext_resource type="Script" uid="uid://dw8yn5834tgn0" path="res://Scripts/Virus/EnemyManager.gd" id="13_ppvbo"]
+[ext_resource type="PackedScene" uid="uid://durl3mh3lugpi" path="res://Scenes/Virus/BasicVirus.tscn" id="14_nx8j2"]
 
 [node name="Desktop" type="Control" unique_id=583655013]
 layout_mode = 3
@@ -57,6 +59,15 @@ desktop = NodePath("../..")
 window_manager = NodePath("../WindowManager")
 system_program_id = &"System"
 
+[node name="EnemyManager" type="Node" parent="Managers" unique_id=1970666892 node_paths=PackedStringArray("playfield_layer", "system_manager", "shooting_manager", "window_manager")]
+unique_name_in_owner = true
+script = ExtResource("13_ppvbo")
+playfield_layer = NodePath("../../PlayfieldLayer")
+system_manager = NodePath("../SystemManager")
+shooting_manager = NodePath("../ShootingManager")
+window_manager = NodePath("../WindowManager")
+basic_virus_scene = ExtResource("14_nx8j2")
+
 [node name="Wallpaper" type="TextureRect" parent="." unique_id=1808162104]
 z_index = -1
 layout_mode = 1
@@ -72,6 +83,17 @@ expand_mode = 3
 [node name="IconLayer" type="Control" parent="." unique_id=684964200]
 unique_name_in_owner = true
 z_index = 9
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PlayfieldLayer" type="Control" parent="." unique_id=1887425634]
+unique_name_in_owner = true
+z_index = 10
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
