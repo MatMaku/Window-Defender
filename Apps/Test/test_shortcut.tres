@@ -6,5 +6,5 @@
 [resource]
 script = ExtResource("1_ti88s")
 program_data = ExtResource("1_eixlb")
-start_position = Vector2(50, 40)
+start_position = Vector2(450, 40)
 metadata/_custom_type_script = "uid://cyngw31l11lkj"

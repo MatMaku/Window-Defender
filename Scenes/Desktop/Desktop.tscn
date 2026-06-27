@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://ba5majxrrij6h"]
 
 [ext_resource type="Script" uid="uid://ctkvsercrioxw" path="res://Scripts/Desktop/Desktop.gd" id="1_77fwn"]
-[ext_resource type="Texture2D" uid="uid://bhxkb0045o08f" path="res://Sprites/XP-4k-scaled.jpg" id="1_wi6t1"]
 [ext_resource type="Script" uid="uid://cnh1vcjudavem" path="res://Scripts/Windows/WindowManager.gd" id="2_k5q52"]
 [ext_resource type="PackedScene" uid="uid://bj8opkohmwxuj" path="res://Scenes/Desktop/DesktopExecutable.tscn" id="2_rj8ej"]
 [ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="3_x17rd"]
@@ -15,6 +14,7 @@
 [ext_resource type="Script" uid="uid://da3egfnte6tlb" path="res://Scripts/System/SystemManager.gd" id="11_ivpt1"]
 [ext_resource type="Script" uid="uid://dw8yn5834tgn0" path="res://Scripts/Virus/EnemyManager.gd" id="13_ppvbo"]
 [ext_resource type="PackedScene" uid="uid://durl3mh3lugpi" path="res://Scenes/Virus/BasicVirus.tscn" id="14_nx8j2"]
+[ext_resource type="Texture2D" uid="uid://cmdvk34nimgj8" path="res://Sprites/Wallpaper.png" id="15_ppvbo"]
 
 [node name="Desktop" type="Control" unique_id=583655013]
 layout_mode = 3
@@ -77,7 +77,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("1_wi6t1")
+texture = ExtResource("15_ppvbo")
 expand_mode = 3
 
 [node name="IconLayer" type="Control" parent="." unique_id=684964200]

@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://dccdwjcis2v1s" path="res://Scripts/Shooting/ShootingWindow.gd" id="3_gwdb8"]
 [ext_resource type="Texture2D" uid="uid://bdor4452mbnwj" path="res://Sprites/Mira.png" id="3_iwu7j"]
 [ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="3_jo36e"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="4_ivr68"]
 [ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="4_ytpol"]
 [ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="5_gwdb8"]
 
@@ -44,6 +45,8 @@ offset_bottom = -25.480042
 theme_override_styles/panel = SubResource("StyleBoxTexture_iwu7j")
 script = ExtResource("3_gwdb8")
 feedback_expand_duration = 0.06
+shake_duration = 0.1
+shake_distance = 3.0
 
 [node name="TitleLabel" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="1" unique_id=278973000]
 text = "Shooting.exe"
@@ -55,6 +58,8 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_ivr68")
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_jo36e")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_ytpol")
 theme_override_styles/hover = SubResource("StyleBoxTexture_5t8gp")

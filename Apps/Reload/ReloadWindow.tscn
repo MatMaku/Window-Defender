@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://ca0ygtj47clep" path="res://Scripts/Shooting/ReloadWindow.gd" id="2_c28hg"]
 [ext_resource type="Texture2D" uid="uid://57lclbru5xvk" path="res://Sprites/Windows/Windows_Inner_Frame_Inverted.png" id="2_s32d3"]
 [ext_resource type="Texture2D" uid="uid://c4v4oxjwsduig" path="res://Sprites/Windows/Windows_Progress_Fill.png" id="3_c28hg"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="3_l1xvm"]
 [ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="4_l1xvm"]
 [ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="5_wbdtx"]
 [ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="6_2r45y"]
@@ -66,7 +67,8 @@ size_flags_horizontal = 4
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_fonts/font = ExtResource("3_l1xvm")
+theme_override_font_sizes/font_size = 25
 text = "%100"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -100,6 +102,8 @@ color = Color(1, 1, 0, 0.39215687)
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_l1xvm")
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_0c3lk")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_eqvyg")
 theme_override_styles/hover = SubResource("StyleBoxTexture_sjrmp")

@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://cu81w1rbrbgmk" path="res://icon.svg" id="2_2r6vv"]
 [ext_resource type="Texture2D" uid="uid://c4v4oxjwsduig" path="res://Sprites/Windows/Windows_Progress_Fill.png" id="3_vm6a8"]
 [ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="5_65e2x"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="5_y01op"]
 [ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="6_yckal"]
 [ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="7_rtkyj"]
 
@@ -21,6 +22,13 @@ texture_margin_left = 5.0
 texture_margin_top = 5.0
 texture_margin_right = 5.0
 texture_margin_bottom = 5.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_nx8j2"]
+font = ExtResource("5_y01op")
+font_size = 20
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.19607843)
+shadow_offset = Vector2(-1, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y01op"]
 texture = ExtResource("5_65e2x")
@@ -76,6 +84,7 @@ expand_mode = 3
 unique_name_in_owner = true
 layout_mode = 2
 text = "Godot.exe"
+label_settings = SubResource("LabelSettings_nx8j2")
 
 [node name="ButtonHBox" type="HBoxContainer" parent="MainVBox/TitleBar" unique_id=1257336230]
 unique_name_in_owner = true
@@ -87,6 +96,8 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("5_y01op")
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_y01op")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_qe7oj")
 theme_override_styles/hover = SubResource("StyleBoxTexture_4j013")

@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://b1yvog8tr0732" path="res://Sprites/Computer Image.png" id="3_2u5vb"]
 [ext_resource type="Texture2D" uid="uid://57lclbru5xvk" path="res://Sprites/Windows/Windows_Inner_Frame_Inverted.png" id="3_xof0i"]
 [ext_resource type="Texture2D" uid="uid://c4v4oxjwsduig" path="res://Sprites/Windows/Windows_Progress_Fill.png" id="4_2u5vb"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="4_ukwek"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ukwek"]
 texture = ExtResource("3_xof0i")
@@ -49,6 +50,8 @@ expand_mode = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_ukwek")
+theme_override_font_sizes/font_size = 20
 text = "SYSTEM INTEGRITY: 100%"
 horizontal_alignment = 1
 

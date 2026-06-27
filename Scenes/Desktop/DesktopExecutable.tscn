@@ -2,6 +2,14 @@
 
 [ext_resource type="Script" uid="uid://b8fwbkqpm8swh" path="res://Scripts/Desktop/DesktopExecutable.gd" id="1_j7khx"]
 [ext_resource type="Texture2D" uid="uid://cu81w1rbrbgmk" path="res://icon.svg" id="2_qane0"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="3_qane0"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_4j013"]
+font = ExtResource("3_qane0")
+font_size = 20
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.19607843)
+shadow_offset = Vector2(-1, 1)
 
 [node name="DesktopExecutable" type="Control" unique_id=919256029]
 layout_mode = 3
@@ -33,5 +41,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 text = "Shooting.exe"
+label_settings = SubResource("LabelSettings_4j013")
 horizontal_alignment = 1
 autowrap_mode = 3

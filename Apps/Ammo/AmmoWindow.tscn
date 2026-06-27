@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_wu70s"]
 [ext_resource type="Script" uid="uid://clwf4xxu463g1" path="res://Scripts/Shooting/AmmoWindow.gd" id="2_0awnj"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="3_0awnj"]
 
 [node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_wu70s")]
 anchor_right = 0.115
@@ -23,7 +24,8 @@ mouse_filter = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 40
+theme_override_fonts/font = ExtResource("3_0awnj")
+theme_override_font_sizes/font_size = 50
 text = "00/00"
 horizontal_alignment = 1
 vertical_alignment = 1
