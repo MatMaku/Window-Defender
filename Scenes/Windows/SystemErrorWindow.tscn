@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://04o78ttgv4g5"]
+
+[ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_xkwqn"]
+[ext_resource type="Script" uid="uid://dld72jmoeb0ta" path="res://Scripts/Windows/SystemErrorWindow.gd" id="2_6b3l4"]
+[ext_resource type="Texture2D" uid="uid://b08ldpxkbst47" path="res://Sprites/Icons/Error Icon.png" id="3_n7rbc"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="4_4olbq"]
+[ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="5_fb0tn"]
+[ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="6_0ican"]
+[ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="7_0wbny"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_maugy"]
+texture = ExtResource("5_fb0tn")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_uylti"]
+texture = ExtResource("6_0ican")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bjlfa"]
+texture = ExtResource("7_0wbny")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="SystemErrorWindow" unique_id=1098355527 instance=ExtResource("1_xkwqn")]
+offset_right = 33.600006
+offset_bottom = 2.1999817
+script = ExtResource("2_6b3l4")
+
+[node name="WindowIcon" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="0" unique_id=383002932]
+texture = ExtResource("3_n7rbc")
+
+[node name="TitleLabel" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="1" unique_id=278973000]
+text = "ERROR"
+
+[node name="ErrorContent" type="VBoxContainer" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=1206800347]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ErrorMessageLabel" type="Label" parent="MainVBox/ContentRoot/ErrorContent" index="0" unique_id=1302038310]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(360, 150)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_4olbq")
+theme_override_font_sizes/font_size = 20
+text = "NOT ENOUGH RAM TO OPEN:
+
+SHOOTING.EXE 
+
+REQUIRED: 20 RAM
+AVAILABLE: 5 RAM"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="OkButton" type="Button" parent="MainVBox/ContentRoot/ErrorContent" index="1" unique_id=2024117680]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_4olbq")
+theme_override_styles/normal = SubResource("StyleBoxTexture_maugy")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_uylti")
+theme_override_styles/hover = SubResource("StyleBoxTexture_bjlfa")
+text = "OK"

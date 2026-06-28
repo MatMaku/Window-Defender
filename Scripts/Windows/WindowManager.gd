@@ -9,12 +9,70 @@ signal window_opened(
 signal window_closed(window: AppWindow)
 
 @export var window_layer: Control
+@export var ram_manager: RamManager
+@export var system_error_window_scene: PackedScene
 
 var _z_index_counter: int = 100
-var _single_instance_windows: Dictionary[StringName, AppWindow] = {}
+
+var _single_instance_windows: Dictionary = {}
+var _error_window: SystemErrorWindow
 
 
-func open_program(program_data: ProgramData) -> AppWindow:
+func _ready() -> void:
+	if window_layer == null:
+		window_layer = (
+			get_node_or_null("../WindowLayer")
+			as Control
+		)
+
+	if ram_manager == null:
+		ram_manager = (
+			get_node_or_null("../RamManager")
+			as RamManager
+		)
+
+	if window_layer == null:
+		push_error(
+			"WindowManager could not find WindowLayer."
+		)
+
+	if ram_manager == null:
+		push_error(
+			"WindowManager could not find RamManager."
+		)
+
+
+func _exit_tree() -> void:
+	if window_layer == null:
+		return
+
+	if ram_manager == null:
+		return
+
+	for child: Node in window_layer.get_children():
+		var window: AppWindow = child as AppWindow
+
+		if window == null:
+			continue
+
+		_release_ram_for_window(window)
+
+
+func open_program(
+	program_data: ProgramData
+) -> AppWindow:
+	if window_layer == null:
+		push_error(
+			"Cannot open program: WindowLayer is not assigned."
+		)
+		return null
+
+	if ram_manager == null:
+		push_error(
+			"Cannot open program: RamManager is not assigned."
+		)
+		return null
+
 	if program_data == null:
 		push_warning("Cannot open null ProgramData.")
 		return null
@@ -37,11 +95,33 @@ func open_program(program_data: ProgramData) -> AppWindow:
 			focus_window(existing_window)
 			return existing_window
 
+	var ram_cost: int = maxi(
+		0,
+		program_data.ram_cost
+	)
+
+	if not ram_manager.can_reserve_ram(ram_cost):
+		_show_insufficient_ram_error(program_data)
+		return null
+
+	var open_duration_multiplier: float = (
+		ram_manager.get_open_duration_multiplier_for_cost(
+			ram_cost
+		)
+	)
+
+	if not ram_manager.reserve_ram(ram_cost):
+		_show_insufficient_ram_error(program_data)
+		return null
+
 	var window: AppWindow = (
-		program_data.window_scene.instantiate() as AppWindow
+		program_data.window_scene.instantiate()
+		as AppWindow
 	)
 
 	if window == null:
+		ram_manager.release_ram(ram_cost)
+
 		push_error(
 			"Window scene for '%s' must inherit from AppWindow."
 			% program_data.display_name
@@ -50,6 +130,7 @@ func open_program(program_data: ProgramData) -> AppWindow:
 
 	window_layer.add_child(window)
 
+	window.allocated_ram = ram_cost
 	window.setup(program_data)
 	window.position = _get_centered_position(window)
 
@@ -59,7 +140,9 @@ func open_program(program_data: ProgramData) -> AppWindow:
 	_register_window(program_data, window)
 	focus_window(window)
 
-	window.play_open_animation()
+	window.play_open_animation(
+		open_duration_multiplier
+	)
 
 	window_opened.emit(
 		window,
@@ -67,6 +150,57 @@ func open_program(program_data: ProgramData) -> AppWindow:
 	)
 
 	return window
+
+
+func show_system_error(
+	error_title: String,
+	error_message: String
+) -> void:
+	if system_error_window_scene == null:
+		push_error(
+			"WindowManager requires SystemErrorWindow scene."
+		)
+		return
+
+	if is_instance_valid(_error_window):
+		_error_window.present_error(
+			error_title,
+			error_message
+		)
+
+		focus_window(_error_window)
+		return
+
+	var error_window: SystemErrorWindow = (
+		system_error_window_scene.instantiate()
+		as SystemErrorWindow
+	)
+
+	if error_window == null:
+		push_error(
+			"System error window scene must inherit "
+			+ "from SystemErrorWindow."
+		)
+		return
+
+	window_layer.add_child(error_window)
+
+	_error_window = error_window
+
+	error_window.position = _get_centered_position(
+		error_window
+	)
+
+	error_window.focus_requested.connect(focus_window)
+	error_window.close_requested.connect(close_window)
+
+	error_window.present_error(
+		error_title,
+		error_message
+	)
+
+	focus_window(error_window)
+	error_window.play_open_animation()
 
 
 func focus_window(window: AppWindow) -> void:
@@ -87,9 +221,13 @@ func close_window(window: AppWindow) -> void:
 	if window == null:
 		return
 
-	window_closed.emit(window)
+	if window == _error_window:
+		_error_window = null
 
 	_unregister_window(window)
+	_release_ram_for_window(window)
+
+	window_closed.emit(window)
 	window.queue_free()
 
 
@@ -113,16 +251,66 @@ func get_windows_above(
 		if not candidate.is_visible_in_tree():
 			continue
 
-		if _is_window_above(candidate, reference_window):
+		if _is_window_above(
+			candidate,
+			reference_window
+		):
 			windows_above.append(candidate)
 
 	return windows_above
 
 
-func _get_centered_position(window: AppWindow) -> Vector2:
+func is_global_point_covered_by_window(
+	global_point: Vector2
+) -> bool:
 	if window_layer == null:
-		return Vector2.ZERO
+		return false
 
+	for child: Node in window_layer.get_children():
+		var window: AppWindow = child as AppWindow
+
+		if window == null:
+			continue
+
+		if not window.is_visible_in_tree():
+			continue
+
+		if window.get_global_rect().has_point(global_point):
+			return true
+
+	return false
+
+
+func _show_insufficient_ram_error(
+	program_data: ProgramData
+) -> void:
+	var required_ram: int = maxi(
+		0,
+		program_data.ram_cost
+	)
+
+	var available_ram: int = GameState.get_available_ram()
+
+	var error_message: String = (
+		"NOT ENOUGH RAM TO OPEN:\n\n"
+		+ "%s\n\n"
+		+ "REQUIRED: %d RAM\n"
+		+ "AVAILABLE: %d RAM"
+	) % [
+		program_data.display_name.to_upper(),
+		required_ram,
+		available_ram
+	]
+
+	show_system_error(
+		"SYSTEM ERROR",
+		error_message
+	)
+
+
+func _get_centered_position(
+	window: AppWindow
+) -> Vector2:
 	var layer_size: Vector2 = window_layer.size
 	var window_size: Vector2 = window.size
 
@@ -148,11 +336,37 @@ func _unregister_window(window: AppWindow) -> void:
 	if window.program_id == StringName():
 		return
 
-	if not _single_instance_windows.has(window.program_id):
+	if not _single_instance_windows.has(
+		window.program_id
+	):
 		return
 
-	if _single_instance_windows[window.program_id] == window:
-		_single_instance_windows.erase(window.program_id)
+	var registered_window: AppWindow = (
+		_single_instance_windows[
+			window.program_id
+		]
+		as AppWindow
+	)
+
+	if registered_window == window:
+		_single_instance_windows.erase(
+			window.program_id
+		)
+
+
+func _release_ram_for_window(
+	window: AppWindow
+) -> void:
+	if ram_manager == null:
+		return
+
+	var ram_cost: int = window.allocated_ram
+
+	if ram_cost <= 0:
+		return
+
+	ram_manager.release_ram(ram_cost)
+	window.allocated_ram = 0
 
 
 func _get_existing_single_instance_window(
@@ -161,13 +375,17 @@ func _get_existing_single_instance_window(
 	if not _single_instance_windows.has(program_id):
 		return null
 
-	var window: AppWindow = _single_instance_windows[program_id]
+	var window: AppWindow = (
+		_single_instance_windows[program_id]
+		as AppWindow
+	)
 
 	if not is_instance_valid(window):
 		_single_instance_windows.erase(program_id)
 		return null
 
 	return window
+
 
 func _is_window_above(
 	candidate: AppWindow,
@@ -177,23 +395,3 @@ func _is_window_above(
 		return candidate.z_index > reference_window.z_index
 
 	return candidate.get_index() > reference_window.get_index()
-
-func is_global_point_covered_by_window(
-	global_point: Vector2
-) -> bool:
-	if window_layer == null:
-		return false
-
-	for child: Node in window_layer.get_children():
-		var window: AppWindow = child as AppWindow
-
-		if window == null:
-			continue
-
-		if not window.is_visible_in_tree():
-			continue
-
-		if window.get_global_rect().has_point(global_point):
-			return true
-
-	return false

@@ -254,17 +254,23 @@ func try_spend_crypto(amount: int) -> bool:
 
 	return true
 
-
 # -------------------------------------------------------------------
 # RAM
 # -------------------------------------------------------------------
 
-func try_allocate_ram(amount: int) -> bool:
-	if amount <= 0:
+func can_allocate_ram(amount: int) -> bool:
+	if amount < 0:
 		return false
 
-	if used_ram + amount > max_ram:
+	return used_ram + amount <= max_ram
+
+
+func try_allocate_ram(amount: int) -> bool:
+	if not can_allocate_ram(amount):
 		return false
+
+	if amount == 0:
+		return true
 
 	used_ram += amount
 
@@ -306,8 +312,17 @@ func set_max_ram(new_maximum: int) -> void:
 
 
 func get_available_ram() -> int:
-	return max_ram - used_ram
+	return maxi(
+		0,
+		max_ram - used_ram
+	)
 
+
+func get_available_ram_ratio() -> float:
+	if max_ram <= 0:
+		return 0.0
+
+	return float(get_available_ram()) / float(max_ram)
 
 # -------------------------------------------------------------------
 # RESET

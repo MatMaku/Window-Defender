@@ -12,7 +12,7 @@ signal executable_spawned(
 @onready var icon_layer: Control = %IconLayer
 @onready var window_manager: WindowManager = %WindowManager
 
-var _executables_by_program_id: Dictionary[StringName, DesktopExecutable] = {}
+var _executables_by_program_id: Dictionary = {}
 
 
 func _ready() -> void:
@@ -25,7 +25,10 @@ func get_executable_by_program_id(
 	if not _executables_by_program_id.has(program_id):
 		return null
 
-	var executable: DesktopExecutable = _executables_by_program_id[program_id]
+	var executable: DesktopExecutable = (
+		_executables_by_program_id[program_id]
+		as DesktopExecutable
+	)
 
 	if not is_instance_valid(executable):
 		_executables_by_program_id.erase(program_id)
@@ -39,24 +42,33 @@ func _spawn_shortcuts() -> void:
 		_spawn_shortcut(shortcut)
 
 
-func _spawn_shortcut(shortcut: DesktopShortcutData) -> void:
+func _spawn_shortcut(
+	shortcut: DesktopShortcutData
+) -> void:
 	if shortcut == null:
 		return
 
 	if shortcut.program_data == null:
-		push_warning("DesktopShortcutData has no ProgramData assigned.")
+		push_warning(
+			"DesktopShortcutData has no ProgramData assigned."
+		)
 		return
 
 	if executable_scene == null:
-		push_error("Desktop executable scene is not assigned.")
+		push_error(
+			"Desktop executable scene is not assigned."
+		)
 		return
 
 	var executable: DesktopExecutable = (
-		executable_scene.instantiate() as DesktopExecutable
+		executable_scene.instantiate()
+		as DesktopExecutable
 	)
 
 	if executable == null:
-		push_error("Executable scene must inherit from DesktopExecutable.")
+		push_error(
+			"Executable scene must inherit from DesktopExecutable."
+		)
 		return
 
 	icon_layer.add_child(executable)
