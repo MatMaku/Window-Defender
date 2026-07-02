@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://c7wlsl1ffinrj" path="res://Sprites/Defender Icon.png" id="6_qngra"]
 [ext_resource type="Texture2D" uid="uid://57lclbru5xvk" path="res://Sprites/Windows/Windows_Inner_Frame_Inverted.png" id="7_a4ffc"]
 [ext_resource type="Texture2D" uid="uid://demdir4mvktbf" path="res://Sprites/Windows/StartMenu.png" id="8_xj165"]
+[ext_resource type="Script" uid="uid://b4htrghkgvf4r" path="res://Scripts/Taskbar/TaskbarSystemTray.gd" id="9_fn2ch"]
 [ext_resource type="FontFile" uid="uid://cvhrb0djq3hfq" path="res://Fonts/Microsoft Sans Serif.ttf" id="9_gq2or"]
 [ext_resource type="Texture2D" uid="uid://c4v4oxjwsduig" path="res://Sprites/Windows/Windows_Progress_Fill.png" id="10_gq2or"]
 [ext_resource type="Texture2D" uid="uid://dbc3fl0f1jf1i" path="res://Sprites/Icons/Load Icon.png" id="11_mbvsq"]
@@ -50,6 +51,21 @@ texture_margin_left = 5.0
 texture_margin_top = 5.0
 texture_margin_right = 5.0
 texture_margin_bottom = 5.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_b3jmh"]
+font = ExtResource("2_a4ffc")
+font_size = 20
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_2clil"]
+font = ExtResource("2_a4ffc")
+font_size = 20
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_802k2"]
+font = ExtResource("2_a4ffc")
+font_size = 20
+font_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_a4ffc"]
 texture = ExtResource("8_xj165")
@@ -141,7 +157,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 92.0
 offset_top = 4.0
-offset_right = -190.0
+offset_right = -350.0
 offset_bottom = -4.0
 mouse_filter = 0
 theme_override_constants/separation = 2
@@ -153,11 +169,39 @@ anchors_preset = -1
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -184.0
+offset_left = -350.0
 offset_top = 3.0
 offset_right = -3.0
 offset_bottom = -3.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_f5l5t")
+script = ExtResource("9_fn2ch")
+
+[node name="RamLabel" type="Label" parent="TaskbarBar/SystemTray" unique_id=1354015561]
+unique_name_in_owner = true
+layout_mode = 2
+offset_transform_enabled = true
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "RAM 100/100"
+label_settings = SubResource("LabelSettings_b3jmh")
+
+[node name="CryptoLabel" type="Label" parent="TaskbarBar/SystemTray" unique_id=194764745]
+layout_mode = 2
+offset_transform_enabled = true
+offset_transform_position = Vector2(15, 0)
+text = "$10000"
+label_settings = SubResource("LabelSettings_2clil")
+horizontal_alignment = 1
+
+[node name="ClockLabel" type="Label" parent="TaskbarBar/SystemTray" unique_id=1527173067]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "12:00 PM"
+label_settings = SubResource("LabelSettings_802k2")
+horizontal_alignment = 2
+
+[node name="ClockTimer" type="Timer" parent="TaskbarBar/SystemTray" unique_id=314646239]
+unique_name_in_owner = true
 
 [node name="StartMenu" type="PanelContainer" parent="." unique_id=204891514]
 unique_name_in_owner = true
