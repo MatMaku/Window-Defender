@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://c7cowr46oepbr"]
+
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="1_noobv"]
+[ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="2_wdxgq"]
+[ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="3_ornxy"]
+[ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="4_qvnux"]
+[ext_resource type="Texture2D" uid="uid://bl2teg5rnrslj" path="res://Sprites/Icons/Shooting Icon.png" id="5_2a6gs"]
+[ext_resource type="Script" uid="uid://dw5uleqho358f" path="res://Scripts/Taskbar/TaskbarAppButton.gd" id="6_wdxgq"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y01op"]
+texture = ExtResource("2_wdxgq")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qe7oj"]
+texture = ExtResource("3_ornxy")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4j013"]
+texture = ExtResource("4_qvnux")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="TaskbarAppButton" type="Button" unique_id=212887630]
+custom_minimum_size = Vector2(50, 28)
+custom_maximum_size = Vector2(150, 28)
+offset_right = 150.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_noobv")
+theme_override_styles/normal = SubResource("StyleBoxTexture_y01op")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_qe7oj")
+theme_override_styles/hover = SubResource("StyleBoxTexture_4j013")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_qe7oj")
+toggle_mode = true
+text = "Shooting.exe"
+icon = ExtResource("5_2a6gs")
+clip_text = true
+expand_icon = true
+script = ExtResource("6_wdxgq")

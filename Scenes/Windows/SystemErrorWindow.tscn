@@ -42,7 +42,7 @@ text = "ERROR"
 
 [node name="ErrorContent" type="VBoxContainer" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=1206800347]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 5
 alignment = 1
 
 [node name="ErrorMessageLabel" type="Label" parent="MainVBox/ContentRoot/ErrorContent" index="0" unique_id=1302038310]
@@ -57,7 +57,9 @@ text = "NOT ENOUGH RAM TO OPEN:
 SHOOTING.EXE 
 
 REQUIRED: 20 RAM
-AVAILABLE: 5 RAM"
+AVAILABLE: 5 RAM
+
+TRY CLOSING PROGRAMS"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3

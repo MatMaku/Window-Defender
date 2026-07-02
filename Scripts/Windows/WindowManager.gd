@@ -8,6 +8,8 @@ signal window_opened(
 
 signal window_closed(window: AppWindow)
 
+signal window_focused(window: AppWindow)
+
 @export var window_layer: Control
 @export var ram_manager: RamManager
 @export var system_error_window_scene: PackedScene
@@ -215,6 +217,7 @@ func focus_window(window: AppWindow) -> void:
 			window,
 			window_layer.get_child_count() - 1
 		)
+	window_focused.emit(window)
 
 
 func close_window(window: AppWindow) -> void:
@@ -295,7 +298,9 @@ func _show_insufficient_ram_error(
 		"NOT ENOUGH RAM TO OPEN:\n\n"
 		+ "%s\n\n"
 		+ "REQUIRED: %d RAM\n"
-		+ "AVAILABLE: %d RAM"
+		+ "AVAILABLE: %d RAM\n"
+		+ "%s\n\n"
+		+ "TRY CLOSING PROGRAMS"
 	) % [
 		program_data.display_name.to_upper(),
 		required_ram,
