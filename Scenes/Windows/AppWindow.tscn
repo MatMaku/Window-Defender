@@ -108,3 +108,9 @@ text = "X"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="OpeningInputBlocker" type="Control" parent="." unique_id=507452510]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+focus_mode = 2

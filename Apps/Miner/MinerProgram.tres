@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://dbmawo3dlqdo7"]
+
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_oj65g"]
+[ext_resource type="Texture2D" uid="uid://c1xbg8e71of47" path="res://Sprites/Icons/Miner Icon.png" id="1_t0242"]
+[ext_resource type="PackedScene" uid="uid://t224vv23dvmn" path="res://Apps/Miner/MinerWindow.tscn" id="3_xdfro"]
+
+[resource]
+script = ExtResource("1_oj65g")
+program_id = &"Miner"
+display_name = "Miner.exe"
+icon = ExtResource("1_t0242")
+window_scene = ExtResource("3_xdfro")
+default_window_size = Vector2(220, 260)
+ram_cost = 30
+metadata/_custom_type_script = "uid://cwpxv30ekbea1"

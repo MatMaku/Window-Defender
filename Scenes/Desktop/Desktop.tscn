@@ -10,6 +10,7 @@
 [ext_resource type="Resource" uid="uid://cmmihnrelh2tw" path="res://Apps/Reload/ReloadShortcut.tres" id="7_li5bo"]
 [ext_resource type="Script" uid="uid://c3ffiaivx0vxc" path="res://Scripts/Shooting/ShootingManager.gd" id="7_lrxve"]
 [ext_resource type="Resource" uid="uid://43e4civ5fiho" path="res://Apps/System/SystemShortcut.tres" id="8_cj3g8"]
+[ext_resource type="Resource" uid="uid://btkukpr0m6uen" path="res://Apps/Miner/MinerShortcut.tres" id="9_b33g3"]
 [ext_resource type="Script" uid="uid://b4dmhqdc3nh6l" path="res://Scripts/Shooting/ReloadManager.gd" id="9_ynoiy"]
 [ext_resource type="PackedScene" uid="uid://04o78ttgv4g5" path="res://Scenes/Windows/SystemErrorWindow.tscn" id="10_b46w2"]
 [ext_resource type="Script" uid="uid://da3egfnte6tlb" path="res://Scripts/System/SystemManager.gd" id="11_ivpt1"]
@@ -31,7 +32,7 @@ grow_vertical = 2
 pivot_offset = Vector2(960, 540)
 script = ExtResource("1_77fwn")
 executable_scene = ExtResource("2_rj8ej")
-shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv"), ExtResource("5_coqgv"), ExtResource("6_dq2pw"), ExtResource("7_li5bo"), ExtResource("8_cj3g8")])
+shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv"), ExtResource("5_coqgv"), ExtResource("6_dq2pw"), ExtResource("7_li5bo"), ExtResource("8_cj3g8"), ExtResource("9_b33g3")])
 
 [node name="Managers" type="Node" parent="." unique_id=1878957366]
 
@@ -78,6 +79,7 @@ basic_virus_scene = ExtResource("14_nx8j2")
 [node name="RamManager" type="Node" parent="Managers" unique_id=917040370]
 unique_name_in_owner = true
 script = ExtResource("15_nx8j2")
+maximum_open_duration_multiplier = 20.0
 
 [node name="TaskbarManager" type="Node" parent="Managers" unique_id=2048218033 node_paths=PackedStringArray("window_manager", "taskbar")]
 unique_name_in_owner = true

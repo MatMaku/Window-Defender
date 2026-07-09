@@ -298,8 +298,7 @@ func _show_insufficient_ram_error(
 		"NOT ENOUGH RAM TO OPEN:\n\n"
 		+ "%s\n\n"
 		+ "REQUIRED: %d RAM\n"
-		+ "AVAILABLE: %d RAM\n"
-		+ "%s\n\n"
+		+ "AVAILABLE: %d RAM\n\n"
 		+ "TRY CLOSING PROGRAMS"
 	) % [
 		program_data.display_name.to_upper(),

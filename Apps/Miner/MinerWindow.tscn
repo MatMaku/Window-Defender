@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://t224vv23dvmn"]
+
+[ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_a1id7"]
+[ext_resource type="Script" uid="uid://86nsgd2pg4th" path="res://Scripts/Miner/MinerWindow.gd" id="2_3qru6"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="2_bnur4"]
+[ext_resource type="Texture2D" uid="uid://byydjnwmnep5d" path="res://Sprites/MinerAnim/1.png" id="3_ujnam"]
+[ext_resource type="Texture2D" uid="uid://57lclbru5xvk" path="res://Sprites/Windows/Windows_Inner_Frame_Inverted.png" id="3_uours"]
+[ext_resource type="Texture2D" uid="uid://bgksnpks3ohk" path="res://Sprites/MinerAnim/2.png" id="4_3srbm"]
+[ext_resource type="Texture2D" uid="uid://c4v4oxjwsduig" path="res://Sprites/Windows/Windows_Progress_Fill.png" id="4_koxmn"]
+[ext_resource type="Texture2D" uid="uid://bdffyjgu48ahm" path="res://Sprites/MinerAnim/3.png" id="5_12w4h"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vb7ib"]
+texture = ExtResource("3_uours")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3qru6"]
+texture = ExtResource("4_koxmn")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_a1id7")]
+anchor_right = 0.115
+anchor_bottom = 0.24100001
+offset_right = -0.80000305
+offset_bottom = -0.27999878
+script = ExtResource("2_3qru6")
+crypto_per_tick = 1
+mining_interval_seconds = 5.0
+start_after_open_animation = true
+mining_frames = Array[Texture2D]([ExtResource("3_ujnam"), ExtResource("4_3srbm"), ExtResource("5_12w4h")])
+mining_animation_frames_per_second = 2.0
+animate_only_while_mining = true
+
+[node name="MinerContent" type="VBoxContainer" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=672507327]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="MainVBox/ContentRoot/MinerContent" index="0" unique_id=424985990]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_bnur4")
+theme_override_font_sizes/font_size = 20
+text = "MINER BOOTING..."
+horizontal_alignment = 1
+
+[node name="MiningAnimationTexture" type="TextureRect" parent="MainVBox/ContentRoot/MinerContent" index="1" unique_id=1114927393]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("3_ujnam")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RateLabel" type="Label" parent="MainVBox/ContentRoot/MinerContent" index="2" unique_id=376420460]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_bnur4")
+theme_override_font_sizes/font_size = 20
+text = "RATE: $1 / 1.0s"
+horizontal_alignment = 1
+
+[node name="MiningProgressBar" type="ProgressBar" parent="MainVBox/ContentRoot/MinerContent" index="3" unique_id=1389629586]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxTexture_vb7ib")
+theme_override_styles/fill = SubResource("StyleBoxTexture_3qru6")
+show_percentage = false

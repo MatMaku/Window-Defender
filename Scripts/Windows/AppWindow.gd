@@ -4,6 +4,9 @@ class_name AppWindow
 signal focus_requested(window: AppWindow)
 signal close_requested(window: AppWindow)
 
+signal opening_started(window: AppWindow)
+signal opening_finished(window: AppWindow)
+
 @export var draggable: bool = true
 @export var keep_inside_parent: bool = true
 
@@ -23,12 +26,18 @@ signal close_requested(window: AppWindow)
 @onready var close_button: Button = %CloseButton
 @onready var content_root: Control = %ContentRoot
 
+@onready var opening_input_blocker: Control = %OpeningInputBlocker
+
 var program_id: StringName
 var allocated_ram: int = 0
 
 var _is_dragging: bool = false
+var _is_opening: bool = false
+
 var _drag_offset: Vector2 = Vector2.ZERO
 var _open_tween: Tween
+
+var _open_target_modulate: Color = Color.WHITE
 
 
 func _ready() -> void:
@@ -38,6 +47,16 @@ func _ready() -> void:
 	title_bar.gui_input.connect(_on_title_bar_gui_input)
 
 	close_button.pressed.connect(_on_close_button_pressed)
+
+	opening_input_blocker.mouse_filter = (
+		Control.MOUSE_FILTER_STOP
+	)
+
+	opening_input_blocker.focus_mode = (
+		Control.FOCUS_ALL
+	)
+
+	opening_input_blocker.visible = false
 
 
 func setup(program_data: ProgramData) -> void:
@@ -56,7 +75,10 @@ func setup(program_data: ProgramData) -> void:
 func play_open_animation(
 	duration_multiplier: float = 1.0
 ) -> void:
+	_set_opening_state(true)
+
 	if not use_open_animation:
+		_finish_open_animation()
 		return
 
 	if _open_tween != null and _open_tween.is_running():
@@ -75,12 +97,12 @@ func play_open_animation(
 	pivot_offset = size * 0.5
 	scale = open_start_scale
 
-	var original_modulate: Color = modulate
+	_open_target_modulate = modulate
 
 	modulate = Color(
-		original_modulate.r,
-		original_modulate.g,
-		original_modulate.b,
+		_open_target_modulate.r,
+		_open_target_modulate.g,
+		_open_target_modulate.b,
 		0.0
 	)
 
@@ -101,7 +123,7 @@ func play_open_animation(
 	_open_tween.tween_property(
 		self,
 		"modulate:a",
-		original_modulate.a,
+		_open_target_modulate.a,
 		effective_duration
 	).set_trans(
 		Tween.TRANS_SINE
@@ -109,8 +131,49 @@ func play_open_animation(
 		Tween.EASE_OUT
 	)
 
+	_open_tween.finished.connect(
+		_finish_open_animation
+	)
+
+
+func is_opening() -> bool:
+	return _is_opening
+
+
+func _finish_open_animation() -> void:
+	scale = Vector2.ONE
+	modulate = _open_target_modulate
+
+	_set_opening_state(false)
+
+	opening_finished.emit(self)
+
+
+func _set_opening_state(active: bool) -> void:
+	if _is_opening == active:
+		return
+
+	_is_opening = active
+
+	if active:
+		_is_dragging = false
+
+		opening_input_blocker.visible = true
+		opening_input_blocker.grab_focus()
+
+		opening_started.emit(self)
+		return
+
+	opening_input_blocker.visible = false
+
+	if opening_input_blocker.has_focus():
+		opening_input_blocker.release_focus()
+
 
 func _gui_input(event: InputEvent) -> void:
+	if _is_opening:
+		return
+
 	if event is InputEventMouseButton:
 		var mouse_button: InputEventMouseButton = event
 
@@ -124,6 +187,9 @@ func _gui_input(event: InputEvent) -> void:
 func _on_title_bar_gui_input(
 	event: InputEvent
 ) -> void:
+	if _is_opening:
+		return
+
 	if not draggable:
 		return
 
@@ -141,12 +207,14 @@ func _handle_title_bar_mouse_button(
 
 	if event.pressed:
 		_is_dragging = true
+
 		_drag_offset = (
 			global_position
 			- get_global_mouse_position()
 		)
 
 		focus_requested.emit(self)
+
 		accept_event()
 		return
 
@@ -157,6 +225,9 @@ func _handle_title_bar_mouse_button(
 func _handle_title_bar_mouse_motion(
 	_event: InputEventMouseMotion
 ) -> void:
+	if _is_opening:
+		return
+
 	if not _is_dragging:
 		return
 
@@ -201,4 +272,7 @@ func _get_clamped_global_position(
 
 
 func _on_close_button_pressed() -> void:
+	if _is_opening:
+		return
+
 	close_requested.emit(self)

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="DesktopShortcutData" format=3 uid="uid://btkukpr0m6uen"]
+
+[ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="1_ntvmp"]
+[ext_resource type="Resource" uid="uid://dbmawo3dlqdo7" path="res://Apps/Miner/MinerProgram.tres" id="1_qv60x"]
+
+[resource]
+script = ExtResource("1_ntvmp")
+program_data = ExtResource("1_qv60x")
+start_position = Vector2(550, 40)
+metadata/_custom_type_script = "uid://cyngw31l11lkj"
