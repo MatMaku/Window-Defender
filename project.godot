@@ -32,7 +32,8 @@ folder_colors={
 "res://Fonts/": "pink",
 "res://Scenes/": "orange",
 "res://Scripts/": "green",
-"res://Sprites/": "red"
+"res://Sprites/": "red",
+"res://Stages/": "purple"
 }
 
 [physics]

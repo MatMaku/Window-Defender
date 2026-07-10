@@ -4,10 +4,6 @@
 [ext_resource type="Script" uid="uid://cnh1vcjudavem" path="res://Scripts/Windows/WindowManager.gd" id="2_k5q52"]
 [ext_resource type="PackedScene" uid="uid://bj8opkohmwxuj" path="res://Scenes/Desktop/DesktopExecutable.tscn" id="2_rj8ej"]
 [ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="3_x17rd"]
-[ext_resource type="Resource" uid="uid://cl1spmxbip176" path="res://Apps/Test/test_shortcut.tres" id="4_coqgv"]
-[ext_resource type="Resource" uid="uid://b7q5qnb1mwvw2" path="res://Apps/Shooting/ShootingShortcut.tres" id="5_coqgv"]
-[ext_resource type="Resource" uid="uid://bebagr0nogmsq" path="res://Apps/Ammo/AmmoShortcut.tres" id="6_dq2pw"]
-[ext_resource type="Resource" uid="uid://cmmihnrelh2tw" path="res://Apps/Reload/ReloadShortcut.tres" id="7_li5bo"]
 [ext_resource type="Script" uid="uid://c3ffiaivx0vxc" path="res://Scripts/Shooting/ShootingManager.gd" id="7_lrxve"]
 [ext_resource type="Resource" uid="uid://43e4civ5fiho" path="res://Apps/System/SystemShortcut.tres" id="8_cj3g8"]
 [ext_resource type="Resource" uid="uid://btkukpr0m6uen" path="res://Apps/Miner/MinerShortcut.tres" id="9_b33g3"]
@@ -23,6 +19,11 @@
 [ext_resource type="PackedScene" uid="uid://c7cowr46oepbr" path="res://Scenes/Taskbar/TaskbarAppButton.tscn" id="18_b33g3"]
 [ext_resource type="PackedScene" uid="uid://c2igrixgh7fww" path="res://Scenes/Taskbar/Taskbar.tscn" id="18_dmnow"]
 [ext_resource type="Script" uid="uid://12i6uwwtsgpm" path="res://Scripts/Shop/ShopManager.gd" id="21_4qr77"]
+[ext_resource type="Script" uid="uid://depuse7p0i1bi" path="res://Scripts/Virus/EnemySpawnDirector.gd" id="22_4qr77"]
+[ext_resource type="Script" uid="uid://dd7yu6x1g3p5b" path="res://Data/Stages/EnemySpawnStageData.gd" id="23_8y6pq"]
+[ext_resource type="Resource" uid="uid://h6rb6t8pgsyo" path="res://Stages/Prueba/Stage 1.tres" id="24_ufff5"]
+[ext_resource type="Resource" uid="uid://b8scfei2twj8s" path="res://Stages/Prueba/Stage 2.tres" id="25_hbweu"]
+[ext_resource type="Resource" uid="uid://dp0guf8yrk8y3" path="res://Stages/Prueba/Stage 3.tres" id="26_actuf"]
 
 [node name="Desktop" type="Control" unique_id=583655013]
 layout_mode = 3
@@ -34,7 +35,7 @@ grow_vertical = 2
 pivot_offset = Vector2(960, 540)
 script = ExtResource("1_77fwn")
 executable_scene = ExtResource("2_rj8ej")
-shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv"), ExtResource("6_dq2pw"), ExtResource("7_li5bo"), ExtResource("8_cj3g8"), ExtResource("9_b33g3"), ExtResource("10_a4tqi"), ExtResource("5_coqgv")])
+shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("8_cj3g8"), ExtResource("9_b33g3"), ExtResource("10_a4tqi")])
 
 [node name="Managers" type="Node" parent="." unique_id=1878957366]
 
@@ -44,6 +45,13 @@ script = ExtResource("2_k5q52")
 window_layer = NodePath("../../WindowLayer")
 ram_manager = NodePath("../RamManager")
 system_error_window_scene = ExtResource("10_b46w2")
+
+[node name="SystemManager" type="Node" parent="Managers" unique_id=766561543 node_paths=PackedStringArray("desktop", "window_manager")]
+unique_name_in_owner = true
+script = ExtResource("11_ivpt1")
+desktop = NodePath("../..")
+window_manager = NodePath("../WindowManager")
+system_program_id = &"System"
 
 [node name="ShootingManager" type="Node" parent="Managers" unique_id=893765685 node_paths=PackedStringArray("window_manager")]
 unique_name_in_owner = true
@@ -62,22 +70,6 @@ shooting_manager = NodePath("../ShootingManager")
 perfect_finish_delay = 0.35000000000000003
 perfect_zone_start = 0.5
 
-[node name="SystemManager" type="Node" parent="Managers" unique_id=766561543 node_paths=PackedStringArray("desktop", "window_manager")]
-unique_name_in_owner = true
-script = ExtResource("11_ivpt1")
-desktop = NodePath("../..")
-window_manager = NodePath("../WindowManager")
-system_program_id = &"System"
-
-[node name="EnemyManager" type="Node" parent="Managers" unique_id=1970666892 node_paths=PackedStringArray("playfield_layer", "system_manager", "shooting_manager", "window_manager")]
-unique_name_in_owner = true
-script = ExtResource("13_ppvbo")
-playfield_layer = NodePath("../../PlayfieldLayer")
-system_manager = NodePath("../SystemManager")
-shooting_manager = NodePath("../ShootingManager")
-window_manager = NodePath("../WindowManager")
-basic_virus_scene = ExtResource("14_nx8j2")
-
 [node name="RamManager" type="Node" parent="Managers" unique_id=917040370]
 unique_name_in_owner = true
 script = ExtResource("15_nx8j2")
@@ -95,6 +87,22 @@ unique_name_in_owner = true
 script = ExtResource("21_4qr77")
 desktop = NodePath("../..")
 window_manager = NodePath("../WindowManager")
+
+[node name="EnemyManager" type="Node" parent="Managers" unique_id=1970666892 node_paths=PackedStringArray("playfield_layer", "system_manager", "shooting_manager", "window_manager")]
+unique_name_in_owner = true
+script = ExtResource("13_ppvbo")
+playfield_layer = NodePath("../../PlayfieldLayer")
+system_manager = NodePath("../SystemManager")
+shooting_manager = NodePath("../ShootingManager")
+window_manager = NodePath("../WindowManager")
+basic_virus_scene = ExtResource("14_nx8j2")
+
+[node name="EnemySpawnDirector" type="Node" parent="Managers" unique_id=642527347 node_paths=PackedStringArray("enemy_manager", "system_manager")]
+unique_name_in_owner = true
+script = ExtResource("22_4qr77")
+enemy_manager = NodePath("../EnemyManager")
+system_manager = NodePath("../SystemManager")
+stages = Array[ExtResource("23_8y6pq")]([ExtResource("24_ufff5"), ExtResource("25_hbweu"), ExtResource("26_actuf")])
 
 [node name="Wallpaper" type="TextureRect" parent="." unique_id=1808162104]
 z_index = -1

@@ -4,7 +4,6 @@ class_name ShootingManager
 enum ShotRejectionReason {
 	EMPTY_AMMO,
 	COOLDOWN_ACTIVE,
-	AIM_OBSTRUCTED,
 	RELOADING
 }
 

@@ -36,7 +36,6 @@ var attack_overlap_distance: float = 12.0
 @export_category("Dragging")
 
 @export var drag_enabled: bool = true
-
 @export var release_drag_over_windows: bool = true
 
 @export_category("Attack Feedback")
@@ -77,7 +76,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_current_health = max_health
-	_visual_rest_position = virus_texture.position
+
+	if virus_texture != null:
+		_visual_rest_position = virus_texture.position
 
 	health_changed.emit(
 		_current_health,
@@ -141,6 +142,42 @@ func is_dead() -> bool:
 	return _is_dead
 
 
+func is_dragging() -> bool:
+	return _is_dragging
+
+
+func can_receive_separation_push() -> bool:
+	return (
+		not _is_dead
+		and not _is_dragging
+	)
+
+
+func get_center_global_position() -> Vector2:
+	return get_global_rect().get_center()
+
+
+func contains_global_point(
+	global_point: Vector2
+) -> bool:
+	if _is_dead:
+		return false
+
+	return get_global_rect().has_point(global_point)
+
+
+func apply_external_push(
+	global_push_delta: Vector2
+) -> void:
+	if global_push_delta == Vector2.ZERO:
+		return
+
+	if not can_receive_separation_push():
+		return
+
+	global_position += global_push_delta
+
+
 func _update_movement_and_attack(delta: float) -> void:
 	var target_rect: Rect2 = (
 		_system_manager.get_attack_target_global_rect()
@@ -149,7 +186,7 @@ func _update_movement_and_attack(delta: float) -> void:
 	if target_rect.size.x <= 0.0 or target_rect.size.y <= 0.0:
 		return
 
-	var current_center: Vector2 = get_global_rect().get_center()
+	var current_center: Vector2 = get_center_global_position()
 
 	var attack_anchor: Vector2 = (
 		_get_attack_anchor_global_position(
@@ -178,7 +215,7 @@ func _move_towards(
 	distance_to_target: float,
 	delta: float
 ) -> void:
-	var current_center: Vector2 = get_global_rect().get_center()
+	var current_center: Vector2 = get_center_global_position()
 
 	var direction: Vector2 = (
 		current_center.direction_to(target_global_position)
@@ -297,7 +334,7 @@ func _update_dragging() -> void:
 
 	if (
 		release_drag_over_windows
-		and _window_manager != null
+		and is_instance_valid(_window_manager)
 		and _window_manager.is_global_point_covered_by_window(
 			mouse_global_position
 		)
@@ -371,6 +408,9 @@ func _play_damage_feedback() -> void:
 
 
 func _play_attack_feedback() -> void:
+	if virus_texture == null:
+		return
+
 	if _attack_tween != null and _attack_tween.is_running():
 		_attack_tween.kill()
 
@@ -429,6 +469,9 @@ func _die() -> void:
 
 	if _attack_tween != null and _attack_tween.is_running():
 		_attack_tween.kill()
+
+	if _hit_tween != null and _hit_tween.is_running():
+		_hit_tween.kill()
 
 	died.emit(self)
 	queue_free()
