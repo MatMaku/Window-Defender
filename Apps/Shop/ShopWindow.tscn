@@ -5,6 +5,8 @@
 [ext_resource type="Script" uid="uid://dwpx0a6fvly2m" path="res://Data/Programs/ShopAppOfferData.gd" id="3_db2gu"]
 [ext_resource type="Resource" uid="uid://dgemqxjydyfyj" path="res://Apps/Shooting/ShootingProgram.tres" id="4_1sfbh"]
 [ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Programs/ShopUpgradeOfferData.gd" id="5_lodkv"]
+[ext_resource type="Resource" uid="uid://vp1u4ago21ju" path="res://Apps/Ammo/AmmoProgram.tres" id="5_vj1t0"]
+[ext_resource type="Resource" uid="uid://c6wibp66c2w8f" path="res://Apps/Reload/ReloadProgram.tres" id="6_1aln8"]
 [ext_resource type="PackedScene" uid="uid://bcuwx5ca5kh6j" path="res://Apps/Shop/ShopOffer.tscn" id="6_13w5j"]
 [ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="7_13w5j"]
 [ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="8_mmps8"]
@@ -16,6 +18,20 @@
 script = ExtResource("3_db2gu")
 offer_id = &"Shooting"
 program_data = ExtResource("4_1sfbh")
+price = 2
+metadata/_custom_type_script = "uid://dwpx0a6fvly2m"
+
+[sub_resource type="Resource" id="Resource_a4tqi"]
+script = ExtResource("3_db2gu")
+offer_id = &"Ammo"
+program_data = ExtResource("5_vj1t0")
+price = 2
+metadata/_custom_type_script = "uid://dwpx0a6fvly2m"
+
+[sub_resource type="Resource" id="Resource_4qr77"]
+script = ExtResource("3_db2gu")
+offer_id = &"Reload"
+program_data = ExtResource("6_1aln8")
 price = 2
 metadata/_custom_type_script = "uid://dwpx0a6fvly2m"
 
@@ -49,11 +65,11 @@ texture_margin_bottom = 5.0
 
 [node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_g73r6")]
 anchor_right = 0.521
-anchor_bottom = 0.25100002
+anchor_bottom = 0.46300003
 offset_right = -0.32006836
-offset_bottom = 228.91998
+offset_bottom = -0.040039063
 script = ExtResource("2_q1p86")
-app_offers = Array[ExtResource("3_db2gu")]([SubResource("Resource_v3iwr")])
+app_offers = Array[ExtResource("3_db2gu")]([SubResource("Resource_v3iwr"), SubResource("Resource_a4tqi"), SubResource("Resource_4qr77")])
 upgrade_offers = Array[ExtResource("5_lodkv")]([])
 offer_row_scene = ExtResource("6_13w5j")
 hide_scrollbars = true

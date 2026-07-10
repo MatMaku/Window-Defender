@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://bj8opkohmwxuj" path="res://Scenes/Desktop/DesktopExecutable.tscn" id="2_rj8ej"]
 [ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="3_x17rd"]
 [ext_resource type="Resource" uid="uid://cl1spmxbip176" path="res://Apps/Test/test_shortcut.tres" id="4_coqgv"]
+[ext_resource type="Resource" uid="uid://b7q5qnb1mwvw2" path="res://Apps/Shooting/ShootingShortcut.tres" id="5_coqgv"]
 [ext_resource type="Resource" uid="uid://bebagr0nogmsq" path="res://Apps/Ammo/AmmoShortcut.tres" id="6_dq2pw"]
 [ext_resource type="Resource" uid="uid://cmmihnrelh2tw" path="res://Apps/Reload/ReloadShortcut.tres" id="7_li5bo"]
 [ext_resource type="Script" uid="uid://c3ffiaivx0vxc" path="res://Scripts/Shooting/ShootingManager.gd" id="7_lrxve"]
@@ -33,7 +34,7 @@ grow_vertical = 2
 pivot_offset = Vector2(960, 540)
 script = ExtResource("1_77fwn")
 executable_scene = ExtResource("2_rj8ej")
-shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv"), ExtResource("6_dq2pw"), ExtResource("7_li5bo"), ExtResource("8_cj3g8"), ExtResource("9_b33g3"), ExtResource("10_a4tqi")])
+shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv"), ExtResource("6_dq2pw"), ExtResource("7_li5bo"), ExtResource("8_cj3g8"), ExtResource("9_b33g3"), ExtResource("10_a4tqi"), ExtResource("5_coqgv")])
 
 [node name="Managers" type="Node" parent="." unique_id=1878957366]
 

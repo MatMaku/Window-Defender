@@ -21,27 +21,8 @@ var _error_window: SystemErrorWindow
 
 
 func _ready() -> void:
-	if window_layer == null:
-		window_layer = (
-			get_node_or_null("../WindowLayer")
-			as Control
-		)
-
-	if ram_manager == null:
-		ram_manager = (
-			get_node_or_null("../RamManager")
-			as RamManager
-		)
-
-	if window_layer == null:
-		push_error(
-			"WindowManager could not find WindowLayer."
-		)
-
-	if ram_manager == null:
-		push_error(
-			"WindowManager could not find RamManager."
-		)
+	_resolve_references()
+	_validate_dependencies()
 
 
 func _exit_tree() -> void:
@@ -63,27 +44,7 @@ func _exit_tree() -> void:
 func open_program(
 	program_data: ProgramData
 ) -> AppWindow:
-	if window_layer == null:
-		push_error(
-			"Cannot open program: WindowLayer is not assigned."
-		)
-		return null
-
-	if ram_manager == null:
-		push_error(
-			"Cannot open program: RamManager is not assigned."
-		)
-		return null
-
-	if program_data == null:
-		push_warning("Cannot open null ProgramData.")
-		return null
-
-	if program_data.window_scene == null:
-		push_warning(
-			"Program '%s' has no window scene assigned."
-			% program_data.display_name
-		)
+	if not _can_open_program_request(program_data):
 		return null
 
 	if not program_data.allow_multiple_instances:
@@ -117,29 +78,28 @@ func open_program(
 		return null
 
 	var window: AppWindow = (
-		program_data.window_scene.instantiate()
-		as AppWindow
+		_instantiate_app_window(program_data)
 	)
 
 	if window == null:
 		ram_manager.release_ram(ram_cost)
-
-		push_error(
-			"Window scene for '%s' must inherit from AppWindow."
-			% program_data.display_name
-		)
 		return null
 
 	window_layer.add_child(window)
 
 	window.allocated_ram = ram_cost
+
 	window.setup(program_data)
 	window.position = _get_centered_position(window)
 
 	window.focus_requested.connect(focus_window)
 	window.close_requested.connect(close_window)
 
-	_register_window(program_data, window)
+	_register_window(
+		program_data,
+		window
+	)
+
 	focus_window(window)
 
 	window.play_open_animation(
@@ -158,6 +118,12 @@ func show_system_error(
 	error_title: String,
 	error_message: String
 ) -> void:
+	if window_layer == null:
+		push_error(
+			"Cannot show system error: WindowLayer is not assigned."
+		)
+		return
+
 	if system_error_window_scene == null:
 		push_error(
 			"WindowManager requires SystemErrorWindow scene."
@@ -189,6 +155,7 @@ func show_system_error(
 
 	_error_window = error_window
 
+	error_window.allocated_ram = 0
 	error_window.position = _get_centered_position(
 		error_window
 	)
@@ -203,7 +170,7 @@ func show_system_error(
 
 	focus_window(error_window)
 	error_window.play_open_animation()
-
+	
 
 func focus_window(window: AppWindow) -> void:
 	if window == null:
@@ -217,6 +184,7 @@ func focus_window(window: AppWindow) -> void:
 			window,
 			window_layer.get_child_count() - 1
 		)
+
 	window_focused.emit(window)
 
 
@@ -282,6 +250,127 @@ func is_global_point_covered_by_window(
 			return true
 
 	return false
+
+
+func get_shot_blocking_window_at_global_point(
+	global_point: Vector2,
+	ignored_window: AppWindow = null
+) -> AppWindow:
+	if window_layer == null:
+		return null
+
+	for index: int in range(
+		window_layer.get_child_count() - 1,
+		-1,
+		-1
+	):
+		var child: Node = window_layer.get_child(index)
+		var window: AppWindow = child as AppWindow
+
+		if window == null:
+			continue
+
+		if window == ignored_window:
+			continue
+
+		if not window.is_visible_in_tree():
+			continue
+
+		if not window.blocks_shots:
+			continue
+
+		if not window.get_global_rect().has_point(global_point):
+			continue
+
+		return window
+
+	return null
+
+
+func is_shot_blocked_at_global_point(
+	global_point: Vector2,
+	ignored_window: AppWindow = null
+) -> bool:
+	return (
+		get_shot_blocking_window_at_global_point(
+			global_point,
+			ignored_window
+		)
+		!= null
+	)
+
+
+func _resolve_references() -> void:
+	if window_layer == null:
+		window_layer = (
+			get_node_or_null("../WindowLayer")
+			as Control
+		)
+
+	if ram_manager == null:
+		ram_manager = (
+			get_node_or_null("../RamManager")
+			as RamManager
+		)
+
+
+func _validate_dependencies() -> void:
+	if window_layer == null:
+		push_error(
+			"WindowManager could not find WindowLayer."
+		)
+
+	if ram_manager == null:
+		push_error(
+			"WindowManager could not find RamManager."
+		)
+
+
+func _can_open_program_request(
+	program_data: ProgramData
+) -> bool:
+	if window_layer == null:
+		push_error(
+			"Cannot open program: WindowLayer is not assigned."
+		)
+		return false
+
+	if ram_manager == null:
+		push_error(
+			"Cannot open program: RamManager is not assigned."
+		)
+		return false
+
+	if program_data == null:
+		push_warning("Cannot open null ProgramData.")
+		return false
+
+	if program_data.window_scene == null:
+		push_warning(
+			"Program '%s' has no window scene assigned."
+			% program_data.display_name
+		)
+		return false
+
+	return true
+
+
+func _instantiate_app_window(
+	program_data: ProgramData
+) -> AppWindow:
+	var window: AppWindow = (
+		program_data.window_scene.instantiate()
+		as AppWindow
+	)
+
+	if window == null:
+		push_error(
+			"Window scene for '%s' must inherit from AppWindow."
+			% program_data.display_name
+		)
+		return null
+
+	return window
 
 
 func _show_insufficient_ram_error(

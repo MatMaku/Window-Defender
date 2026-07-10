@@ -21,26 +21,32 @@ signal shot_fired(
 	damage_amount: float
 )
 
+signal shot_blocked(
+	target_global_position: Vector2
+)
+
 signal shot_rejected(reason: ShotRejectionReason)
 
 signal reload_lock_changed(is_reloading: bool)
 
 @export var window_manager: WindowManager
 
-@onready var cooldown_timer: Timer = %CooldownTimer
+@onready var cooldown_timer: Timer = (
+	get_node_or_null("CooldownTimer") as Timer
+)
 
 var _shooting_window: ShootingWindow
 var _is_reloading: bool = false
 
 
 func _ready() -> void:
-	if window_manager == null:
-		push_error(
-			"ShootingManager requires a WindowManager reference."
-		)
+	_resolve_references()
+
+	if not _validate_dependencies():
 		return
 
 	cooldown_timer.one_shot = true
+
 	cooldown_timer.timeout.connect(
 		_on_cooldown_finished
 	)
@@ -94,7 +100,10 @@ func set_reloading(active: bool) -> void:
 		return
 
 	_is_reloading = active
-	reload_lock_changed.emit(_is_reloading)
+
+	reload_lock_changed.emit(
+		_is_reloading
+	)
 
 
 func refill_ammo() -> void:
@@ -105,26 +114,52 @@ func complete_reload() -> void:
 	GameState.refill_ammo()
 
 
+func _resolve_references() -> void:
+	if window_manager == null:
+		window_manager = (
+			get_node_or_null("../WindowManager")
+			as WindowManager
+		)
+
+
+func _validate_dependencies() -> bool:
+	if window_manager == null:
+		push_error(
+			"ShootingManager requires a WindowManager reference."
+		)
+		return false
+
+	if cooldown_timer == null:
+		push_error(
+			"ShootingManager requires a CooldownTimer child node."
+		)
+		return false
+
+	return true
+
+
 func _on_window_opened(
 	window: AppWindow,
 	_program_data: ProgramData
 ) -> void:
+	_bind_window_if_relevant(window)
+
+
+func _on_window_closed(window: AppWindow) -> void:
 	var shooting_window: ShootingWindow = (
 		window as ShootingWindow
 	)
 
 	if shooting_window != null:
-		_bind_shooting_window(shooting_window)
+		if shooting_window == _shooting_window:
+			_shooting_window = null
 
-	var ammo_window: AmmoWindow = window as AmmoWindow
-
-	if ammo_window != null:
-		_bind_ammo_window(ammo_window)
-
-
-func _on_window_closed(window: AppWindow) -> void:
-	if window == _shooting_window:
-		_shooting_window = null
+		if shooting_window.fire_requested.is_connected(
+			_on_fire_requested
+		):
+			shooting_window.fire_requested.disconnect(
+				_on_fire_requested
+			)
 
 	var ammo_window: AmmoWindow = window as AmmoWindow
 
@@ -137,6 +172,23 @@ func _on_window_closed(window: AppWindow) -> void:
 
 	if ammo_changed.is_connected(update_ammo_callable):
 		ammo_changed.disconnect(update_ammo_callable)
+
+
+func _bind_window_if_relevant(window: AppWindow) -> void:
+	if window == null:
+		return
+
+	var shooting_window: ShootingWindow = (
+		window as ShootingWindow
+	)
+
+	if shooting_window != null:
+		_bind_shooting_window(shooting_window)
+
+	var ammo_window: AmmoWindow = window as AmmoWindow
+
+	if ammo_window != null:
+		_bind_ammo_window(ammo_window)
 
 
 func _bind_shooting_window(
@@ -174,6 +226,12 @@ func _on_fire_requested(
 	shooter: ShootingWindow,
 	target_global_position: Vector2
 ) -> void:
+	if shooter == null:
+		return
+
+	if not is_instance_valid(shooter):
+		return
+
 	if _is_reloading:
 		shot_rejected.emit(
 			ShotRejectionReason.RELOADING
@@ -192,29 +250,30 @@ func _on_fire_requested(
 		)
 		return
 
-	if _is_aim_obstructed(
-		shooter,
-		target_global_position
-	):
+	if not GameState.consume_ammo(1):
 		shot_rejected.emit(
-			ShotRejectionReason.AIM_OBSTRUCTED
+			ShotRejectionReason.EMPTY_AMMO
 		)
 		return
 
-	if not GameState.consume_ammo():
-		return
-
-	cooldown_timer.start(
+	var cooldown_duration: float = (
 		GameState.fire_cooldown_seconds
 	)
 
-	cooldown_started.emit(
-		GameState.fire_cooldown_seconds
-	)
+	_start_cooldown(cooldown_duration)
 
 	shooter.play_shot_feedback(
-		GameState.fire_cooldown_seconds
+		cooldown_duration
 	)
+
+	if _is_shot_blocked_by_window(
+		shooter,
+		target_global_position
+	):
+		shot_blocked.emit(
+			target_global_position
+		)
+		return
 
 	shot_fired.emit(
 		target_global_position,
@@ -222,20 +281,30 @@ func _on_fire_requested(
 	)
 
 
-func _is_aim_obstructed(
+func _start_cooldown(duration: float) -> void:
+	var safe_duration: float = maxf(
+		0.01,
+		duration
+	)
+
+	cooldown_timer.start(safe_duration)
+
+	cooldown_started.emit(
+		safe_duration
+	)
+
+
+func _is_shot_blocked_by_window(
 	shooter: ShootingWindow,
 	target_global_position: Vector2
 ) -> bool:
-	for window: AppWindow in window_manager.get_windows_above(shooter):
-		if not window.blocks_shots:
-			continue
+	if window_manager == null:
+		return false
 
-		if window.get_global_rect().has_point(
-			target_global_position
-		):
-			return true
-
-	return false
+	return window_manager.is_shot_blocked_at_global_point(
+		target_global_position,
+		shooter
+	)
 
 
 func _on_game_state_ammo_changed(
@@ -262,14 +331,4 @@ func _register_existing_windows() -> void:
 		if window == null:
 			continue
 
-		var shooting_window: ShootingWindow = (
-			window as ShootingWindow
-		)
-
-		if shooting_window != null:
-			_bind_shooting_window(shooting_window)
-
-		var ammo_window: AmmoWindow = window as AmmoWindow
-
-		if ammo_window != null:
-			_bind_ammo_window(ammo_window)
+		_bind_window_if_relevant(window)
