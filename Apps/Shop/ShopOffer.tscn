@@ -1,0 +1,100 @@
+[gd_scene format=3 uid="uid://bcuwx5ca5kh6j"]
+
+[ext_resource type="Texture2D" uid="uid://bc68kx5mh7n5p" path="res://Sprites/Windows/Window_Base.png" id="1_m6gf4"]
+[ext_resource type="Texture2D" uid="uid://bl2teg5rnrslj" path="res://Sprites/Icons/Shooting Icon.png" id="2_21g5o"]
+[ext_resource type="Script" uid="uid://dukh7s1nfe5q2" path="res://Scripts/Shop/ShopOfferRow.gd" id="2_s2l4e"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="3_s2l4e"]
+[ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="4_2c1na"]
+[ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="5_6lwqo"]
+[ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="6_3ndvl"]
+[ext_resource type="Texture2D" uid="uid://d1dt0yoit33yr" path="res://Sprites/Windows/Windows_Button_Inactive.png" id="7_k478o"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_uylti"]
+texture = ExtResource("1_m6gf4")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_orq26"]
+texture = ExtResource("4_2c1na")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_76xiw"]
+texture = ExtResource("5_6lwqo")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_72pwg"]
+texture = ExtResource("6_3ndvl")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_maugy"]
+texture = ExtResource("7_k478o")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="ShopOfferRow" type="PanelContainer" unique_id=2128483274]
+custom_minimum_size = Vector2(0, 38)
+offset_right = 300.0
+offset_bottom = 48.0
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxTexture_uylti")
+script = ExtResource("2_s2l4e")
+
+[node name="RowHBox" type="HBoxContainer" parent="." unique_id=2050343245]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="IconTexture" type="TextureRect" parent="RowHBox" unique_id=979111220]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(38, 38)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("2_21g5o")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="RowHBox" unique_id=1184186550]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_s2l4e")
+text = "Shooting.exe"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="PriceLabel" type="Label" parent="RowHBox" unique_id=265038928]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_s2l4e")
+text = "$10"
+horizontal_alignment = 1
+
+[node name="BuyButton" type="Button" parent="RowHBox" unique_id=1152340722]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(74, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_s2l4e")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_orq26")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_76xiw")
+theme_override_styles/hover = SubResource("StyleBoxTexture_72pwg")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_76xiw")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_maugy")
+text = "Buy"

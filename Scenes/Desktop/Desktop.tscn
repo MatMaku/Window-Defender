@@ -5,13 +5,13 @@
 [ext_resource type="PackedScene" uid="uid://bj8opkohmwxuj" path="res://Scenes/Desktop/DesktopExecutable.tscn" id="2_rj8ej"]
 [ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="3_x17rd"]
 [ext_resource type="Resource" uid="uid://cl1spmxbip176" path="res://Apps/Test/test_shortcut.tres" id="4_coqgv"]
-[ext_resource type="Resource" uid="uid://b7q5qnb1mwvw2" path="res://Apps/Shooting/ShootingShortcut.tres" id="5_coqgv"]
 [ext_resource type="Resource" uid="uid://bebagr0nogmsq" path="res://Apps/Ammo/AmmoShortcut.tres" id="6_dq2pw"]
 [ext_resource type="Resource" uid="uid://cmmihnrelh2tw" path="res://Apps/Reload/ReloadShortcut.tres" id="7_li5bo"]
 [ext_resource type="Script" uid="uid://c3ffiaivx0vxc" path="res://Scripts/Shooting/ShootingManager.gd" id="7_lrxve"]
 [ext_resource type="Resource" uid="uid://43e4civ5fiho" path="res://Apps/System/SystemShortcut.tres" id="8_cj3g8"]
 [ext_resource type="Resource" uid="uid://btkukpr0m6uen" path="res://Apps/Miner/MinerShortcut.tres" id="9_b33g3"]
 [ext_resource type="Script" uid="uid://b4dmhqdc3nh6l" path="res://Scripts/Shooting/ReloadManager.gd" id="9_ynoiy"]
+[ext_resource type="Resource" uid="uid://h8o00q0hlg28" path="res://Apps/Shop/ShopShortcut.tres" id="10_a4tqi"]
 [ext_resource type="PackedScene" uid="uid://04o78ttgv4g5" path="res://Scenes/Windows/SystemErrorWindow.tscn" id="10_b46w2"]
 [ext_resource type="Script" uid="uid://da3egfnte6tlb" path="res://Scripts/System/SystemManager.gd" id="11_ivpt1"]
 [ext_resource type="Script" uid="uid://dw8yn5834tgn0" path="res://Scripts/Virus/EnemyManager.gd" id="13_ppvbo"]
@@ -21,6 +21,7 @@
 [ext_resource type="Script" uid="uid://bjh4rrriil0oq" path="res://Scripts/Taskbar/TaskbarManager.gd" id="17_mb5fu"]
 [ext_resource type="PackedScene" uid="uid://c7cowr46oepbr" path="res://Scenes/Taskbar/TaskbarAppButton.tscn" id="18_b33g3"]
 [ext_resource type="PackedScene" uid="uid://c2igrixgh7fww" path="res://Scenes/Taskbar/Taskbar.tscn" id="18_dmnow"]
+[ext_resource type="Script" uid="uid://12i6uwwtsgpm" path="res://Scripts/Shop/ShopManager.gd" id="21_4qr77"]
 
 [node name="Desktop" type="Control" unique_id=583655013]
 layout_mode = 3
@@ -32,7 +33,7 @@ grow_vertical = 2
 pivot_offset = Vector2(960, 540)
 script = ExtResource("1_77fwn")
 executable_scene = ExtResource("2_rj8ej")
-shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv"), ExtResource("5_coqgv"), ExtResource("6_dq2pw"), ExtResource("7_li5bo"), ExtResource("8_cj3g8"), ExtResource("9_b33g3")])
+shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("4_coqgv"), ExtResource("6_dq2pw"), ExtResource("7_li5bo"), ExtResource("8_cj3g8"), ExtResource("9_b33g3"), ExtResource("10_a4tqi")])
 
 [node name="Managers" type="Node" parent="." unique_id=1878957366]
 
@@ -88,6 +89,12 @@ window_manager = NodePath("../WindowManager")
 taskbar = NodePath("../../StatusLayer/Taskbar")
 taskbar_app_button_scene = ExtResource("18_b33g3")
 
+[node name="ShopManager" type="Node" parent="Managers" unique_id=2112211757 node_paths=PackedStringArray("desktop", "window_manager")]
+unique_name_in_owner = true
+script = ExtResource("21_4qr77")
+desktop = NodePath("../..")
+window_manager = NodePath("../WindowManager")
+
 [node name="Wallpaper" type="TextureRect" parent="." unique_id=1808162104]
 z_index = -1
 layout_mode = 1
@@ -138,6 +145,7 @@ mouse_filter = 2
 
 [node name="StatusLayer" type="Control" parent="." unique_id=1490235666]
 unique_name_in_owner = true
+z_index = 11
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

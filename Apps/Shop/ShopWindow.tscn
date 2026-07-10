@@ -1,0 +1,134 @@
+[gd_scene format=3 uid="uid://dpiummx4ppcd2"]
+
+[ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_g73r6"]
+[ext_resource type="Script" uid="uid://cbn3508rx4i8w" path="res://Scripts/Shop/ShopWindow.gd" id="2_q1p86"]
+[ext_resource type="Script" uid="uid://dwpx0a6fvly2m" path="res://Data/Programs/ShopAppOfferData.gd" id="3_db2gu"]
+[ext_resource type="Resource" uid="uid://dgemqxjydyfyj" path="res://Apps/Shooting/ShootingProgram.tres" id="4_1sfbh"]
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Programs/ShopUpgradeOfferData.gd" id="5_lodkv"]
+[ext_resource type="PackedScene" uid="uid://bcuwx5ca5kh6j" path="res://Apps/Shop/ShopOffer.tscn" id="6_13w5j"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="7_13w5j"]
+[ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="8_mmps8"]
+[ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="9_pjmoc"]
+[ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="10_vj1t0"]
+[ext_resource type="Texture2D" uid="uid://57lclbru5xvk" path="res://Sprites/Windows/Windows_Inner_Frame_Inverted.png" id="11_mmps8"]
+
+[sub_resource type="Resource" id="Resource_v3iwr"]
+script = ExtResource("3_db2gu")
+offer_id = &"Shooting"
+program_data = ExtResource("4_1sfbh")
+price = 2
+metadata/_custom_type_script = "uid://dwpx0a6fvly2m"
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y01op"]
+texture = ExtResource("8_mmps8")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qe7oj"]
+texture = ExtResource("9_pjmoc")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4j013"]
+texture = ExtResource("10_vj1t0")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_maugy"]
+texture = ExtResource("11_mmps8")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_g73r6")]
+anchor_right = 0.521
+anchor_bottom = 0.25100002
+offset_right = -0.32006836
+offset_bottom = 228.91998
+script = ExtResource("2_q1p86")
+app_offers = Array[ExtResource("3_db2gu")]([SubResource("Resource_v3iwr")])
+upgrade_offers = Array[ExtResource("5_lodkv")]([])
+offer_row_scene = ExtResource("6_13w5j")
+hide_scrollbars = true
+
+[node name="ShopContent" type="VBoxContainer" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=643611652]
+layout_mode = 2
+
+[node name="ShopTabButtonBar" type="HBoxContainer" parent="MainVBox/ContentRoot/ShopContent" index="0" unique_id=1368757708]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+alignment = 1
+
+[node name="AppsButton" type="Button" parent="MainVBox/ContentRoot/ShopContent/ShopTabButtonBar" index="0" unique_id=750669755]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_13w5j")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_y01op")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_qe7oj")
+theme_override_styles/hover = SubResource("StyleBoxTexture_4j013")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_qe7oj")
+toggle_mode = true
+button_pressed = true
+text = "APPS"
+
+[node name="UpgradesButton" type="Button" parent="MainVBox/ContentRoot/ShopContent/ShopTabButtonBar" index="1" unique_id=1329410966]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_13w5j")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_y01op")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_qe7oj")
+theme_override_styles/hover = SubResource("StyleBoxTexture_4j013")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_qe7oj")
+toggle_mode = true
+button_pressed = true
+text = "UPGRADES"
+
+[node name="AppsPanel" type="PanelContainer" parent="MainVBox/ContentRoot/ShopContent" index="1" unique_id=233671262]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxTexture_maugy")
+
+[node name="AppsScroll" type="ScrollContainer" parent="MainVBox/ContentRoot/ShopContent/AppsPanel" index="0" unique_id=1170696706]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 3
+
+[node name="AppsList" type="VBoxContainer" parent="MainVBox/ContentRoot/ShopContent/AppsPanel/AppsScroll" index="0" unique_id=1150406719]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="UpgradesPanel" type="PanelContainer" parent="MainVBox/ContentRoot/ShopContent" index="2" unique_id=1604342328]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxTexture_maugy")
+
+[node name="UpgradesScroll" type="ScrollContainer" parent="MainVBox/ContentRoot/ShopContent/UpgradesPanel" index="0" unique_id=1109280219]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 3
+
+[node name="UpgradesList" type="VBoxContainer" parent="MainVBox/ContentRoot/ShopContent/UpgradesPanel/UpgradesScroll" index="0" unique_id=40685395]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

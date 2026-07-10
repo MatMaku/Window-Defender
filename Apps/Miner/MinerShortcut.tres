@@ -6,5 +6,5 @@
 [resource]
 script = ExtResource("1_ntvmp")
 program_data = ExtResource("1_qv60x")
-start_position = Vector2(550, 40)
+start_position = Vector2(540, 40)
 metadata/_custom_type_script = "uid://cyngw31l11lkj"

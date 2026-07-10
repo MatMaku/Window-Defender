@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://jnrs4m86btq0"]
+
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_8uhmu"]
+[ext_resource type="Texture2D" uid="uid://bp4ahrvjqk07h" path="res://Sprites/Icons/Shop Icon.png" id="1_vx3r7"]
+[ext_resource type="PackedScene" uid="uid://dpiummx4ppcd2" path="res://Apps/Shop/ShopWindow.tscn" id="3_f75wn"]
+
+[resource]
+script = ExtResource("1_8uhmu")
+program_id = &"Shop"
+display_name = "Shop.exe"
+icon = ExtResource("1_vx3r7")
+window_scene = ExtResource("3_f75wn")
+default_window_size = Vector2(1000, 500)
+metadata/_custom_type_script = "uid://cwpxv30ekbea1"
