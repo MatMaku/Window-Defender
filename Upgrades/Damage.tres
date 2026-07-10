@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://bhixx1qxewfq1"]
+
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Programs/ShopUpgradeOfferData.gd" id="1_k5wsj"]
+[ext_resource type="Texture2D" uid="uid://bl2teg5rnrslj" path="res://Sprites/Icons/Shooting Icon.png" id="1_vceij"]
+
+[resource]
+script = ExtResource("1_k5wsj")
+offer_id = &"Damage"
+display_name = "Shooting Damage"
+icon = ExtResource("1_vceij")
+description = "Mejora el daño de Shooting.exe"
+max_purchase_count = 5
+crypto_costs = Array[int]([10, 20, 30, 40, 50])
+virus_data_costs = Array[int]([5, 10, 15, 20, 25])
+effect_type = 1
+effect_values = Array[float]([1.0, 1.0, 1.0, 1.0, 1.0])
+metadata/_custom_type_script = "uid://87o5h1b251i0"

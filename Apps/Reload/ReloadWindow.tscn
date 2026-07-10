@@ -45,8 +45,12 @@ texture_margin_right = 5.0
 texture_margin_bottom = 5.0
 
 [node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_ri7es")]
-offset_right = 73.600006
-offset_bottom = 7.1999817
+custom_minimum_size = Vector2(400, 180)
+custom_maximum_size = Vector2(400, 180)
+anchor_right = 0.156
+anchor_bottom = 0.125
+offset_right = 109.44
+offset_bottom = 57.59999
 script = ExtResource("2_c28hg")
 perfect_zone_color = Color(0.4, 1, 0.5, 0.5)
 penalty_color = Color(1, 0.45, 0.45, 0.5)

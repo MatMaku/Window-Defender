@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://dnetpb63g4sm7"]
+
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Programs/ShopUpgradeOfferData.gd" id="1_4g7lp"]
+[ext_resource type="Texture2D" uid="uid://bc4y5qirs8rlj" path="res://Sprites/Icons/System Icon.png" id="1_tjg1j"]
+
+[resource]
+script = ExtResource("1_4g7lp")
+offer_id = &"RAM"
+display_name = "RAM Upgrade"
+icon = ExtResource("1_tjg1j")
+max_purchase_count = 5
+crypto_costs = Array[int]([20, 40, 60, 80, 100])
+virus_data_costs = Array[int]([10, 20, 30, 40, 50])
+effect_type = 7
+effect_values = Array[float]([20.0, 20.0, 20.0, 20.0, 20.0])
+metadata/_custom_type_script = "uid://87o5h1b251i0"

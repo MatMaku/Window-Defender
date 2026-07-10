@@ -11,4 +11,5 @@ display_name = "Shop.exe"
 icon = ExtResource("1_vx3r7")
 window_scene = ExtResource("3_f75wn")
 default_window_size = Vector2(1000, 500)
+ram_cost = 15
 metadata/_custom_type_script = "uid://cwpxv30ekbea1"

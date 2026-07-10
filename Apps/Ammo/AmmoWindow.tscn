@@ -5,9 +5,12 @@
 [ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="3_0awnj"]
 
 [node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_wu70s")]
-anchor_right = 0.115
-offset_right = -0.80000305
-offset_bottom = -0.120010376
+custom_minimum_size = Vector2(220, 15)
+custom_maximum_size = Vector2(220, 150)
+anchor_right = 0.086
+anchor_bottom = 0.104
+offset_right = 73.43997
+offset_bottom = 80.51999
 script = ExtResource("2_0awnj")
 shrink_duration = 0.03
 rebound_duration = 0.1

@@ -10,6 +10,7 @@ program_id = &"Miner"
 display_name = "Miner.exe"
 icon = ExtResource("1_t0242")
 window_scene = ExtResource("3_xdfro")
+allow_multiple_instances = true
 default_window_size = Vector2(220, 260)
 ram_cost = 30
 metadata/_custom_type_script = "uid://cwpxv30ekbea1"

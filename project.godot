@@ -21,8 +21,10 @@ GameState="*uid://hp8l1vrsqb82"
 
 [display]
 
-window/size/viewport_width=1920
-window/size/viewport_height=1080
+window/size/viewport_width=2560
+window/size/viewport_height=1440
+window/size/mode=3
+window/stretch/mode="canvas_items"
 
 [file_customization]
 
@@ -33,7 +35,8 @@ folder_colors={
 "res://Scenes/": "orange",
 "res://Scripts/": "green",
 "res://Sprites/": "red",
-"res://Stages/": "purple"
+"res://Stages/": "purple",
+"res://Upgrades/": "teal"
 }
 
 [physics]

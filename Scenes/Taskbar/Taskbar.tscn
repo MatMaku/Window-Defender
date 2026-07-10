@@ -114,12 +114,14 @@ script = ExtResource("1_masim")
 
 [node name="TaskbarBar" type="Panel" parent="." unique_id=475935327]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+custom_maximum_size = Vector2(-1, 36)
 layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchors_preset = -1
+anchor_top = 0.96700007
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -36.0
+offset_top = -0.36010742
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxTexture_maugy")
@@ -157,7 +159,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 92.0
 offset_top = 4.0
-offset_right = -350.0
+offset_right = -406.0
 offset_bottom = -4.0
 mouse_filter = 0
 theme_override_constants/separation = 2

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://bmimkga68jtab"]
+
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Programs/ShopUpgradeOfferData.gd" id="1_6sl27"]
+[ext_resource type="Texture2D" uid="uid://c1xbg8e71of47" path="res://Sprites/Icons/Miner Icon.png" id="1_drnqc"]
+
+[resource]
+script = ExtResource("1_6sl27")
+offer_id = &"MinerTime"
+display_name = "Fast Miner"
+icon = ExtResource("1_drnqc")
+max_purchase_count = 5
+crypto_costs = Array[int]([10, 20, 30, 40, 50])
+virus_data_costs = Array[int]([5, 10, 15, 20, 25])
+effect_type = 6
+effect_values = Array[float]([1.0, 1.0, 0.5, 0.5, 1.0])
+metadata/_custom_type_script = "uid://87o5h1b251i0"

@@ -44,31 +44,15 @@ func _ready() -> void:
 	if not _validate_dependencies():
 		return
 
-	cooldown_timer.one_shot = true
-
-	cooldown_timer.timeout.connect(
-		_on_cooldown_finished
-	)
-
-	window_manager.window_opened.connect(
-		_on_window_opened
-	)
-
-	window_manager.window_closed.connect(
-		_on_window_closed
-	)
-
-	GameState.ammo_changed.connect(
-		_on_game_state_ammo_changed
-	)
-
+	_configure_cooldown_timer()
+	_connect_signals()
 	_register_existing_windows()
+	_emit_current_ammo_state()
 
-	_on_game_state_ammo_changed(
-		GameState.current_ammo,
-		GameState.max_ammo
-	)
 
+# ================================================================
+# PUBLIC API
+# ================================================================
 
 func get_current_ammo() -> int:
 	return GameState.current_ammo
@@ -113,6 +97,10 @@ func complete_reload() -> void:
 	GameState.refill_ammo()
 
 
+# ================================================================
+# SETUP
+# ================================================================
+
 func _resolve_references() -> void:
 	if window_manager == null:
 		window_manager = (
@@ -137,6 +125,44 @@ func _validate_dependencies() -> bool:
 	return true
 
 
+func _configure_cooldown_timer() -> void:
+	cooldown_timer.one_shot = true
+
+
+func _connect_signals() -> void:
+	if not cooldown_timer.timeout.is_connected(
+		_on_cooldown_finished
+	):
+		cooldown_timer.timeout.connect(
+			_on_cooldown_finished
+		)
+
+	if not window_manager.window_opened.is_connected(
+		_on_window_opened
+	):
+		window_manager.window_opened.connect(
+			_on_window_opened
+		)
+
+	if not window_manager.window_closed.is_connected(
+		_on_window_closed
+	):
+		window_manager.window_closed.connect(
+			_on_window_closed
+		)
+
+	if not GameState.ammo_changed.is_connected(
+		_on_game_state_ammo_changed
+	):
+		GameState.ammo_changed.connect(
+			_on_game_state_ammo_changed
+		)
+
+
+# ================================================================
+# WINDOW BINDING
+# ================================================================
+
 func _on_window_opened(
 	window: AppWindow,
 	_program_data: ProgramData
@@ -150,27 +176,12 @@ func _on_window_closed(window: AppWindow) -> void:
 	)
 
 	if shooting_window != null:
-		if shooting_window == _shooting_window:
-			_shooting_window = null
-
-		if shooting_window.fire_requested.is_connected(
-			_on_fire_requested
-		):
-			shooting_window.fire_requested.disconnect(
-				_on_fire_requested
-			)
+		_unbind_shooting_window(shooting_window)
 
 	var ammo_window: AmmoWindow = window as AmmoWindow
 
-	if ammo_window == null:
-		return
-
-	var update_ammo_callable: Callable = (
-		ammo_window.set_ammo
-	)
-
-	if ammo_changed.is_connected(update_ammo_callable):
-		ammo_changed.disconnect(update_ammo_callable)
+	if ammo_window != null:
+		_unbind_ammo_window(ammo_window)
 
 
 func _bind_window_if_relevant(window: AppWindow) -> void:
@@ -184,7 +195,9 @@ func _bind_window_if_relevant(window: AppWindow) -> void:
 	if shooting_window != null:
 		_bind_shooting_window(shooting_window)
 
-	var ammo_window: AmmoWindow = window as AmmoWindow
+	var ammo_window: AmmoWindow = (
+		window as AmmoWindow
+	)
 
 	if ammo_window != null:
 		_bind_ammo_window(ammo_window)
@@ -206,7 +219,27 @@ func _bind_shooting_window(
 		)
 
 
+func _unbind_shooting_window(
+	window: ShootingWindow
+) -> void:
+	if window == null:
+		return
+
+	if window == _shooting_window:
+		_shooting_window = null
+
+	if window.fire_requested.is_connected(
+		_on_fire_requested
+	):
+		window.fire_requested.disconnect(
+			_on_fire_requested
+		)
+
+
 func _bind_ammo_window(window: AmmoWindow) -> void:
+	if window == null:
+		return
+
 	var update_ammo_callable: Callable = (
 		window.set_ammo
 	)
@@ -220,6 +253,35 @@ func _bind_ammo_window(window: AmmoWindow) -> void:
 		false
 	)
 
+
+func _unbind_ammo_window(window: AmmoWindow) -> void:
+	if window == null:
+		return
+
+	var update_ammo_callable: Callable = (
+		window.set_ammo
+	)
+
+	if ammo_changed.is_connected(update_ammo_callable):
+		ammo_changed.disconnect(update_ammo_callable)
+
+
+func _register_existing_windows() -> void:
+	if window_manager.window_layer == null:
+		return
+
+	for child: Node in window_manager.window_layer.get_children():
+		var window: AppWindow = child as AppWindow
+
+		if window == null:
+			continue
+
+		_bind_window_if_relevant(window)
+
+
+# ================================================================
+# FIRE FLOW
+# ================================================================
 
 func _on_fire_requested(
 	shooter: ShootingWindow,
@@ -243,13 +305,7 @@ func _on_fire_requested(
 		)
 		return
 
-	if GameState.current_ammo <= 0:
-		shot_rejected.emit(
-			ShotRejectionReason.EMPTY_AMMO
-		)
-		return
-
-	if not GameState.consume_ammo(1):
+	if not _try_consume_shot_ammo():
 		shot_rejected.emit(
 			ShotRejectionReason.EMPTY_AMMO
 		)
@@ -280,6 +336,13 @@ func _on_fire_requested(
 	)
 
 
+func _try_consume_shot_ammo() -> bool:
+	if GameState.current_ammo <= 0:
+		return false
+
+	return GameState.consume_ammo(1)
+
+
 func _start_cooldown(duration: float) -> void:
 	var safe_duration: float = maxf(
 		0.01,
@@ -306,6 +369,10 @@ func _is_shot_blocked_by_window(
 	)
 
 
+# ================================================================
+# GAMESTATE SYNC
+# ================================================================
+
 func _on_game_state_ammo_changed(
 	current_ammo: int,
 	max_ammo: int
@@ -316,18 +383,16 @@ func _on_game_state_ammo_changed(
 	)
 
 
+func _emit_current_ammo_state() -> void:
+	ammo_changed.emit(
+		GameState.current_ammo,
+		GameState.max_ammo
+	)
+
+
+# ================================================================
+# COOLDOWN
+# ================================================================
+
 func _on_cooldown_finished() -> void:
 	cooldown_finished.emit()
-
-
-func _register_existing_windows() -> void:
-	if window_manager.window_layer == null:
-		return
-
-	for child: Node in window_manager.window_layer.get_children():
-		var window: AppWindow = child as AppWindow
-
-		if window == null:
-			continue
-
-		_bind_window_if_relevant(window)

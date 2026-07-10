@@ -20,6 +20,7 @@ enum ShopTab {
 @export var upgrade_offers: Array[ShopUpgradeOfferData] = []
 
 @export var offer_row_scene: PackedScene
+@export var upgrade_manager: UpgradeManager
 
 @export_category("Scrollbars")
 
@@ -51,30 +52,53 @@ func _ready() -> void:
 		push_error("ShopWindow requires an offer row scene.")
 		return
 
-	apps_button.pressed.connect(
-		_on_apps_button_pressed
-	)
-
-	upgrades_button.pressed.connect(
-		_on_upgrades_button_pressed
-	)
-
-	GameState.crypto_changed.connect(
-		_on_crypto_changed
-	)
+	_resolve_upgrade_manager()
+	_connect_buttons()
+	_connect_game_state_signals()
 
 	_configure_scroll_containers()
 	rebuild_shop()
 	_show_tab(ShopTab.APPS)
 
-	_on_crypto_changed(GameState.crypto)
+
+func set_upgrade_manager(
+	new_upgrade_manager: UpgradeManager
+) -> void:
+	if upgrade_manager == new_upgrade_manager:
+		return
+
+	if upgrade_manager != null:
+		if upgrade_manager.upgrades_changed.is_connected(
+			_on_upgrades_changed
+		):
+			upgrade_manager.upgrades_changed.disconnect(
+				_on_upgrades_changed
+			)
+
+	upgrade_manager = new_upgrade_manager
+
+	if upgrade_manager != null:
+		if not upgrade_manager.upgrades_changed.is_connected(
+			_on_upgrades_changed
+		):
+			upgrade_manager.upgrades_changed.connect(
+				_on_upgrades_changed
+			)
+
+	if is_node_ready():
+		rebuild_shop()
 
 
 func set_hidden_program_ids(program_ids: Array) -> void:
 	_hidden_program_ids.clear()
 
 	for id_variant in program_ids:
-		var program_id: StringName = id_variant as StringName
+		if id_variant == null:
+			continue
+
+		var program_id: StringName = StringName(
+			str(id_variant)
+		)
 
 		if program_id == StringName():
 			continue
@@ -108,6 +132,65 @@ func rebuild_shop() -> void:
 	_refresh_all_rows_affordability()
 
 
+func _resolve_upgrade_manager() -> void:
+	if upgrade_manager != null:
+		set_upgrade_manager(upgrade_manager)
+		return
+
+	var resolved_upgrade_manager: UpgradeManager = (
+		get_node_or_null("../../UpgradeManager")
+		as UpgradeManager
+	)
+
+	if resolved_upgrade_manager == null:
+		resolved_upgrade_manager = (
+			get_node_or_null("../UpgradeManager")
+			as UpgradeManager
+		)
+
+	if resolved_upgrade_manager != null:
+		set_upgrade_manager(resolved_upgrade_manager)
+
+
+func _connect_buttons() -> void:
+	if not apps_button.pressed.is_connected(
+		_on_apps_button_pressed
+	):
+		apps_button.pressed.connect(
+			_on_apps_button_pressed
+		)
+
+	if not upgrades_button.pressed.is_connected(
+		_on_upgrades_button_pressed
+	):
+		upgrades_button.pressed.connect(
+			_on_upgrades_button_pressed
+		)
+
+
+func _connect_game_state_signals() -> void:
+	if not GameState.crypto_changed.is_connected(
+		_on_crypto_changed
+	):
+		GameState.crypto_changed.connect(
+			_on_crypto_changed
+		)
+
+	if not GameState.virus_data_changed.is_connected(
+		_on_virus_data_changed
+	):
+		GameState.virus_data_changed.connect(
+			_on_virus_data_changed
+		)
+
+	if not GameState.upgrade_purchase_counts_changed.is_connected(
+		_on_upgrade_purchase_counts_changed
+	):
+		GameState.upgrade_purchase_counts_changed.connect(
+			_on_upgrade_purchase_counts_changed
+		)
+
+
 func _build_app_rows() -> void:
 	var sorted_offers: Array[ShopAppOfferData] = []
 
@@ -135,8 +218,6 @@ func _build_app_rows() -> void:
 		if row == null:
 			continue
 
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
 		apps_list.add_child(row)
 
 		row.bind_app_offer(offer)
@@ -150,6 +231,7 @@ func _build_app_rows() -> void:
 		] = row
 
 		visible_count += 1
+
 
 func _build_upgrade_rows() -> void:
 	var sorted_offers: Array[ShopUpgradeOfferData] = []
@@ -165,16 +247,21 @@ func _build_upgrade_rows() -> void:
 	var visible_count: int = 0
 
 	for offer: ShopUpgradeOfferData in sorted_offers:
+		if upgrade_manager != null:
+			if not upgrade_manager.can_show_upgrade(offer):
+				continue
+
 		var row: ShopOfferRow = _create_offer_row()
 
 		if row == null:
 			continue
 
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
 		upgrades_list.add_child(row)
 
-		row.bind_upgrade_offer(offer)
+		row.bind_upgrade_offer(
+			offer,
+			upgrade_manager
+		)
 
 		row.upgrade_purchase_requested.connect(
 			_on_upgrade_row_purchase_requested
@@ -183,6 +270,7 @@ func _build_upgrade_rows() -> void:
 		_upgrade_rows.append(row)
 
 		visible_count += 1
+
 
 func _create_offer_row() -> ShopOfferRow:
 	var row: ShopOfferRow = (
@@ -221,6 +309,20 @@ func _on_upgrade_row_purchase_requested(
 
 func _on_crypto_changed(_current_crypto: int) -> void:
 	_refresh_all_rows_affordability()
+
+
+func _on_virus_data_changed(_current_virus_data: int) -> void:
+	_refresh_all_rows_affordability()
+
+
+func _on_upgrade_purchase_counts_changed(
+	_purchase_counts_snapshot: Dictionary
+) -> void:
+	rebuild_shop()
+
+
+func _on_upgrades_changed() -> void:
+	rebuild_shop()
 
 
 func _refresh_all_rows_affordability() -> void:
@@ -321,4 +423,25 @@ func _sort_upgrade_offers_by_price(
 	a: ShopUpgradeOfferData,
 	b: ShopUpgradeOfferData
 ) -> bool:
-	return a.price < b.price
+	if upgrade_manager != null:
+		return (
+			upgrade_manager.get_crypto_cost(a)
+			< upgrade_manager.get_crypto_cost(b)
+		)
+
+	return (
+		_get_first_upgrade_crypto_cost(a)
+		< _get_first_upgrade_crypto_cost(b)
+	)
+
+
+func _get_first_upgrade_crypto_cost(
+	offer: ShopUpgradeOfferData
+) -> int:
+	if offer == null:
+		return 0
+
+	if offer.crypto_costs.is_empty():
+		return 0
+
+	return offer.crypto_costs[0]

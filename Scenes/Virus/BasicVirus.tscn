@@ -4,15 +4,17 @@
 [ext_resource type="Texture2D" uid="uid://de5gndqubvfy1" path="res://Sprites/Bad Godot.png" id="1_vuhmb"]
 
 [node name="BasicVirus" type="Control" unique_id=721592266]
+custom_minimum_size = Vector2(46, 46)
+custom_maximum_size = Vector2(46, 46)
 layout_mode = 3
 anchor_left = -0.012
-anchor_top = -0.022000002
+anchor_top = -0.021000002
 anchor_right = 0.012
-anchor_bottom = 0.022000002
-offset_left = -0.9599991
-offset_top = -0.23999786
-offset_right = 0.9599991
-offset_bottom = 0.23999786
+anchor_bottom = 0.021000002
+offset_left = 0.040000916
+offset_top = -0.3199978
+offset_right = -0.040000916
+offset_bottom = 0.3199978
 pivot_offset = Vector2(24, 24)
 script = ExtResource("1_44ujv")
 attack_overlap_distance = 0.0
@@ -21,9 +23,15 @@ display_name = "Basic Virus"
 
 [node name="VirusTexture" type="TextureRect" parent="." unique_id=18419978]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = -1
+anchor_left = 0.16700001
+anchor_top = 0.164
+anchor_right = 1.167
+anchor_bottom = 1.164
+offset_left = -0.0020003319
+offset_top = 0.015999317
+offset_right = -0.002002716
+offset_bottom = 0.015995026
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

@@ -1,196 +1,75 @@
 extends Node
 class_name RuntimeGameState
 
-# -------------------------------------------------------------------
-# SIGNALS: SYSTEM
-# -------------------------------------------------------------------
-
-signal system_integrity_changed(
-	current_integrity: float,
-	max_integrity: float
-)
-
-signal system_destroyed
-
-
-# -------------------------------------------------------------------
-# SIGNALS: WEAPON
-# -------------------------------------------------------------------
-
-signal ammo_changed(
-	current_ammo: int,
-	max_ammo: int
-)
-
-signal weapon_stats_changed(
-	damage: float,
-	fire_cooldown_seconds: float
-)
-
-
-# -------------------------------------------------------------------
-# SIGNALS: RELOAD
-# -------------------------------------------------------------------
-
-signal reload_stats_changed(
-	normal_reload_duration: float,
-	perfect_reload_finish_delay: float,
-	reload_failure_penalty_duration: float
-)
-
-
-# -------------------------------------------------------------------
-# SIGNALS: ECONOMY
-# -------------------------------------------------------------------
-
-signal crypto_changed(current_crypto: int)
-signal virus_data_changed(current_virus_data: int)
-signal enemy_kills_changed(total_enemy_kills: int)
-
-
-# -------------------------------------------------------------------
-# SIGNALS: MINER
-# -------------------------------------------------------------------
-
-signal miner_stats_changed(
-	crypto_per_tick: int,
-	mining_interval_seconds: float
-)
-
-
-# -------------------------------------------------------------------
-# SIGNALS: RAM
-# -------------------------------------------------------------------
-
-signal ram_changed(
-	used_ram: int,
-	max_ram: int
-)
-
-
-# -------------------------------------------------------------------
-# SIGNALS: SAVE / RUN STATE
-# -------------------------------------------------------------------
-
-signal desktop_shortcuts_changed(shortcuts_snapshot: Dictionary)
-
-signal run_progress_changed(
-	total_elapsed_time: float,
-	stage_index: int,
-	stage_elapsed_time: float,
-	spawn_budget: float
-)
-
-signal enemy_snapshots_changed(enemy_snapshots: Array)
-
-
-# -------------------------------------------------------------------
-# SYSTEM VARIABLES
-# -------------------------------------------------------------------
-
+# VARIABLES: SYSTEM
 var max_system_integrity: float = 100.0
 var current_system_integrity: float = 100.0
 
-var _system_destroyed: bool = false
-
-
-# -------------------------------------------------------------------
-# WEAPON VARIABLES
-# -------------------------------------------------------------------
-
+# VARIABLES: WEAPON
 var shot_damage: float = 1.0
 var fire_cooldown_seconds: float = 1.0
-
 var max_ammo: int = 6
 var current_ammo: int = 6
 
-
-# -------------------------------------------------------------------
-# RELOAD VARIABLES
-# -------------------------------------------------------------------
-
+# VARIABLES: RELOAD
 var normal_reload_duration: float = 1.45
-var perfect_reload_finish_delay: float = 0.10
+var perfect_reload_finish_delay: float = 0.35
 var reload_failure_penalty_duration: float = 0.85
 
-
-# -------------------------------------------------------------------
-# MINER VARIABLES
-# -------------------------------------------------------------------
-
+# VARIABLES: MINER
 var miner_crypto_per_tick: int = 1
 var miner_interval_seconds: float = 5.0
 
-
-# -------------------------------------------------------------------
-# ECONOMY VARIABLES
-# -------------------------------------------------------------------
-
-var crypto: int = 0
-var virus_data: int = 0
-
+# VARIABLES: ECONOMY
+var crypto: int = 1000
+var virus_data: int = 1000
 var total_enemy_kills: int = 0
 
-
-# -------------------------------------------------------------------
-# RAM VARIABLES
-# -------------------------------------------------------------------
-
+# VARIABLES: RAM
 var max_ram: int = 100
 var used_ram: int = 0
 
+# VARIABLES: DESKTOP RESOLUTION
+var desktop_resolution_tiers: Array[Vector2i] = [
+	Vector2i(1280, 720),
+	Vector2i(1600, 900),
+	Vector2i(1920, 1080),
+	Vector2i(2560, 1440)
+]
 
-# -------------------------------------------------------------------
-# DESKTOP / OWNED APPS VARIABLES
-# -------------------------------------------------------------------
-# Runtime-save friendly structure:
-# {
-#     "shooting": Vector2(40, 140),
-#     "ammo": Vector2(40, 240)
-# }
+var desktop_resolution_tier: int = 0
+var desktop_resolution: Vector2i = Vector2i(1280, 720)
+
+# VARIABLES: UPGRADES
+var purchased_upgrade_counts: Dictionary = {}
+var auto_fire_unlocked: bool = false
+var area_shot_unlocked: bool = false
+var area_shot_max_targets: int = 0
+
+# VARIABLES: DESKTOP SHORTCUTS
+# Save-friendly structure:
+# { "shooting": Vector2(40, 140), "ammo": Vector2(40, 240) }
 
 var desktop_shortcuts: Dictionary = {}
 
-
-# -------------------------------------------------------------------
-# RUN PROGRESS VARIABLES
-# -------------------------------------------------------------------
-# These are not used by the director yet, but are ready for save/load.
-
+# VARIABLES: RUN PROGRESS
 var run_total_elapsed_time: float = 0.0
 var enemy_spawn_stage_index: int = 0
 var enemy_spawn_stage_elapsed_time: float = 0.0
 var enemy_spawn_budget: float = 0.0
 
-
-# -------------------------------------------------------------------
-# ENEMY SNAPSHOT VARIABLES
-# -------------------------------------------------------------------
-# Future format example:
-# [
-#     {
-#         "enemy_id": "basic_virus",
-#         "scene_path": "res://scenes/enemies/BasicVirus.tscn",
-#         "global_position": Vector2(600, 120),
-#         "health": 1.5
-#     }
-# ]
-
+# VARIABLES: ENEMY SNAPSHOTS
 var active_enemy_snapshots: Array = []
 
+# VARIABLES: INTERNAL
+var _system_destroyed: bool = false
 
-# -------------------------------------------------------------------
 # LIFECYCLE
-# -------------------------------------------------------------------
-
 func _ready() -> void:
+	_sync_desktop_resolution_from_tier()
 	_emit_all_state()
 
-
-# -------------------------------------------------------------------
-# SYSTEM INTEGRITY
-# -------------------------------------------------------------------
-
+# SYSTEM
 func take_system_damage(amount: float) -> float:
 	if amount <= 0.0:
 		return 0.0
@@ -255,10 +134,7 @@ func set_max_system_integrity(
 	new_maximum: float,
 	fill_integrity: bool = false
 ) -> void:
-	max_system_integrity = maxf(
-		1.0,
-		new_maximum
-	)
+	max_system_integrity = maxf(1.0, new_maximum)
 
 	if fill_integrity:
 		current_system_integrity = max_system_integrity
@@ -284,11 +160,7 @@ func get_system_integrity_ratio() -> float:
 func is_system_destroyed() -> bool:
 	return _system_destroyed
 
-
-# -------------------------------------------------------------------
 # WEAPON
-# -------------------------------------------------------------------
-
 func consume_ammo(amount: int = 1) -> bool:
 	if amount <= 0:
 		return false
@@ -319,10 +191,7 @@ func set_max_ammo(
 	new_maximum: int,
 	refill: bool = false
 ) -> void:
-	max_ammo = maxi(
-		1,
-		new_maximum
-	)
+	max_ammo = maxi(1, new_maximum)
 
 	if refill:
 		current_ammo = max_ammo
@@ -339,11 +208,7 @@ func set_max_ammo(
 
 
 func set_shot_damage(new_damage: float) -> void:
-	shot_damage = maxf(
-		0.01,
-		new_damage
-	)
-
+	shot_damage = maxf(0.01, new_damage)
 	_emit_weapon_stats_changed()
 
 
@@ -362,37 +227,19 @@ func _emit_weapon_stats_changed() -> void:
 		fire_cooldown_seconds
 	)
 
-
-# -------------------------------------------------------------------
 # RELOAD
-# -------------------------------------------------------------------
-
 func set_normal_reload_duration(new_duration: float) -> void:
-	normal_reload_duration = maxf(
-		0.05,
-		new_duration
-	)
-
+	normal_reload_duration = maxf(0.05, new_duration)
 	_emit_reload_stats_changed()
 
 
 func set_perfect_reload_finish_delay(new_delay: float) -> void:
-	perfect_reload_finish_delay = maxf(
-		0.0,
-		new_delay
-	)
-
+	perfect_reload_finish_delay = maxf(0.0, new_delay)
 	_emit_reload_stats_changed()
 
 
-func set_reload_failure_penalty_duration(
-	new_duration: float
-) -> void:
-	reload_failure_penalty_duration = maxf(
-		0.0,
-		new_duration
-	)
-
+func set_reload_failure_penalty_duration(new_duration: float) -> void:
+	reload_failure_penalty_duration = maxf(0.0, new_duration)
 	_emit_reload_stats_changed()
 
 
@@ -403,26 +250,14 @@ func _emit_reload_stats_changed() -> void:
 		reload_failure_penalty_duration
 	)
 
-
-# -------------------------------------------------------------------
 # MINER
-# -------------------------------------------------------------------
-
 func set_miner_crypto_per_tick(new_amount: int) -> void:
-	miner_crypto_per_tick = maxi(
-		0,
-		new_amount
-	)
-
+	miner_crypto_per_tick = maxi(0, new_amount)
 	_emit_miner_stats_changed()
 
 
 func set_miner_interval_seconds(new_interval: float) -> void:
-	miner_interval_seconds = maxf(
-		0.05,
-		new_interval
-	)
-
+	miner_interval_seconds = maxf(0.05, new_interval)
 	_emit_miner_stats_changed()
 
 
@@ -432,17 +267,12 @@ func _emit_miner_stats_changed() -> void:
 		miner_interval_seconds
 	)
 
-
-# -------------------------------------------------------------------
-# CRYPTO
-# -------------------------------------------------------------------
-
+# ECONOMY
 func add_crypto(amount: int) -> void:
 	if amount <= 0:
 		return
 
 	crypto += amount
-
 	crypto_changed.emit(crypto)
 
 
@@ -461,22 +291,16 @@ func try_spend_crypto(amount: int) -> bool:
 		return false
 
 	crypto -= amount
-
 	crypto_changed.emit(crypto)
 
 	return true
 
-
-# -------------------------------------------------------------------
-# VIRUS DATA
-# -------------------------------------------------------------------
 
 func add_virus_data(amount: int) -> void:
 	if amount <= 0:
 		return
 
 	virus_data += amount
-
 	virus_data_changed.emit(virus_data)
 
 
@@ -495,29 +319,20 @@ func try_spend_virus_data(amount: int) -> bool:
 		return false
 
 	virus_data -= amount
-
 	virus_data_changed.emit(virus_data)
 
 	return true
 
 
-func register_enemy_kill(
-	virus_data_reward: int = 1
-) -> void:
+func register_enemy_kill(virus_data_reward: int = 1) -> void:
 	total_enemy_kills += 1
 
 	enemy_kills_changed.emit(
 		total_enemy_kills
 	)
 
-	add_virus_data(
-		virus_data_reward
-	)
+	add_virus_data(virus_data_reward)
 
-
-# -------------------------------------------------------------------
-# COMBINED ECONOMY HELPERS
-# -------------------------------------------------------------------
 
 func can_afford_resources(
 	crypto_cost: int,
@@ -549,11 +364,7 @@ func try_spend_resources(
 
 	return true
 
-
-# -------------------------------------------------------------------
 # RAM
-# -------------------------------------------------------------------
-
 func can_allocate_ram(amount: int) -> bool:
 	if amount < 0:
 		return false
@@ -594,10 +405,7 @@ func release_ram(amount: int) -> void:
 
 
 func set_max_ram(new_maximum: int) -> void:
-	max_ram = maxi(
-		1,
-		new_maximum
-	)
+	max_ram = maxi(1, new_maximum)
 
 	used_ram = mini(
 		used_ram,
@@ -623,11 +431,198 @@ func get_available_ram_ratio() -> float:
 
 	return float(get_available_ram()) / float(max_ram)
 
+# DESKTOP RESOLUTION
+func set_desktop_resolution_tier(new_tier: int) -> void:
+	if desktop_resolution_tiers.is_empty():
+		return
 
-# -------------------------------------------------------------------
-# DESKTOP SHORTCUT STATE
-# -------------------------------------------------------------------
+	var safe_tier: int = clampi(
+		new_tier,
+		0,
+		desktop_resolution_tiers.size() - 1
+	)
 
+	if desktop_resolution_tier == safe_tier:
+		return
+
+	desktop_resolution_tier = safe_tier
+	_sync_desktop_resolution_from_tier()
+
+	desktop_resolution_changed.emit(
+		desktop_resolution,
+		desktop_resolution_tier
+	)
+
+
+func set_desktop_resolution(
+	new_resolution: Vector2i,
+	new_tier: int = -1
+) -> void:
+	var safe_resolution: Vector2i = Vector2i(
+		maxi(320, new_resolution.x),
+		maxi(180, new_resolution.y)
+	)
+
+	if new_tier >= 0:
+		desktop_resolution_tier = new_tier
+
+	if desktop_resolution == safe_resolution:
+		return
+
+	desktop_resolution = safe_resolution
+
+	desktop_resolution_changed.emit(
+		desktop_resolution,
+		desktop_resolution_tier
+	)
+
+
+func get_next_desktop_resolution_tier() -> int:
+	if desktop_resolution_tiers.is_empty():
+		return desktop_resolution_tier
+
+	return mini(
+		desktop_resolution_tier + 1,
+		desktop_resolution_tiers.size() - 1
+	)
+
+
+func has_next_desktop_resolution_tier() -> bool:
+	return (
+		not desktop_resolution_tiers.is_empty()
+		and desktop_resolution_tier
+			< desktop_resolution_tiers.size() - 1
+	)
+
+
+func _sync_desktop_resolution_from_tier() -> void:
+	if desktop_resolution_tiers.is_empty():
+		return
+
+	desktop_resolution_tier = clampi(
+		desktop_resolution_tier,
+		0,
+		desktop_resolution_tiers.size() - 1
+	)
+
+	desktop_resolution = desktop_resolution_tiers[
+		desktop_resolution_tier
+	]
+
+# UPGRADES
+func get_upgrade_purchase_count(upgrade_id: StringName) -> int:
+	if upgrade_id == StringName():
+		return 0
+
+	var key: String = str(upgrade_id)
+
+	if not purchased_upgrade_counts.has(key):
+		return 0
+
+	return maxi(
+		0,
+		int(purchased_upgrade_counts[key])
+	)
+
+
+func set_upgrade_purchase_count(
+	upgrade_id: StringName,
+	purchase_count: int
+) -> void:
+	if upgrade_id == StringName():
+		return
+
+	purchased_upgrade_counts[str(upgrade_id)] = maxi(
+		0,
+		purchase_count
+	)
+
+	upgrade_purchase_counts_changed.emit(
+		get_upgrade_purchase_counts_snapshot()
+	)
+
+
+func increment_upgrade_purchase_count(
+	upgrade_id: StringName,
+	amount: int = 1
+) -> int:
+	if upgrade_id == StringName():
+		return 0
+
+	var new_count: int = (
+		get_upgrade_purchase_count(upgrade_id)
+		+ maxi(0, amount)
+	)
+
+	set_upgrade_purchase_count(
+		upgrade_id,
+		new_count
+	)
+
+	return new_count
+
+
+func get_upgrade_purchase_counts_snapshot() -> Dictionary:
+	return purchased_upgrade_counts.duplicate(true)
+
+
+func set_upgrade_purchase_counts_from_snapshot(snapshot: Dictionary) -> void:
+	purchased_upgrade_counts = snapshot.duplicate(true)
+
+	upgrade_purchase_counts_changed.emit(
+		get_upgrade_purchase_counts_snapshot()
+	)
+
+
+func clear_upgrade_purchase_counts() -> void:
+	purchased_upgrade_counts.clear()
+
+	upgrade_purchase_counts_changed.emit(
+		get_upgrade_purchase_counts_snapshot()
+	)
+
+
+func set_auto_fire_unlocked(enabled: bool) -> void:
+	if auto_fire_unlocked == enabled:
+		return
+
+	auto_fire_unlocked = enabled
+	auto_fire_changed.emit(auto_fire_unlocked)
+
+
+func set_area_shot_unlocked(enabled: bool) -> void:
+	if area_shot_unlocked == enabled:
+		return
+
+	area_shot_unlocked = enabled
+
+	area_shot_changed.emit(
+		area_shot_unlocked,
+		area_shot_max_targets
+	)
+
+
+func set_area_shot_max_targets(new_amount: int) -> void:
+	area_shot_max_targets = maxi(0, new_amount)
+
+	if area_shot_max_targets > 0:
+		area_shot_unlocked = true
+
+	area_shot_changed.emit(
+		area_shot_unlocked,
+		area_shot_max_targets
+	)
+
+
+func add_area_shot_max_targets(amount: int) -> void:
+	if amount <= 0:
+		return
+
+	set_area_shot_max_targets(
+		area_shot_max_targets + amount
+	)
+
+# DESKTOP SHORTCUTS
 func register_desktop_shortcut(
 	program_id: StringName,
 	position: Vector2
@@ -642,9 +637,7 @@ func register_desktop_shortcut(
 	)
 
 
-func unregister_desktop_shortcut(
-	program_id: StringName
-) -> void:
+func unregister_desktop_shortcut(program_id: StringName) -> void:
 	if program_id == StringName():
 		return
 
@@ -679,15 +672,11 @@ func update_desktop_shortcut_position(
 	)
 
 
-func has_desktop_shortcut(
-	program_id: StringName
-) -> bool:
+func has_desktop_shortcut(program_id: StringName) -> bool:
 	if program_id == StringName():
 		return false
 
-	return desktop_shortcuts.has(
-		str(program_id)
-	)
+	return desktop_shortcuts.has(str(program_id))
 
 
 func get_desktop_shortcut_position(
@@ -714,9 +703,7 @@ func get_desktop_shortcuts_snapshot() -> Dictionary:
 	return desktop_shortcuts.duplicate(true)
 
 
-func set_desktop_shortcuts_from_snapshot(
-	shortcuts_snapshot: Dictionary
-) -> void:
+func set_desktop_shortcuts_from_snapshot(shortcuts_snapshot: Dictionary) -> void:
 	desktop_shortcuts = shortcuts_snapshot.duplicate(true)
 
 	desktop_shortcuts_changed.emit(
@@ -731,36 +718,17 @@ func clear_desktop_shortcuts() -> void:
 		get_desktop_shortcuts_snapshot()
 	)
 
-
-# -------------------------------------------------------------------
-# RUN PROGRESS STATE
-# -------------------------------------------------------------------
-
+# RUN PROGRESS
 func set_run_progress(
 	total_elapsed_time: float,
 	stage_index: int,
 	stage_elapsed_time: float,
 	spawn_budget: float
 ) -> void:
-	run_total_elapsed_time = maxf(
-		0.0,
-		total_elapsed_time
-	)
-
-	enemy_spawn_stage_index = maxi(
-		0,
-		stage_index
-	)
-
-	enemy_spawn_stage_elapsed_time = maxf(
-		0.0,
-		stage_elapsed_time
-	)
-
-	enemy_spawn_budget = maxf(
-		0.0,
-		spawn_budget
-	)
+	run_total_elapsed_time = maxf(0.0, total_elapsed_time)
+	enemy_spawn_stage_index = maxi(0, stage_index)
+	enemy_spawn_stage_elapsed_time = maxf(0.0, stage_elapsed_time)
+	enemy_spawn_budget = maxf(0.0, spawn_budget)
 
 	run_progress_changed.emit(
 		run_total_elapsed_time,
@@ -779,40 +747,16 @@ func get_run_progress_snapshot() -> Dictionary:
 	}
 
 
-func set_run_progress_from_snapshot(
-	snapshot: Dictionary
-) -> void:
-	var total_elapsed_time: float = float(
-		snapshot.get("total_elapsed_time", 0.0)
-	)
-
-	var stage_index: int = int(
-		snapshot.get("stage_index", 0)
-	)
-
-	var stage_elapsed_time: float = float(
-		snapshot.get("stage_elapsed_time", 0.0)
-	)
-
-	var spawn_budget: float = float(
-		snapshot.get("spawn_budget", 0.0)
-	)
-
+func set_run_progress_from_snapshot(snapshot: Dictionary) -> void:
 	set_run_progress(
-		total_elapsed_time,
-		stage_index,
-		stage_elapsed_time,
-		spawn_budget
+		float(snapshot.get("total_elapsed_time", 0.0)),
+		int(snapshot.get("stage_index", 0)),
+		float(snapshot.get("stage_elapsed_time", 0.0)),
+		float(snapshot.get("spawn_budget", 0.0))
 	)
 
-
-# -------------------------------------------------------------------
-# ENEMY SNAPSHOT STATE
-# -------------------------------------------------------------------
-
-func set_enemy_snapshots(
-	enemy_snapshots: Array
-) -> void:
+# ENEMY SNAPSHOTS
+func set_enemy_snapshots(enemy_snapshots: Array) -> void:
 	active_enemy_snapshots = enemy_snapshots.duplicate(true)
 
 	enemy_snapshots_changed.emit(
@@ -831,11 +775,7 @@ func clear_enemy_snapshots() -> void:
 		get_enemy_snapshots()
 	)
 
-
-# -------------------------------------------------------------------
 # RESET
-# -------------------------------------------------------------------
-
 func reset_run() -> void:
 	_reset_system_state()
 	_reset_weapon_state()
@@ -843,6 +783,8 @@ func reset_run() -> void:
 	_reset_miner_state()
 	_reset_economy_state()
 	_reset_ram_state()
+	_reset_desktop_resolution_state()
+	_reset_upgrade_state()
 	_reset_desktop_state()
 	_reset_run_progress_state()
 	_reset_enemy_snapshot_state()
@@ -859,7 +801,6 @@ func _reset_system_state() -> void:
 func _reset_weapon_state() -> void:
 	shot_damage = 1.0
 	fire_cooldown_seconds = 1.0
-
 	max_ammo = 6
 	current_ammo = max_ammo
 
@@ -872,7 +813,7 @@ func _reset_reload_state() -> void:
 
 func _reset_miner_state() -> void:
 	miner_crypto_per_tick = 1
-	miner_interval_seconds = 1.0
+	miner_interval_seconds = 5.0
 
 
 func _reset_economy_state() -> void:
@@ -884,6 +825,18 @@ func _reset_economy_state() -> void:
 func _reset_ram_state() -> void:
 	max_ram = 100
 	used_ram = 0
+
+
+func _reset_desktop_resolution_state() -> void:
+	desktop_resolution_tier = 0
+	_sync_desktop_resolution_from_tier()
+
+
+func _reset_upgrade_state() -> void:
+	purchased_upgrade_counts.clear()
+	auto_fire_unlocked = false
+	area_shot_unlocked = false
+	area_shot_max_targets = 0
 
 
 func _reset_desktop_state() -> void:
@@ -928,6 +881,22 @@ func _emit_all_state() -> void:
 		max_ram
 	)
 
+	desktop_resolution_changed.emit(
+		desktop_resolution,
+		desktop_resolution_tier
+	)
+
+	upgrade_purchase_counts_changed.emit(
+		get_upgrade_purchase_counts_snapshot()
+	)
+
+	auto_fire_changed.emit(auto_fire_unlocked)
+
+	area_shot_changed.emit(
+		area_shot_unlocked,
+		area_shot_max_targets
+	)
+
 	desktop_shortcuts_changed.emit(
 		get_desktop_shortcuts_snapshot()
 	)
@@ -942,3 +911,68 @@ func _emit_all_state() -> void:
 	enemy_snapshots_changed.emit(
 		get_enemy_snapshots()
 	)
+
+# SIGNALS
+signal system_integrity_changed(
+	current_integrity: float,
+	max_integrity: float
+)
+
+signal system_destroyed
+
+signal ammo_changed(
+	current_ammo: int,
+	max_ammo: int
+)
+
+signal weapon_stats_changed(
+	damage: float,
+	fire_cooldown_seconds: float
+)
+
+signal reload_stats_changed(
+	normal_reload_duration: float,
+	perfect_reload_finish_delay: float,
+	reload_failure_penalty_duration: float
+)
+
+signal miner_stats_changed(
+	crypto_per_tick: int,
+	mining_interval_seconds: float
+)
+
+signal crypto_changed(current_crypto: int)
+signal virus_data_changed(current_virus_data: int)
+signal enemy_kills_changed(total_enemy_kills: int)
+
+signal ram_changed(
+	used_ram: int,
+	max_ram: int
+)
+
+signal desktop_resolution_changed(
+	new_resolution: Vector2i,
+	resolution_tier: int
+)
+
+signal upgrade_purchase_counts_changed(
+	purchase_counts_snapshot: Dictionary
+)
+
+signal auto_fire_changed(enabled: bool)
+
+signal area_shot_changed(
+	unlocked: bool,
+	max_targets: int
+)
+
+signal desktop_shortcuts_changed(shortcuts_snapshot: Dictionary)
+
+signal run_progress_changed(
+	total_elapsed_time: float,
+	stage_index: int,
+	stage_elapsed_time: float,
+	spawn_budget: float
+)
+
+signal enemy_snapshots_changed(enemy_snapshots: Array)

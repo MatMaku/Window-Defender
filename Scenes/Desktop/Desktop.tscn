@@ -20,7 +20,9 @@
 [ext_resource type="PackedScene" uid="uid://c2igrixgh7fww" path="res://Scenes/Taskbar/Taskbar.tscn" id="18_dmnow"]
 [ext_resource type="Script" uid="uid://12i6uwwtsgpm" path="res://Scripts/Shop/ShopManager.gd" id="21_4qr77"]
 [ext_resource type="Script" uid="uid://depuse7p0i1bi" path="res://Scripts/Virus/EnemySpawnDirector.gd" id="22_4qr77"]
+[ext_resource type="Script" uid="uid://cessh0eh04be3" path="res://Scripts/Desktop/DisplayManager.gd" id="23_2q1tr"]
 [ext_resource type="Script" uid="uid://dd7yu6x1g3p5b" path="res://Data/Stages/EnemySpawnStageData.gd" id="23_8y6pq"]
+[ext_resource type="Script" uid="uid://cio6x2ti3037n" path="res://Scripts/Shop/UpgradeManager.gd" id="24_swus7"]
 [ext_resource type="Resource" uid="uid://h6rb6t8pgsyo" path="res://Stages/Prueba/Stage 1.tres" id="24_ufff5"]
 [ext_resource type="Resource" uid="uid://b8scfei2twj8s" path="res://Stages/Prueba/Stage 2.tres" id="25_hbweu"]
 [ext_resource type="Resource" uid="uid://dp0guf8yrk8y3" path="res://Stages/Prueba/Stage 3.tres" id="26_actuf"]
@@ -82,9 +84,16 @@ window_manager = NodePath("../WindowManager")
 taskbar = NodePath("../../StatusLayer/Taskbar")
 taskbar_app_button_scene = ExtResource("18_b33g3")
 
-[node name="ShopManager" type="Node" parent="Managers" unique_id=2112211757 node_paths=PackedStringArray("desktop", "window_manager")]
+[node name="ShopManager" type="Node" parent="Managers" unique_id=2112211757 node_paths=PackedStringArray("desktop", "window_manager", "upgrade_manager")]
 unique_name_in_owner = true
 script = ExtResource("21_4qr77")
+desktop = NodePath("../..")
+window_manager = NodePath("../WindowManager")
+upgrade_manager = NodePath("../UpgradeManager")
+
+[node name="DisplayManager" type="Node" parent="Managers" unique_id=2023517467 node_paths=PackedStringArray("desktop", "window_manager")]
+unique_name_in_owner = true
+script = ExtResource("23_2q1tr")
 desktop = NodePath("../..")
 window_manager = NodePath("../WindowManager")
 
@@ -104,6 +113,10 @@ enemy_manager = NodePath("../EnemyManager")
 system_manager = NodePath("../SystemManager")
 stages = Array[ExtResource("23_8y6pq")]([ExtResource("24_ufff5"), ExtResource("25_hbweu"), ExtResource("26_actuf")])
 
+[node name="UpgradeManager" type="Node" parent="Managers" unique_id=1678589272]
+unique_name_in_owner = true
+script = ExtResource("24_swus7")
+
 [node name="Wallpaper" type="TextureRect" parent="." unique_id=1808162104]
 z_index = -1
 layout_mode = 1
@@ -114,7 +127,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("15_ppvbo")
-expand_mode = 3
+expand_mode = 1
 
 [node name="IconLayer" type="Control" parent="." unique_id=684964200]
 unique_name_in_owner = true

@@ -22,10 +22,12 @@ texture_margin_right = 5.0
 texture_margin_bottom = 5.0
 
 [node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_nabr0")]
-anchor_right = 0.13000001
-anchor_bottom = 0.296
-offset_right = 0.39997864
-offset_bottom = 0.32000732
+custom_minimum_size = Vector2(250, 320)
+custom_maximum_size = Vector2(250, 320)
+anchor_right = 0.098000005
+anchor_bottom = 0.22200002
+offset_right = 82.32001
+offset_bottom = 106.879974
 script = ExtResource("2_dlc8a")
 
 [node name="TitleLabel" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="1" unique_id=278973000]

@@ -12,6 +12,8 @@ shadow_color = Color(0, 0, 0, 0.19607843)
 shadow_offset = Vector2(-1, 1)
 
 [node name="DesktopExecutable" type="Control" unique_id=919256029]
+custom_minimum_size = Vector2(115, 85)
+custom_maximum_size = Vector2(115, 85)
 layout_mode = 3
 anchors_preset = 0
 offset_left = -56.0
@@ -30,10 +32,10 @@ grow_vertical = 2
 
 [node name="IconTexture" type="TextureRect" parent="VBoxContainer" unique_id=1620915035]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 60)
+custom_minimum_size = Vector2(115, 60)
 layout_mode = 2
 texture = ExtResource("2_qane0")
-expand_mode = 3
+expand_mode = 1
 stretch_mode = 5
 
 [node name="NameLabel" type="Label" parent="VBoxContainer" unique_id=1747427097]

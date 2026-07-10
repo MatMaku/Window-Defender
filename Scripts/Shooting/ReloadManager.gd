@@ -23,7 +23,8 @@ signal reload_rejected(reason: int)
 @export var window_manager: WindowManager
 @export var shooting_manager: ShootingManager
 
-@export_category("Reload Timing")
+@export_category("Reload Timing Fallback")
+
 @export_range(0.1, 5.0, 0.01)
 var normal_reload_duration: float = 1.45
 
@@ -33,6 +34,8 @@ var perfect_finish_delay: float = 0.10
 @export_range(0.1, 5.0, 0.01)
 var failure_penalty_duration: float = 0.85
 
+@export_category("Active Reload Zone")
+
 @export_range(0.0, 0.95, 0.01)
 var perfect_zone_start: float = 0.60
 
@@ -40,26 +43,24 @@ var perfect_zone_start: float = 0.60
 var perfect_zone_width: float = 0.14
 
 var _state: int = ReloadState.IDLE
+
 var _normal_elapsed: float = 0.0
 var _penalty_remaining: float = 0.0
 var _perfect_finish_remaining: float = 0.0
+
 var _perfect_check_available: bool = false
 
 var _reload_window: ReloadWindow
 
 
 func _ready() -> void:
-	if window_manager == null:
-		push_error("ReloadManager requires a WindowManager reference.")
+	_resolve_references()
+
+	if not _validate_dependencies():
 		return
 
-	if shooting_manager == null:
-		push_error("ReloadManager requires a ShootingManager reference.")
-		return
-
-	window_manager.window_opened.connect(_on_window_opened)
-	window_manager.window_closed.connect(_on_window_closed)
-
+	_connect_signals()
+	_apply_reload_stats_from_game_state()
 	_register_existing_reload_window()
 
 
@@ -75,6 +76,127 @@ func _process(delta: float) -> void:
 			_advance_perfect_finish(delta)
 
 
+# ================================================================
+# SETUP
+# ================================================================
+
+func _resolve_references() -> void:
+	if window_manager == null:
+		window_manager = (
+			get_node_or_null("../WindowManager")
+			as WindowManager
+		)
+
+	if shooting_manager == null:
+		shooting_manager = (
+			get_node_or_null("../ShootingManager")
+			as ShootingManager
+		)
+
+
+func _validate_dependencies() -> bool:
+	if window_manager == null:
+		push_error("ReloadManager requires a WindowManager reference.")
+		return false
+
+	if shooting_manager == null:
+		push_error("ReloadManager requires a ShootingManager reference.")
+		return false
+
+	return true
+
+
+func _connect_signals() -> void:
+	if not window_manager.window_opened.is_connected(
+		_on_window_opened
+	):
+		window_manager.window_opened.connect(
+			_on_window_opened
+		)
+
+	if not window_manager.window_closed.is_connected(
+		_on_window_closed
+	):
+		window_manager.window_closed.connect(
+			_on_window_closed
+		)
+
+	if not GameState.reload_stats_changed.is_connected(
+		_on_game_state_reload_stats_changed
+	):
+		GameState.reload_stats_changed.connect(
+			_on_game_state_reload_stats_changed
+		)
+
+
+func _apply_reload_stats_from_game_state() -> void:
+	_apply_reload_stats(
+		GameState.normal_reload_duration,
+		GameState.perfect_reload_finish_delay,
+		GameState.reload_failure_penalty_duration
+	)
+
+
+func _on_game_state_reload_stats_changed(
+	new_normal_reload_duration: float,
+	new_perfect_finish_delay: float,
+	new_failure_penalty_duration: float
+) -> void:
+	_apply_reload_stats(
+		new_normal_reload_duration,
+		new_perfect_finish_delay,
+		new_failure_penalty_duration
+	)
+
+
+func _apply_reload_stats(
+	new_normal_reload_duration: float,
+	new_perfect_finish_delay: float,
+	new_failure_penalty_duration: float
+) -> void:
+	normal_reload_duration = maxf(
+		0.05,
+		new_normal_reload_duration
+	)
+
+	perfect_finish_delay = maxf(
+		0.0,
+		new_perfect_finish_delay
+	)
+
+	failure_penalty_duration = maxf(
+		0.0,
+		new_failure_penalty_duration
+	)
+
+	_clamp_current_timers_to_reload_stats()
+	_sync_reload_window()
+
+
+func _clamp_current_timers_to_reload_stats() -> void:
+	_normal_elapsed = clampf(
+		_normal_elapsed,
+		0.0,
+		normal_reload_duration
+	)
+
+	_penalty_remaining = clampf(
+		_penalty_remaining,
+		0.0,
+		failure_penalty_duration
+	)
+
+	_perfect_finish_remaining = clampf(
+		_perfect_finish_remaining,
+		0.0,
+		perfect_finish_delay
+	)
+
+
+# ================================================================
+# WINDOW BINDING
+# ================================================================
+
 func _on_window_opened(
 	window: AppWindow,
 	_program_data: ProgramData
@@ -88,8 +210,10 @@ func _on_window_opened(
 
 
 func _on_window_closed(window: AppWindow) -> void:
-	if window == _reload_window:
-		_reload_window = null
+	if window != _reload_window:
+		return
+
+	_reload_window = null
 
 
 func _bind_reload_window(window: ReloadWindow) -> void:
@@ -98,11 +222,33 @@ func _bind_reload_window(window: ReloadWindow) -> void:
 
 	_reload_window = window
 
-	if not window.reload_input_requested.is_connected(_on_reload_input_requested):
-		window.reload_input_requested.connect(_on_reload_input_requested)
+	if not window.reload_input_requested.is_connected(
+		_on_reload_input_requested
+	):
+		window.reload_input_requested.connect(
+			_on_reload_input_requested
+		)
 
 	_sync_reload_window()
 
+
+func _register_existing_reload_window() -> void:
+	if window_manager.window_layer == null:
+		return
+
+	for child: Node in window_manager.window_layer.get_children():
+		var reload_window: ReloadWindow = child as ReloadWindow
+
+		if reload_window == null:
+			continue
+
+		_bind_reload_window(reload_window)
+		return
+
+
+# ================================================================
+# INPUT
+# ================================================================
 
 func _on_reload_input_requested(window: ReloadWindow) -> void:
 	if window != _reload_window:
@@ -157,6 +303,10 @@ func _try_active_reload() -> void:
 	_start_penalty()
 
 
+# ================================================================
+# STATE ADVANCE
+# ================================================================
+
 func _advance_normal_reload(delta: float) -> void:
 	_normal_elapsed = minf(
 		_normal_elapsed + delta,
@@ -196,8 +346,13 @@ func _advance_perfect_finish(delta: float) -> void:
 	_complete_reload()
 
 
+# ================================================================
+# STATE CHANGES
+# ================================================================
+
 func _start_penalty() -> void:
 	_state = ReloadState.PENALTY
+
 	_penalty_remaining = failure_penalty_duration
 	_perfect_check_available = false
 
@@ -207,6 +362,7 @@ func _start_penalty() -> void:
 
 func _start_perfect_finish() -> void:
 	_state = ReloadState.PERFECT_FINISH
+
 	_perfect_finish_remaining = perfect_finish_delay
 	_perfect_check_available = false
 
@@ -219,6 +375,7 @@ func _complete_reload() -> void:
 	shooting_manager.set_reloading(false)
 
 	_state = ReloadState.IDLE
+
 	_normal_elapsed = 0.0
 	_penalty_remaining = 0.0
 	_perfect_finish_remaining = 0.0
@@ -226,24 +383,6 @@ func _complete_reload() -> void:
 
 	_present_reload_completed()
 	reload_completed.emit()
-
-
-func _get_normal_progress() -> float:
-	return clampf(
-		_normal_elapsed / normal_reload_duration,
-		0.0,
-		1.0
-	)
-
-
-func _is_inside_perfect_zone(progress: float) -> bool:
-	var zone_start: float = clampf(perfect_zone_start, 0.0, 1.0)
-	var zone_end: float = minf(
-		1.0,
-		zone_start + perfect_zone_width
-	)
-
-	return progress >= zone_start and progress <= zone_end
 
 
 func _reject_reload(reason: int) -> void:
@@ -259,6 +398,43 @@ func _reject_reload(reason: int) -> void:
 		ReloadRejectionReason.WEAPON_BUSY:
 			_present_rejection("WEAPON BUSY")
 
+
+# ================================================================
+# HELPERS
+# ================================================================
+
+func _get_normal_progress() -> float:
+	if normal_reload_duration <= 0.0:
+		return 1.0
+
+	return clampf(
+		_normal_elapsed / normal_reload_duration,
+		0.0,
+		1.0
+	)
+
+
+func _is_inside_perfect_zone(progress: float) -> bool:
+	var zone_start: float = clampf(
+		perfect_zone_start,
+		0.0,
+		1.0
+	)
+
+	var zone_end: float = minf(
+		1.0,
+		zone_start + perfect_zone_width
+	)
+
+	return (
+		progress >= zone_start
+		and progress <= zone_end
+	)
+
+
+# ================================================================
+# PRESENTATION
+# ================================================================
 
 func _present_reload_started() -> void:
 	if not is_instance_valid(_reload_window):
@@ -347,17 +523,3 @@ func _sync_reload_window() -> void:
 
 		ReloadState.PERFECT_FINISH:
 			_reload_window.present_perfect_reload()
-
-
-func _register_existing_reload_window() -> void:
-	if window_manager.window_layer == null:
-		return
-
-	for child in window_manager.window_layer.get_children():
-		var reload_window: ReloadWindow = child as ReloadWindow
-
-		if reload_window == null:
-			continue
-
-		_bind_reload_window(reload_window)
-		return

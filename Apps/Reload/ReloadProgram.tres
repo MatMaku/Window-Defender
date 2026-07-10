@@ -11,4 +11,5 @@ display_name = "Reload.exe"
 icon = ExtResource("1_fpjbk")
 window_scene = ExtResource("3_6jxn7")
 default_window_size = Vector2(400, 180)
+ram_cost = 15
 metadata/_custom_type_script = "uid://cwpxv30ekbea1"

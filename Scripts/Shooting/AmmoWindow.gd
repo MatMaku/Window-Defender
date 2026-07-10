@@ -2,6 +2,7 @@ extends AppWindow
 class_name AmmoWindow
 
 @export_category("Ammo Feedback")
+
 @export_range(0.01, 1.0, 0.01)
 var shrink_duration: float = 0.03
 
@@ -17,6 +18,7 @@ var settle_duration: float = 0.03
 @onready var ammo_label: Label = %AmmoLabel
 
 var _ammo_feedback_tween: Tween
+
 var _displayed_current_ammo: int = -1
 var _displayed_max_ammo: int = -1
 
@@ -24,9 +26,19 @@ var _displayed_max_ammo: int = -1
 func _ready() -> void:
 	super._ready()
 
-	ammo_label.resized.connect(_update_label_pivot)
+	if not ammo_label.resized.is_connected(
+		_update_label_pivot
+	):
+		ammo_label.resized.connect(
+			_update_label_pivot
+		)
 
-	set_ammo(0, 0, false)
+	set_ammo(
+		GameState.current_ammo,
+		GameState.max_ammo,
+		false
+	)
+
 	call_deferred("_update_label_pivot")
 
 
@@ -35,21 +47,43 @@ func set_ammo(
 	max_ammo: int,
 	play_feedback: bool = true
 ) -> void:
-	var has_changed: bool = (
-		current_ammo != _displayed_current_ammo
-		or max_ammo != _displayed_max_ammo
+	var safe_current_ammo: int = maxi(
+		0,
+		current_ammo
 	)
 
-	_displayed_current_ammo = current_ammo
-	_displayed_max_ammo = max_ammo
+	var safe_max_ammo: int = maxi(
+		0,
+		max_ammo
+	)
 
-	var current_text: String = str(current_ammo).pad_zeros(2)
-	var max_text: String = str(max_ammo).pad_zeros(2)
+	var has_changed: bool = (
+		safe_current_ammo != _displayed_current_ammo
+		or safe_max_ammo != _displayed_max_ammo
+	)
 
-	ammo_label.text = "%s/%s" % [current_text, max_text]
+	_displayed_current_ammo = safe_current_ammo
+	_displayed_max_ammo = safe_max_ammo
+
+	_refresh_ammo_label()
 
 	if has_changed and play_feedback:
 		call_deferred("_play_ammo_change_feedback")
+
+
+func _refresh_ammo_label() -> void:
+	var current_text: String = (
+		str(_displayed_current_ammo).pad_zeros(2)
+	)
+
+	var max_text: String = (
+		str(_displayed_max_ammo).pad_zeros(2)
+	)
+
+	ammo_label.text = "%s/%s" % [
+		current_text,
+		max_text
+	]
 
 
 func _play_ammo_change_feedback() -> void:
