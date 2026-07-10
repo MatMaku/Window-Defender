@@ -1,8 +1,8 @@
 extends Node
 class_name EnemyManager
 
-signal enemy_spawned(enemy: BasicVirus)
-signal enemy_removed(enemy: BasicVirus)
+signal enemy_spawned(enemy: DesktopVirus)
+signal enemy_removed(enemy: DesktopVirus)
 
 @export var playfield_layer: Control
 @export var system_manager: SystemManager
@@ -20,6 +20,11 @@ signal enemy_removed(enemy: BasicVirus)
 @export_range(0.0, 200.0, 1.0)
 var spawn_margin: float = 24.0
 
+@export_category("Rewards Fallback")
+
+@export_range(0, 999, 1)
+var virus_data_reward_per_kill: int = 1
+
 @export_category("Enemy Separation")
 
 @export var enemy_separation_enabled: bool = true
@@ -33,7 +38,7 @@ var enemy_separation_strength: float = 80.0
 @export_range(0.0, 30.0, 0.5)
 var max_separation_push_per_frame: float = 3.0
 
-var _active_viruses: Array[BasicVirus] = []
+var _active_enemies: Array[DesktopVirus] = []
 var _random: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var _test_enemy_spawned: bool = false
@@ -59,55 +64,90 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not enemy_separation_enabled:
+	if not _can_apply_enemy_separation():
 		return
 
 	_apply_enemy_separation(delta)
 
 
 func spawn_basic_virus_from_random_edge() -> BasicVirus:
-	return spawn_enemy_from_random_edge(
+	var enemy: DesktopVirus = spawn_enemy_from_random_edge(
 		basic_virus_scene
 	)
+
+	return enemy as BasicVirus
 
 
 func spawn_enemy_from_random_edge(
 	enemy_scene: PackedScene
-) -> BasicVirus:
+) -> DesktopVirus:
 	if enemy_scene == null:
 		push_error("Cannot spawn enemy: enemy scene is null.")
 		return null
 
-	var enemy: BasicVirus = _instantiate_enemy(enemy_scene)
+	var enemy: DesktopVirus = _instantiate_enemy(enemy_scene)
 
 	if enemy == null:
 		return null
 
-	_register_spawned_enemy(enemy)
-
-	enemy.global_position = _get_random_spawn_position(
-		_get_enemy_spawn_size(enemy)
+	enemy.virus_data_reward = maxi(
+		0,
+		virus_data_reward_per_kill
 	)
+
+	_register_spawned_enemy(enemy)
+	_place_enemy_at_random_edge(enemy)
+
+	return enemy
+
+
+func spawn_enemy_from_spawn_entry(
+	spawn_entry_data: EnemySpawnEntryData
+) -> DesktopVirus:
+	if spawn_entry_data == null:
+		push_error("Cannot spawn enemy: spawn entry is null.")
+		return null
+
+	if spawn_entry_data.enemy_scene == null:
+		push_error(
+			"Cannot spawn enemy '%s': enemy scene is null."
+			% spawn_entry_data.display_name
+		)
+		return null
+
+	var enemy: DesktopVirus = _instantiate_enemy(
+		spawn_entry_data.enemy_scene
+	)
+
+	if enemy == null:
+		return null
+
+	enemy.apply_spawn_entry_data(
+		spawn_entry_data
+	)
+
+	_register_spawned_enemy(enemy)
+	_place_enemy_at_random_edge(enemy)
 
 	return enemy
 
 
 func get_active_enemy_count() -> int:
-	_prune_invalid_viruses()
+	_prune_invalid_enemies()
 
-	return _active_viruses.size()
+	return _active_enemies.size()
 
 
-func get_active_enemies() -> Array[BasicVirus]:
-	_prune_invalid_viruses()
+func get_active_enemies() -> Array[DesktopVirus]:
+	_prune_invalid_enemies()
 
-	var enemies: Array[BasicVirus] = []
+	var enemies: Array[DesktopVirus] = []
 
-	for virus: BasicVirus in _active_viruses:
-		if not is_instance_valid(virus):
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
 			continue
 
-		enemies.append(virus)
+		enemies.append(enemy)
 
 	return enemies
 
@@ -174,22 +214,25 @@ func _validate_dependencies() -> bool:
 
 func _instantiate_enemy(
 	enemy_scene: PackedScene
-) -> BasicVirus:
-	var enemy: BasicVirus = (
+) -> DesktopVirus:
+	var enemy: DesktopVirus = (
 		enemy_scene.instantiate()
-		as BasicVirus
+		as DesktopVirus
 	)
 
 	if enemy == null:
 		push_error(
-			"Enemy scene must inherit from BasicVirus."
+			"Enemy scene must inherit from DesktopVirus."
 		)
 		return null
 
 	return enemy
 
 
-func _register_spawned_enemy(enemy: BasicVirus) -> void:
+func _register_spawned_enemy(enemy: DesktopVirus) -> void:
+	if enemy == null:
+		return
+
 	enemy.configure(
 		system_manager,
 		window_manager
@@ -197,12 +240,21 @@ func _register_spawned_enemy(enemy: BasicVirus) -> void:
 
 	playfield_layer.add_child(enemy)
 
-	if not enemy.died.is_connected(_on_virus_died):
-		enemy.died.connect(_on_virus_died)
+	if not enemy.died.is_connected(_on_enemy_died):
+		enemy.died.connect(_on_enemy_died)
 
-	_active_viruses.append(enemy)
+	_active_enemies.append(enemy)
 
 	enemy_spawned.emit(enemy)
+
+
+func _place_enemy_at_random_edge(enemy: DesktopVirus) -> void:
+	if enemy == null:
+		return
+
+	enemy.global_position = _get_random_spawn_position(
+		_get_enemy_spawn_size(enemy)
+	)
 
 
 func _on_system_target_registered(
@@ -218,76 +270,88 @@ func _try_spawn_initial_enemy() -> void:
 	if _test_enemy_spawned:
 		return
 
-	var system_executable: DesktopExecutable = (
-		system_manager.get_system_executable()
-	)
-
-	if system_executable == null:
+	if system_manager.get_system_executable() == null:
 		return
 
-	var virus: BasicVirus = (
-		spawn_basic_virus_from_random_edge()
-	)
+	var enemy: BasicVirus = spawn_basic_virus_from_random_edge()
 
-	_test_enemy_spawned = virus != null
+	_test_enemy_spawned = enemy != null
 
 
 func _on_shot_fired(
 	target_global_position: Vector2,
 	damage_amount: float
 ) -> void:
-	var hit_viruses: Array[BasicVirus] = (
-		_get_viruses_at_global_position(
+	var hit_enemies: Array[DesktopVirus] = (
+		_get_enemies_at_global_position(
 			target_global_position
 		)
 	)
 
-	if hit_viruses.is_empty():
+	if hit_enemies.is_empty():
 		return
 
-	for virus: BasicVirus in hit_viruses:
-		if not is_instance_valid(virus):
+	for enemy: DesktopVirus in hit_enemies:
+		if not is_instance_valid(enemy):
 			continue
 
-		virus.receive_damage(damage_amount)
+		enemy.receive_damage(damage_amount)
 
 
-func _get_viruses_at_global_position(
+func _get_enemies_at_global_position(
 	target_global_position: Vector2
-) -> Array[BasicVirus]:
-	_prune_invalid_viruses()
+) -> Array[DesktopVirus]:
+	_prune_invalid_enemies()
 
-	var hit_viruses: Array[BasicVirus] = []
+	var hit_enemies: Array[DesktopVirus] = []
 
-	for virus: BasicVirus in _active_viruses:
-		if not is_instance_valid(virus):
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
 			continue
 
-		if not virus.contains_global_point(
+		if not enemy.contains_global_point(
 			target_global_position
 		):
 			continue
 
-		hit_viruses.append(virus)
+		hit_enemies.append(enemy)
 
-	return hit_viruses
+	return hit_enemies
+
+
+func _can_apply_enemy_separation() -> bool:
+	if not enemy_separation_enabled:
+		return false
+
+	if enemy_separation_distance <= 0.0:
+		return false
+
+	if enemy_separation_strength <= 0.0:
+		return false
+
+	if _active_enemies.size() <= 1:
+		return false
+
+	return true
 
 
 func _apply_enemy_separation(delta: float) -> void:
-	if enemy_separation_distance <= 0.0:
-		return
+	_prune_invalid_enemies()
 
-	if enemy_separation_strength <= 0.0:
-		return
-
-	var enemies: Array[BasicVirus] = get_active_enemies()
-	var enemy_count: int = enemies.size()
+	var enemy_count: int = _active_enemies.size()
 
 	if enemy_count <= 1:
 		return
 
+	var separation_distance_squared: float = (
+		enemy_separation_distance
+		* enemy_separation_distance
+	)
+
 	for first_index: int in range(enemy_count):
-		var first_enemy: BasicVirus = enemies[first_index]
+		var first_enemy: DesktopVirus = _active_enemies[
+			first_index
+		]
 
 		if not is_instance_valid(first_enemy):
 			continue
@@ -296,7 +360,9 @@ func _apply_enemy_separation(delta: float) -> void:
 			first_index + 1,
 			enemy_count
 		):
-			var second_enemy: BasicVirus = enemies[second_index]
+			var second_enemy: DesktopVirus = _active_enemies[
+				second_index
+			]
 
 			if not is_instance_valid(second_enemy):
 				continue
@@ -304,14 +370,16 @@ func _apply_enemy_separation(delta: float) -> void:
 			_apply_separation_between_pair(
 				first_enemy,
 				second_enemy,
-				delta
+				delta,
+				separation_distance_squared
 			)
 
 
 func _apply_separation_between_pair(
-	first_enemy: BasicVirus,
-	second_enemy: BasicVirus,
-	delta: float
+	first_enemy: DesktopVirus,
+	second_enemy: DesktopVirus,
+	delta: float,
+	separation_distance_squared: float
 ) -> void:
 	var first_can_push: bool = (
 		first_enemy.can_receive_separation_push()
@@ -333,36 +401,24 @@ func _apply_separation_between_pair(
 	)
 
 	var offset: Vector2 = second_center - first_center
-	var distance: float = offset.length()
+	var distance_squared: float = offset.length_squared()
 
-	if distance >= enemy_separation_distance:
+	if distance_squared >= separation_distance_squared:
 		return
 
-	var direction: Vector2 = Vector2.ZERO
-
-	if distance <= 0.001:
-		direction = Vector2.RIGHT.rotated(
-			_random.randf_range(
-				0.0,
-				TAU
-			)
-		)
-	else:
-		direction = offset / distance
+	var distance: float = sqrt(distance_squared)
+	var direction: Vector2 = _get_separation_direction(
+		offset,
+		distance
+	)
 
 	var overlap_ratio: float = 1.0 - (
 		distance / enemy_separation_distance
 	)
 
-	var raw_push_amount: float = (
-		enemy_separation_strength
-		* overlap_ratio
-		* delta
-	)
-
-	var push_amount: float = minf(
-		raw_push_amount,
-		max_separation_push_per_frame
+	var push_amount: float = _get_separation_push_amount(
+		overlap_ratio,
+		delta
 	)
 
 	if push_amount <= 0.0:
@@ -370,6 +426,53 @@ func _apply_separation_between_pair(
 
 	var push_vector: Vector2 = direction * push_amount
 
+	_apply_push_to_pair(
+		first_enemy,
+		second_enemy,
+		push_vector,
+		first_can_push,
+		second_can_push
+	)
+
+
+func _get_separation_direction(
+	offset: Vector2,
+	distance: float
+) -> Vector2:
+	if distance <= 0.001:
+		return Vector2.RIGHT.rotated(
+			_random.randf_range(
+				0.0,
+				TAU
+			)
+		)
+
+	return offset / distance
+
+
+func _get_separation_push_amount(
+	overlap_ratio: float,
+	delta: float
+) -> float:
+	var raw_push_amount: float = (
+		enemy_separation_strength
+		* clampf(overlap_ratio, 0.0, 1.0)
+		* delta
+	)
+
+	return minf(
+		raw_push_amount,
+		max_separation_push_per_frame
+	)
+
+
+func _apply_push_to_pair(
+	first_enemy: DesktopVirus,
+	second_enemy: DesktopVirus,
+	push_vector: Vector2,
+	first_can_push: bool,
+	second_can_push: bool
+) -> void:
 	if first_can_push and second_can_push:
 		first_enemy.apply_external_push(
 			-push_vector * 0.5
@@ -455,33 +558,54 @@ func _get_random_spawn_position(
 			)
 
 
-func _get_enemy_spawn_size(enemy: BasicVirus) -> Vector2:
-	var enemy_size: Vector2 = enemy.size
+func _get_enemy_spawn_size(enemy: DesktopVirus) -> Vector2:
+	if enemy == null:
+		return Vector2(48.0, 48.0)
 
-	if enemy_size != Vector2.ZERO:
-		return enemy_size
+	if enemy.size != Vector2.ZERO:
+		return enemy.size
 
-	enemy_size = enemy.custom_minimum_size
-
-	if enemy_size != Vector2.ZERO:
-		return enemy_size
+	if enemy.custom_minimum_size != Vector2.ZERO:
+		return enemy.custom_minimum_size
 
 	return Vector2(48.0, 48.0)
 
 
-func _on_virus_died(virus: BasicVirus) -> void:
-	_active_viruses.erase(virus)
+func _on_enemy_died(enemy: DesktopVirus) -> void:
+	_active_enemies.erase(enemy)
 
-	enemy_removed.emit(virus)
+	var virus_data_reward: int = _get_virus_data_reward_for_enemy(
+		enemy
+	)
+
+	GameState.register_enemy_kill(
+		virus_data_reward
+	)
+
+	enemy_removed.emit(enemy)
 
 
-func _prune_invalid_viruses() -> void:
+func _get_virus_data_reward_for_enemy(
+	enemy: DesktopVirus
+) -> int:
+	if enemy == null:
+		return virus_data_reward_per_kill
+
+	return maxi(
+		0,
+		enemy.get_virus_data_reward()
+	)
+
+
+func _prune_invalid_enemies() -> void:
 	for index: int in range(
-		_active_viruses.size() - 1,
+		_active_enemies.size() - 1,
 		-1,
 		-1
 	):
-		var virus: BasicVirus = _active_viruses[index]
+		var enemy: DesktopVirus = _active_enemies[index]
 
-		if not is_instance_valid(virus):
-			_active_viruses.remove_at(index)
+		if is_instance_valid(enemy):
+			continue
+
+		_active_enemies.remove_at(index)

@@ -23,6 +23,13 @@ signal spawn_budget_changed(
 @export var pause_when_system_destroyed: bool = true
 @export var reset_budget_on_stage_change: bool = false
 
+@export_category("GameState Sync")
+
+@export var sync_run_progress_to_game_state: bool = true
+
+@export_range(0.05, 5.0, 0.05)
+var run_progress_sync_interval: float = 0.25
+
 @export_category("Debug")
 
 @export var debug_print_stage_changes: bool = false
@@ -38,6 +45,7 @@ var _spawn_check_elapsed_time: float = 0.0
 var _spawn_budget: float = 0.0
 
 var _stage_index: int = 0
+var _run_progress_sync_elapsed_time: float = 0.0
 
 
 func _ready() -> void:
@@ -47,54 +55,35 @@ func _ready() -> void:
 		return
 
 	_random.randomize()
-
-	if (
-		pause_when_system_destroyed
-		and system_manager != null
-	):
-		system_manager.system_destroyed.connect(
-			_on_system_destroyed
-		)
+	_connect_signals()
 
 	if autostart:
 		call_deferred("start_director")
 
 
 func _process(delta: float) -> void:
-	if not _is_running:
+	if not _can_process_director():
 		return
 
-	if stages.is_empty():
-		return
-
-	_total_elapsed_time += delta
-	_stage_elapsed_time += delta
-
+	_update_elapsed_time(delta)
 	_advance_stage_if_needed()
 
-	var current_stage: EnemySpawnStageData = (
-		_get_current_stage()
-	)
+	var current_stage: EnemySpawnStageData = _get_current_stage()
 
 	if current_stage == null:
 		return
 
-	_accumulate_spawn_budget(
+	_update_spawn_budget(
 		current_stage,
 		delta
 	)
 
-	_spawn_check_elapsed_time += delta
+	_update_spawn_check(
+		current_stage,
+		delta
+	)
 
-	if (
-		_spawn_check_elapsed_time
-		< current_stage.get_safe_spawn_check_interval()
-	):
-		return
-
-	_spawn_check_elapsed_time = 0.0
-
-	_try_spawn_from_stage(current_stage)
+	_update_game_state_sync(delta)
 
 
 func start_director(reset_state: bool = true) -> void:
@@ -107,16 +96,8 @@ func start_director(reset_state: bool = true) -> void:
 	_is_running = true
 
 	director_started.emit()
-
-	var current_stage: EnemySpawnStageData = (
-		_get_current_stage()
-	)
-
-	if current_stage != null:
-		stage_changed.emit(
-			_stage_index,
-			current_stage
-		)
+	_emit_current_stage()
+	write_run_progress_to_game_state()
 
 
 func stop_director() -> void:
@@ -124,6 +105,8 @@ func stop_director() -> void:
 		return
 
 	_is_running = false
+
+	write_run_progress_to_game_state()
 
 	director_stopped.emit()
 
@@ -134,16 +117,57 @@ func reset_director_state() -> void:
 	_spawn_check_elapsed_time = 0.0
 	_spawn_budget = 0.0
 	_stage_index = 0
+	_run_progress_sync_elapsed_time = 0.0
 
-	var current_stage: EnemySpawnStageData = (
-		_get_current_stage()
+	_emit_spawn_budget_changed()
+	write_run_progress_to_game_state()
+
+
+func apply_run_progress_from_game_state() -> void:
+	if stages.is_empty():
+		return
+
+	_total_elapsed_time = maxf(
+		0.0,
+		GameState.run_total_elapsed_time
 	)
 
-	if current_stage != null:
-		spawn_budget_changed.emit(
-			_spawn_budget,
-			current_stage.get_safe_max_stored_budget()
-		)
+	_stage_index = clampi(
+		GameState.enemy_spawn_stage_index,
+		0,
+		stages.size() - 1
+	)
+
+	_stage_elapsed_time = maxf(
+		0.0,
+		GameState.enemy_spawn_stage_elapsed_time
+	)
+
+	_spawn_budget = maxf(
+		0.0,
+		GameState.enemy_spawn_budget
+	)
+
+	_spawn_check_elapsed_time = 0.0
+	_run_progress_sync_elapsed_time = 0.0
+
+	_clamp_budget_to_current_stage()
+	_emit_current_stage()
+	_emit_spawn_budget_changed()
+
+	write_run_progress_to_game_state()
+
+
+func write_run_progress_to_game_state() -> void:
+	if not sync_run_progress_to_game_state:
+		return
+
+	GameState.set_run_progress(
+		_total_elapsed_time,
+		_stage_index,
+		_stage_elapsed_time,
+		_spawn_budget
+	)
 
 
 func get_total_elapsed_time() -> float:
@@ -192,6 +216,35 @@ func _validate_dependencies() -> bool:
 	return true
 
 
+func _connect_signals() -> void:
+	if not pause_when_system_destroyed:
+		return
+
+	if system_manager == null:
+		return
+
+	if system_manager.system_destroyed.is_connected(
+		_on_system_destroyed
+	):
+		return
+
+	system_manager.system_destroyed.connect(
+		_on_system_destroyed
+	)
+
+
+func _can_process_director() -> bool:
+	return (
+		_is_running
+		and not stages.is_empty()
+	)
+
+
+func _update_elapsed_time(delta: float) -> void:
+	_total_elapsed_time += delta
+	_stage_elapsed_time += delta
+
+
 func _get_current_stage() -> EnemySpawnStageData:
 	if stages.is_empty():
 		return null
@@ -228,39 +281,38 @@ func _advance_stage_if_needed() -> void:
 		_stage_index += 1
 		_spawn_check_elapsed_time = 0.0
 
-		var next_stage: EnemySpawnStageData = (
-			_get_current_stage()
+		_on_stage_changed()
+
+
+func _on_stage_changed() -> void:
+	_clamp_budget_to_current_stage()
+
+	if reset_budget_on_stage_change:
+		_spawn_budget = 0.0
+
+	var current_stage: EnemySpawnStageData = (
+		_get_current_stage()
+	)
+
+	if current_stage == null:
+		return
+
+	if debug_print_stage_changes:
+		print(
+			"EnemySpawnDirector stage changed to: ",
+			current_stage.stage_name
 		)
 
-		if next_stage == null:
-			return
+	stage_changed.emit(
+		_stage_index,
+		current_stage
+	)
 
-		if reset_budget_on_stage_change:
-			_spawn_budget = 0.0
-		else:
-			_spawn_budget = minf(
-				_spawn_budget,
-				next_stage.get_safe_max_stored_budget()
-			)
-
-		if debug_print_stage_changes:
-			print(
-				"EnemySpawnDirector stage changed to: ",
-				next_stage.stage_name
-			)
-
-		stage_changed.emit(
-			_stage_index,
-			next_stage
-		)
-
-		spawn_budget_changed.emit(
-			_spawn_budget,
-			next_stage.get_safe_max_stored_budget()
-		)
+	_emit_spawn_budget_changed()
+	write_run_progress_to_game_state()
 
 
-func _accumulate_spawn_budget(
+func _update_spawn_budget(
 	stage: EnemySpawnStageData,
 	delta: float
 ) -> void:
@@ -268,10 +320,10 @@ func _accumulate_spawn_budget(
 		stage.get_safe_max_stored_budget()
 	)
 
-	var threat_gain: float = maxf(
-		0.0,
-		stage.threat_per_second
-	) * delta
+	var threat_gain: float = (
+		maxf(0.0, stage.threat_per_second)
+		* delta
+	)
 
 	_spawn_budget = minf(
 		_spawn_budget + threat_gain,
@@ -282,6 +334,24 @@ func _accumulate_spawn_budget(
 		_spawn_budget,
 		max_budget
 	)
+
+
+func _update_spawn_check(
+	stage: EnemySpawnStageData,
+	delta: float
+) -> void:
+	_spawn_check_elapsed_time += delta
+
+	var spawn_check_interval: float = (
+		stage.get_safe_spawn_check_interval()
+	)
+
+	if _spawn_check_elapsed_time < spawn_check_interval:
+		return
+
+	_spawn_check_elapsed_time -= spawn_check_interval
+
+	_try_spawn_from_stage(stage)
 
 
 func _try_spawn_from_stage(
@@ -301,32 +371,35 @@ func _try_spawn_from_stage(
 
 	var available_slots: int = max_alive - current_alive
 
-	var max_spawns_this_check: int = mini(
+	var spawn_attempts: int = mini(
 		maxi(1, stage.max_spawns_per_check),
 		available_slots
 	)
 
-	for _spawn_index: int in range(max_spawns_this_check):
+	var spawned_count: int = 0
+
+	for _spawn_index: int in range(spawn_attempts):
 		var entry: EnemySpawnEntryData = (
 			_choose_spawn_entry(stage)
 		)
 
 		if entry == null:
-			return
+			break
 
-		var enemy: BasicVirus = (
-			enemy_manager.spawn_enemy_from_random_edge(
-				entry.enemy_scene
+		var enemy: DesktopVirus = (
+			enemy_manager.spawn_enemy_from_spawn_entry(
+				entry
 			)
 		)
 
 		if enemy == null:
-			return
+			break
 
-		_spawn_budget = maxf(
-			0.0,
-			_spawn_budget - entry.threat_cost
+		_consume_spawn_budget(
+			entry.threat_cost
 		)
+
+		spawned_count += 1
 
 		if debug_print_spawns:
 			print(
@@ -336,41 +409,17 @@ func _try_spawn_from_stage(
 				_spawn_budget
 			)
 
-		spawn_budget_changed.emit(
-			_spawn_budget,
-			stage.get_safe_max_stored_budget()
-		)
+	if spawned_count <= 0:
+		return
+
+	_emit_spawn_budget_changed()
+	write_run_progress_to_game_state()
 
 
 func _choose_spawn_entry(
 	stage: EnemySpawnStageData
 ) -> EnemySpawnEntryData:
-	var candidates: Array[EnemySpawnEntryData] = []
-	var total_weight: int = 0
-
-	for entry: EnemySpawnEntryData in stage.enemy_pool:
-		if entry == null:
-			continue
-
-		if not entry.can_spawn(
-			_total_elapsed_time,
-			_spawn_budget
-		):
-			continue
-
-		var safe_weight: int = maxi(
-			0,
-			entry.weight
-		)
-
-		if safe_weight <= 0:
-			continue
-
-		candidates.append(entry)
-		total_weight += safe_weight
-
-	if candidates.is_empty():
-		return null
+	var total_weight: int = _get_total_eligible_weight(stage)
 
 	if total_weight <= 0:
 		return null
@@ -382,7 +431,10 @@ func _choose_spawn_entry(
 
 	var running_weight: int = 0
 
-	for entry: EnemySpawnEntryData in candidates:
+	for entry: EnemySpawnEntryData in stage.enemy_pool:
+		if not _is_entry_eligible(entry):
+			continue
+
 		running_weight += maxi(
 			0,
 			entry.weight
@@ -391,9 +443,101 @@ func _choose_spawn_entry(
 		if roll <= running_weight:
 			return entry
 
-	return candidates[
-		candidates.size() - 1
-	]
+	return null
+
+
+func _get_total_eligible_weight(
+	stage: EnemySpawnStageData
+) -> int:
+	var total_weight: int = 0
+
+	for entry: EnemySpawnEntryData in stage.enemy_pool:
+		if not _is_entry_eligible(entry):
+			continue
+
+		total_weight += maxi(
+			0,
+			entry.weight
+		)
+
+	return total_weight
+
+
+func _is_entry_eligible(
+	entry: EnemySpawnEntryData
+) -> bool:
+	if entry == null:
+		return false
+
+	return entry.can_spawn(
+		_total_elapsed_time,
+		_spawn_budget
+	)
+
+
+func _consume_spawn_budget(amount: float) -> void:
+	_spawn_budget = maxf(
+		0.0,
+		_spawn_budget - maxf(0.0, amount)
+	)
+
+
+func _clamp_budget_to_current_stage() -> void:
+	var current_stage: EnemySpawnStageData = (
+		_get_current_stage()
+	)
+
+	if current_stage == null:
+		return
+
+	_spawn_budget = minf(
+		_spawn_budget,
+		current_stage.get_safe_max_stored_budget()
+	)
+
+
+func _emit_current_stage() -> void:
+	var current_stage: EnemySpawnStageData = (
+		_get_current_stage()
+	)
+
+	if current_stage == null:
+		return
+
+	stage_changed.emit(
+		_stage_index,
+		current_stage
+	)
+
+	_emit_spawn_budget_changed()
+
+
+func _emit_spawn_budget_changed() -> void:
+	var current_stage: EnemySpawnStageData = (
+		_get_current_stage()
+	)
+
+	if current_stage == null:
+		return
+
+	spawn_budget_changed.emit(
+		_spawn_budget,
+		current_stage.get_safe_max_stored_budget()
+	)
+
+
+func _update_game_state_sync(delta: float) -> void:
+	if not sync_run_progress_to_game_state:
+		return
+
+	_run_progress_sync_elapsed_time += delta
+
+	if _run_progress_sync_elapsed_time < run_progress_sync_interval:
+		return
+
+	_run_progress_sync_elapsed_time = 0.0
+
+	write_run_progress_to_game_state()
 
 
 func _on_system_destroyed() -> void:

@@ -169,12 +169,13 @@ anchors_preset = -1
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -350.0
+offset_left = -403.0
 offset_top = 3.0
 offset_right = -3.0
 offset_bottom = -3.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_f5l5t")
 script = ExtResource("9_fn2ch")
+virus_data_prefix = "D "
 
 [node name="RamLabel" type="Label" parent="TaskbarBar/SystemTray" unique_id=1354015561]
 unique_name_in_owner = true
@@ -184,11 +185,26 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "RAM 100/100"
 label_settings = SubResource("LabelSettings_b3jmh")
 
-[node name="CryptoLabel" type="Label" parent="TaskbarBar/SystemTray" unique_id=194764745]
+[node name="HBoxContainer" type="HBoxContainer" parent="TaskbarBar/SystemTray" unique_id=935322925]
 layout_mode = 2
 offset_transform_enabled = true
 offset_transform_position = Vector2(15, 0)
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="CryptoLabel" type="Label" parent="TaskbarBar/SystemTray/HBoxContainer" unique_id=194764745]
+unique_name_in_owner = true
+layout_mode = 2
+offset_transform_position = Vector2(15, 0)
 text = "$10000"
+label_settings = SubResource("LabelSettings_2clil")
+horizontal_alignment = 1
+
+[node name="DataLabel" type="Label" parent="TaskbarBar/SystemTray/HBoxContainer" unique_id=1037340653]
+unique_name_in_owner = true
+layout_mode = 2
+offset_transform_position = Vector2(15, 0)
+text = "D 1000"
 label_settings = SubResource("LabelSettings_2clil")
 horizontal_alignment = 1
 

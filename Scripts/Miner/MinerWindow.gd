@@ -40,6 +40,9 @@ var _animation_elapsed: float = 0.0
 func _ready() -> void:
 	super._ready()
 
+	_connect_game_state_signals()
+	_apply_miner_stats_from_game_state()
+
 	opening_finished.connect(
 		_on_opening_finished
 	)
@@ -84,6 +87,51 @@ func stop_mining() -> void:
 
 func is_mining() -> bool:
 	return _is_mining
+
+
+func _connect_game_state_signals() -> void:
+	if not GameState.miner_stats_changed.is_connected(
+		_on_miner_stats_changed
+	):
+		GameState.miner_stats_changed.connect(
+			_on_miner_stats_changed
+		)
+
+
+func _apply_miner_stats_from_game_state() -> void:
+	crypto_per_tick = maxi(
+		0,
+		GameState.miner_crypto_per_tick
+	)
+
+	mining_interval_seconds = maxf(
+		0.05,
+		GameState.miner_interval_seconds
+	)
+
+
+func _on_miner_stats_changed(
+	new_crypto_per_tick: int,
+	new_mining_interval_seconds: float
+) -> void:
+	crypto_per_tick = maxi(
+		0,
+		new_crypto_per_tick
+	)
+
+	mining_interval_seconds = maxf(
+		0.05,
+		new_mining_interval_seconds
+	)
+
+	_elapsed_since_tick = clampf(
+		_elapsed_since_tick,
+		0.0,
+		mining_interval_seconds
+	)
+
+	_refresh_static_labels()
+	_refresh_progress()
 
 
 func _update_mining(delta: float) -> void:
@@ -158,7 +206,9 @@ func _on_opening_finished(_window: AppWindow) -> void:
 
 
 func _generate_crypto_tick() -> void:
-	GameState.add_crypto(crypto_per_tick)
+	GameState.add_crypto(
+		crypto_per_tick
+	)
 
 
 func _refresh_static_labels() -> void:

@@ -1,12 +1,22 @@
 extends PanelContainer
 class_name TaskbarSystemTray
 
+@export_category("Display")
+
+@export var ram_prefix: String = "RAM "
+@export var crypto_prefix: String = "$"
+@export var virus_data_prefix: String = "DATA "
+
 @onready var ram_label: Label = (
 	get_node_or_null("RamLabel") as Label
 )
 
 @onready var crypto_label: Label = (
-	get_node_or_null("CryptoLabel") as Label
+	get_node_or_null("HBoxContainer/CryptoLabel") as Label
+)
+
+@onready var data_label: Label = (
+	get_node_or_null("HBoxContainer/DataLabel") as Label
 )
 
 @onready var clock_label: Label = (
@@ -24,17 +34,41 @@ func _ready() -> void:
 	if not _validate_dependencies():
 		return
 
-	GameState.ram_changed.connect(
+	_connect_game_state_signals()
+	_configure_clock_timer()
+	_refresh_all_values()
+
+
+func _connect_game_state_signals() -> void:
+	if not GameState.ram_changed.is_connected(
 		_on_ram_changed
-	)
+	):
+		GameState.ram_changed.connect(
+			_on_ram_changed
+		)
 
-	GameState.crypto_changed.connect(
+	if not GameState.crypto_changed.is_connected(
 		_on_crypto_changed
-	)
+	):
+		GameState.crypto_changed.connect(
+			_on_crypto_changed
+		)
 
-	clock_timer.timeout.connect(
+	if not GameState.virus_data_changed.is_connected(
+		_on_virus_data_changed
+	):
+		GameState.virus_data_changed.connect(
+			_on_virus_data_changed
+		)
+
+
+func _configure_clock_timer() -> void:
+	if not clock_timer.timeout.is_connected(
 		_refresh_clock
-	)
+	):
+		clock_timer.timeout.connect(
+			_refresh_clock
+		)
 
 	clock_timer.wait_time = 1.0
 	clock_timer.one_shot = false
@@ -42,6 +76,8 @@ func _ready() -> void:
 	clock_timer.process_mode = Node.PROCESS_MODE_ALWAYS
 	clock_timer.start()
 
+
+func _refresh_all_values() -> void:
 	_on_ram_changed(
 		GameState.used_ram,
 		GameState.max_ram
@@ -49,6 +85,10 @@ func _ready() -> void:
 
 	_on_crypto_changed(
 		GameState.crypto
+	)
+
+	_on_virus_data_changed(
+		GameState.virus_data
 	)
 
 	_refresh_clock()
@@ -63,7 +103,8 @@ func _on_ram_changed(
 		max_ram - used_ram
 	)
 
-	ram_label.text = "RAM %d/%d" % [
+	ram_label.text = "%s%d/%d" % [
+		ram_prefix,
 		available_ram,
 		max_ram
 	]
@@ -72,7 +113,19 @@ func _on_ram_changed(
 func _on_crypto_changed(
 	current_crypto: int
 ) -> void:
-	crypto_label.text = "$%d" % current_crypto
+	crypto_label.text = "%s%d" % [
+		crypto_prefix,
+		current_crypto
+	]
+
+
+func _on_virus_data_changed(
+	current_virus_data: int
+) -> void:
+	data_label.text = "%s%d" % [
+		virus_data_prefix,
+		current_virus_data
+	]
 
 
 func _refresh_clock() -> void:
@@ -114,7 +167,13 @@ func _validate_dependencies() -> bool:
 
 	if crypto_label == null:
 		push_error(
-			"TaskbarSystemTray could not find CryptoLabel."
+			"TaskbarSystemTray could not find HBoxContainer/CryptoLabel."
+		)
+		return false
+
+	if data_label == null:
+		push_error(
+			"TaskbarSystemTray could not find HBoxContainer/DataLabel."
 		)
 		return false
 

@@ -106,6 +106,23 @@ func _spawn_shortcut(
 		)
 		return null
 
+	var program_id: StringName = (
+		shortcut.program_data.program_id
+	)
+
+	if program_id == StringName():
+		push_warning(
+			"ProgramData has an empty program_id."
+		)
+		return null
+
+	var existing_executable: DesktopExecutable = (
+		get_executable_by_program_id(program_id)
+	)
+
+	if existing_executable != null:
+		return existing_executable
+
 	var executable: DesktopExecutable = (
 		executable_scene.instantiate()
 		as DesktopExecutable
@@ -120,15 +137,27 @@ func _spawn_shortcut(
 	icon_layer.add_child(executable)
 
 	executable.program_data = shortcut.program_data
-	executable.position = shortcut.start_position
+	executable.position = _get_shortcut_spawn_position(
+		shortcut
+	)
 
 	executable.open_requested.connect(
 		_on_executable_open_requested
 	)
 
+	_connect_executable_tracking(
+		executable,
+		program_id
+	)
+
 	_executables_by_program_id[
-		shortcut.program_data.program_id
+		program_id
 	] = executable
+
+	_register_shortcut_in_game_state(
+		program_id,
+		executable.position
+	)
 
 	executable_spawned.emit(
 		executable,
@@ -136,6 +165,70 @@ func _spawn_shortcut(
 	)
 
 	return executable
+
+
+func _connect_executable_tracking(
+	executable: DesktopExecutable,
+	program_id: StringName
+) -> void:
+	if executable == null:
+		return
+
+	if not executable.has_signal("moved"):
+		return
+
+	var moved_callable: Callable = (
+		Callable(
+			self,
+			"_on_executable_moved"
+		).bind(program_id)
+	)
+
+	if executable.is_connected(
+		"moved",
+		moved_callable
+	):
+		return
+
+	executable.connect(
+		"moved",
+		moved_callable
+	)
+
+
+func _get_shortcut_spawn_position(
+	shortcut: DesktopShortcutData
+) -> Vector2:
+	if shortcut == null:
+		return Vector2.ZERO
+
+	if shortcut.program_data == null:
+		return shortcut.start_position
+
+	var program_id: StringName = (
+		shortcut.program_data.program_id
+	)
+
+	if GameState.has_desktop_shortcut(program_id):
+		return GameState.get_desktop_shortcut_position(
+			program_id,
+			shortcut.start_position
+		)
+
+	return shortcut.start_position
+
+
+func _register_shortcut_in_game_state(
+	program_id: StringName,
+	shortcut_position: Vector2
+) -> void:
+	if program_id == StringName():
+		return
+
+	GameState.register_desktop_shortcut(
+		program_id,
+		shortcut_position
+	)
 
 
 func _find_free_shortcut_position() -> Vector2:
@@ -199,6 +292,16 @@ func _is_shortcut_position_free(
 			return false
 
 	return true
+
+
+func _on_executable_moved(
+	new_position: Vector2,
+	program_id: StringName
+) -> void:
+	GameState.update_desktop_shortcut_position(
+		program_id,
+		new_position
+	)
 
 
 func _on_executable_open_requested(
