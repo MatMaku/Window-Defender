@@ -13,7 +13,8 @@ enum EffectType {
 	DESKTOP_RESOLUTION_TIER_ADD,
 	UNLOCK_AUTO_FIRE,
 	UNLOCK_AREA_SHOT,
-	AREA_SHOT_TARGETS_ADD
+	AREA_SHOT_TARGETS_ADD,
+	UNLOCK_AUTO_RELOAD
 }
 
 @export_category("Identity")
@@ -36,6 +37,8 @@ var max_purchase_count: int = 1
 @export var virus_data_costs: Array[int] = [1]
 
 @export_category("Requirements")
+
+@export var required_program_id: StringName = StringName()
 
 @export var required_upgrade_id: StringName = StringName()
 

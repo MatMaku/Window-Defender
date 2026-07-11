@@ -128,6 +128,20 @@ func _connect_signals() -> void:
 			_on_game_state_reload_stats_changed
 		)
 
+	if not GameState.ammo_changed.is_connected(
+		_on_game_state_ammo_changed
+	):
+		GameState.ammo_changed.connect(
+			_on_game_state_ammo_changed
+		)
+
+	if not GameState.auto_reload_changed.is_connected(
+		_on_auto_reload_changed
+	):
+		GameState.auto_reload_changed.connect(
+			_on_auto_reload_changed
+		)
+
 
 func _apply_reload_stats_from_game_state() -> void:
 	_apply_reload_stats(
@@ -230,6 +244,7 @@ func _bind_reload_window(window: ReloadWindow) -> void:
 		)
 
 	_sync_reload_window()
+	call_deferred("_try_start_auto_reload")
 
 
 func _register_existing_reload_window() -> void:
@@ -256,38 +271,41 @@ func _on_reload_input_requested(window: ReloadWindow) -> void:
 
 	match _state:
 		ReloadState.IDLE:
-			_try_start_reload()
+			_try_start_reload(true)
 
 		ReloadState.RELOADING:
 			_try_active_reload()
 
 
-func _try_start_reload() -> void:
+func _try_start_reload(
+	show_rejection: bool = true
+) -> bool:
 	if shooting_manager.is_reloading():
-		_reject_reload(ReloadRejectionReason.ALREADY_RELOADING)
-		return
+		if show_rejection:
+			_reject_reload(
+				ReloadRejectionReason.ALREADY_RELOADING
+			)
+
+		return false
 
 	if shooting_manager.has_full_ammo():
-		_reject_reload(ReloadRejectionReason.AMMO_FULL)
-		return
+		if show_rejection:
+			_reject_reload(
+				ReloadRejectionReason.AMMO_FULL
+			)
+
+		return false
 
 	if not shooting_manager.can_start_reload():
-		_reject_reload(ReloadRejectionReason.WEAPON_BUSY)
-		return
+		if show_rejection:
+			_reject_reload(
+				ReloadRejectionReason.WEAPON_BUSY
+			)
 
-	_state = ReloadState.RELOADING
+		return false
 
-	_normal_elapsed = 0.0
-	_penalty_remaining = 0.0
-	_perfect_finish_remaining = 0.0
-	_perfect_check_available = true
-
-	shooting_manager.set_reloading(true)
-
-	_present_reload_started()
-	_present_reload_progress(0.0)
-
-	reload_started.emit()
+	_start_reload_state()
+	return true
 
 
 func _try_active_reload() -> void:
@@ -301,6 +319,52 @@ func _try_active_reload() -> void:
 		return
 
 	_start_penalty()
+
+
+# ================================================================
+# AUTO RELOAD
+# ================================================================
+
+func _on_game_state_ammo_changed(
+	current_ammo: int,
+	_max_ammo: int
+) -> void:
+	if current_ammo > 0:
+		return
+
+	_try_start_auto_reload()
+
+
+func _on_auto_reload_changed(enabled: bool) -> void:
+	if not enabled:
+		return
+
+	_try_start_auto_reload()
+
+
+func _try_start_auto_reload() -> void:
+	if not GameState.auto_reload_unlocked:
+		return
+
+	if not is_instance_valid(_reload_window):
+		return
+
+	if _state != ReloadState.IDLE:
+		return
+
+	if GameState.current_ammo > 0:
+		return
+
+	if GameState.max_ammo <= 0:
+		return
+
+	if shooting_manager.is_reloading():
+		return
+
+	if shooting_manager.has_full_ammo():
+		return
+
+	_start_reload_state()
 
 
 # ================================================================
@@ -349,6 +413,22 @@ func _advance_perfect_finish(delta: float) -> void:
 # ================================================================
 # STATE CHANGES
 # ================================================================
+
+func _start_reload_state() -> void:
+	_state = ReloadState.RELOADING
+
+	_normal_elapsed = 0.0
+	_penalty_remaining = 0.0
+	_perfect_finish_remaining = 0.0
+	_perfect_check_available = true
+
+	shooting_manager.set_reloading(true)
+
+	_present_reload_started()
+	_present_reload_progress(0.0)
+
+	reload_started.emit()
+
 
 func _start_penalty() -> void:
 	_state = ReloadState.PENALTY

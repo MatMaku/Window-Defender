@@ -44,15 +44,13 @@ func can_show_upgrade(
 	if is_upgrade_maxed(offer):
 		return false
 
-	if offer.required_upgrade_id == StringName():
-		return true
+	if not _has_required_program(offer):
+		return false
 
-	return (
-		GameState.get_upgrade_purchase_count(
-			offer.required_upgrade_id
-		)
-		>= maxi(1, offer.required_upgrade_level)
-	)
+	if not _has_required_upgrade(offer):
+		return false
+
+	return true
 
 
 func can_purchase_upgrade(
@@ -164,6 +162,31 @@ func get_price_text(
 	]
 
 
+func _has_required_program(
+	offer: ShopUpgradeOfferData
+) -> bool:
+	if offer.required_program_id == StringName():
+		return true
+
+	return GameState.has_desktop_shortcut(
+		offer.required_program_id
+	)
+
+
+func _has_required_upgrade(
+	offer: ShopUpgradeOfferData
+) -> bool:
+	if offer.required_upgrade_id == StringName():
+		return true
+
+	return (
+		GameState.get_upgrade_purchase_count(
+			offer.required_upgrade_id
+		)
+		>= maxi(1, offer.required_upgrade_level)
+	)
+
+
 func _apply_upgrade_effect(
 	offer: ShopUpgradeOfferData,
 	level_index: int
@@ -226,6 +249,9 @@ func _apply_upgrade_effect(
 			GameState.add_area_shot_max_targets(
 				int(value)
 			)
+
+		ShopUpgradeOfferData.EffectType.UNLOCK_AUTO_RELOAD:
+			GameState.set_auto_reload_unlocked(true)
 
 		_:
 			push_warning(

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://k5v8apaqigod"]
 
 [ext_resource type="Texture2D" uid="uid://bc4y5qirs8rlj" path="res://Sprites/Icons/System Icon.png" id="1_q71ee"]
-[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Programs/ShopUpgradeOfferData.gd" id="2_7sxgj"]
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="2_7sxgj"]
 
 [resource]
 script = ExtResource("2_7sxgj")

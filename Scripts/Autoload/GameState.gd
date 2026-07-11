@@ -44,6 +44,7 @@ var desktop_resolution: Vector2i = Vector2i(1280, 720)
 var purchased_upgrade_counts: Dictionary = {}
 var auto_fire_unlocked: bool = false
 var area_shot_unlocked: bool = false
+var auto_reload_unlocked: bool = false
 var area_shot_max_targets: int = 0
 
 # VARIABLES: DESKTOP SHORTCUTS
@@ -510,6 +511,13 @@ func _sync_desktop_resolution_from_tier() -> void:
 	]
 
 # UPGRADES
+func set_auto_reload_unlocked(enabled: bool) -> void:
+	if auto_reload_unlocked == enabled:
+		return
+
+	auto_reload_unlocked = enabled
+	auto_reload_changed.emit(auto_reload_unlocked)
+
 func get_upgrade_purchase_count(upgrade_id: StringName) -> int:
 	if upgrade_id == StringName():
 		return 0
@@ -836,6 +844,7 @@ func _reset_upgrade_state() -> void:
 	purchased_upgrade_counts.clear()
 	auto_fire_unlocked = false
 	area_shot_unlocked = false
+	auto_reload_unlocked = false
 	area_shot_max_targets = 0
 
 
@@ -890,6 +899,7 @@ func _emit_all_state() -> void:
 		get_upgrade_purchase_counts_snapshot()
 	)
 
+	auto_reload_changed.emit(auto_reload_unlocked)
 	auto_fire_changed.emit(auto_fire_unlocked)
 
 	area_shot_changed.emit(
@@ -913,6 +923,8 @@ func _emit_all_state() -> void:
 	)
 
 # SIGNALS
+signal auto_reload_changed(enabled: bool)
+
 signal system_integrity_changed(
 	current_integrity: float,
 	max_integrity: float

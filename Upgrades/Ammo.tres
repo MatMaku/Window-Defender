@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://bi4fej6lb5h13"]
 
-[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Programs/ShopUpgradeOfferData.gd" id="1_ec776"]
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="1_ec776"]
 [ext_resource type="Texture2D" uid="uid://cj8fr28mfg1xf" path="res://Sprites/Icons/Ammo Icon.png" id="1_vf275"]
 
 [resource]
@@ -11,6 +11,7 @@ icon = ExtResource("1_vf275")
 max_purchase_count = 5
 crypto_costs = Array[int]([10, 20, 30, 40, 50])
 virus_data_costs = Array[int]([5, 10, 15, 20, 25])
+required_program_id = &"Ammo"
 effect_type = 3
 effect_values = Array[float]([2.0, 2.0, 2.0, 2.0, 2.0])
 metadata/_custom_type_script = "uid://87o5h1b251i0"

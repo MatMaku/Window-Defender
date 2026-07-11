@@ -2,9 +2,9 @@
 
 [ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_g73r6"]
 [ext_resource type="Script" uid="uid://cbn3508rx4i8w" path="res://Scripts/Shop/ShopWindow.gd" id="2_q1p86"]
-[ext_resource type="Script" uid="uid://dwpx0a6fvly2m" path="res://Data/Programs/ShopAppOfferData.gd" id="3_db2gu"]
+[ext_resource type="Script" uid="uid://dwpx0a6fvly2m" path="res://Data/Shop/ShopAppOfferData.gd" id="3_db2gu"]
 [ext_resource type="Resource" uid="uid://dgemqxjydyfyj" path="res://Apps/Shooting/ShootingProgram.tres" id="4_1sfbh"]
-[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Programs/ShopUpgradeOfferData.gd" id="5_lodkv"]
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="5_lodkv"]
 [ext_resource type="Resource" uid="uid://vp1u4ago21ju" path="res://Apps/Ammo/AmmoProgram.tres" id="5_vj1t0"]
 [ext_resource type="Resource" uid="uid://c6wibp66c2w8f" path="res://Apps/Reload/ReloadProgram.tres" id="6_1aln8"]
 [ext_resource type="PackedScene" uid="uid://bcuwx5ca5kh6j" path="res://Apps/Shop/ShopOffer.tscn" id="6_13w5j"]
@@ -21,6 +21,7 @@
 [ext_resource type="Resource" uid="uid://dw7laemgmk1ia" path="res://Upgrades/MinerTick.tres" id="13_knrlb"]
 [ext_resource type="Resource" uid="uid://bmimkga68jtab" path="res://Upgrades/MinerTime.tres" id="14_qu8np"]
 [ext_resource type="Resource" uid="uid://dnetpb63g4sm7" path="res://Upgrades/RAM.tres" id="15_wqne4"]
+[ext_resource type="Resource" uid="uid://p7etoy7itino" path="res://Upgrades/AutoReload.tres" id="16_52y2s"]
 
 [sub_resource type="Resource" id="Resource_v3iwr"]
 script = ExtResource("3_db2gu")
@@ -79,7 +80,7 @@ offset_right = 332.47986
 offset_bottom = 167.0
 script = ExtResource("2_q1p86")
 app_offers = Array[ExtResource("3_db2gu")]([SubResource("Resource_v3iwr"), SubResource("Resource_a4tqi"), SubResource("Resource_4qr77")])
-upgrade_offers = Array[ExtResource("5_lodkv")]([ExtResource("9_6yepn"), ExtResource("8_1aln8"), ExtResource("10_6ma4d"), ExtResource("11_bnxf7"), ExtResource("12_knrlb"), ExtResource("13_knrlb"), ExtResource("14_qu8np"), ExtResource("15_wqne4")])
+upgrade_offers = Array[ExtResource("5_lodkv")]([ExtResource("9_6yepn"), ExtResource("8_1aln8"), ExtResource("10_6ma4d"), ExtResource("11_bnxf7"), ExtResource("12_knrlb"), ExtResource("13_knrlb"), ExtResource("14_qu8np"), ExtResource("15_wqne4"), ExtResource("16_52y2s")])
 offer_row_scene = ExtResource("6_13w5j")
 hide_scrollbars = true
 

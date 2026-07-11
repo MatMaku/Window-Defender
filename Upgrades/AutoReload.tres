@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://p7etoy7itino"]
+
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="1_bkxcs"]
+[ext_resource type="Texture2D" uid="uid://baxa7xovkc1x3" path="res://Sprites/Icons/Reload Icon.png" id="1_vc46s"]
+
+[resource]
+script = ExtResource("1_bkxcs")
+offer_id = &"AutoReload"
+display_name = "Auto Reload"
+icon = ExtResource("1_vc46s")
+crypto_costs = Array[int]([100])
+virus_data_costs = Array[int]([50])
+required_program_id = &"Reload"
+effect_type = 12
+metadata/_custom_type_script = "uid://87o5h1b251i0"

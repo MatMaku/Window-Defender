@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://dw7laemgmk1ia"]
 
-[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Programs/ShopUpgradeOfferData.gd" id="1_nlsof"]
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="1_nlsof"]
 [ext_resource type="Texture2D" uid="uid://c1xbg8e71of47" path="res://Sprites/Icons/Miner Icon.png" id="1_ymrba"]
 
 [resource]
