@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://diul2lb1xi0i3"]
+
+[ext_resource type="Script" uid="uid://hp8l1vrsqb82" path="res://Scripts/Autoload/GameState.gd" id="1_8cwqe"]
+[ext_resource type="Script" uid="uid://dh3v4rsacp0yh" path="res://Scripts/Autoload/GameSystemState.gd" id="2_q8noy"]
+[ext_resource type="Resource" uid="uid://b2qhufmj8bb5" path="res://Data/GameState/GameStart.tres" id="2_r7yor"]
+[ext_resource type="Script" uid="uid://b7vxtdyrvy581" path="res://Scripts/Autoload/GameWeaponState.gd" id="3_r7yor"]
+[ext_resource type="Script" uid="uid://g5c55rkjboo8" path="res://Scripts/Autoload/GameReloadStatsState.gd" id="4_pcufa"]
+[ext_resource type="Script" uid="uid://b8hshhmke15x3" path="res://Scripts/Autoload/GameMinerState.gd" id="5_b0ej5"]
+[ext_resource type="Script" uid="uid://bm4wdrjkqiqwa" path="res://Scripts/Autoload/GameEconomyState.gd" id="6_waqk8"]
+[ext_resource type="Script" uid="uid://ckjjmn0b8reh1" path="res://Scripts/Autoload/GameRamState.gd" id="7_pb4kp"]
+[ext_resource type="Script" uid="uid://dvlc23ynxdyl7" path="res://Scripts/Autoload/GameDesktopState.gd" id="8_efxqx"]
+[ext_resource type="Script" uid="uid://cfc33kf4metto" path="res://Scripts/Autoload/GameUpgradeState.gd" id="9_xey4g"]
+[ext_resource type="Script" uid="uid://bweelcyv4aibv" path="res://Scripts/Autoload/GameRunState.gd" id="10_win1h"]
+[ext_resource type="Script" uid="uid://dsgxrwcny7j33" path="res://Scripts/Autoload/GameEnemySnapshotState.gd" id="11_s4716"]
+
+[node name="GameState" type="Node" unique_id=1229002845]
+script = ExtResource("1_8cwqe")
+start_data = ExtResource("2_r7yor")
+
+[node name="SystemState" type="Node" parent="." unique_id=398837433]
+script = ExtResource("2_q8noy")
+
+[node name="WeaponState" type="Node" parent="." unique_id=2119982863]
+script = ExtResource("3_r7yor")
+
+[node name="ReloadStatsState" type="Node" parent="." unique_id=1486021275]
+script = ExtResource("4_pcufa")
+
+[node name="MinerState" type="Node" parent="." unique_id=1523415638]
+script = ExtResource("5_b0ej5")
+
+[node name="EconomyState" type="Node" parent="." unique_id=381000355]
+script = ExtResource("6_waqk8")
+
+[node name="RamState" type="Node" parent="." unique_id=1151680550]
+script = ExtResource("7_pb4kp")
+
+[node name="DesktopState" type="Node" parent="." unique_id=1981433005]
+script = ExtResource("8_efxqx")
+
+[node name="UpgradeState" type="Node" parent="." unique_id=2045805377]
+script = ExtResource("9_xey4g")
+
+[node name="RunState" type="Node" parent="." unique_id=877776226]
+script = ExtResource("10_win1h")
+
+[node name="EnemySnapshotState" type="Node" parent="." unique_id=1501121112]
+script = ExtResource("11_s4716")

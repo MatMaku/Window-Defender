@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="GameStartData" format=3 uid="uid://b2qhufmj8bb5"]
+
+[ext_resource type="Script" uid="uid://btbojp1go54l8" path="res://Data/GameState/GameStartData.gd" id="1_cepga"]
+
+[resource]
+script = ExtResource("1_cepga")
+metadata/_custom_type_script = "uid://btbojp1go54l8"
