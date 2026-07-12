@@ -9,6 +9,7 @@
 [ext_resource type="Resource" uid="uid://c6wibp66c2w8f" path="res://Apps/Reload/ReloadProgram.tres" id="6_1aln8"]
 [ext_resource type="PackedScene" uid="uid://bcuwx5ca5kh6j" path="res://Apps/Shop/ShopOffer.tscn" id="6_13w5j"]
 [ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="7_13w5j"]
+[ext_resource type="Resource" uid="uid://cuduk7dmsm0p0" path="res://Apps/Repair/RepairProgram.tres" id="7_ijuus"]
 [ext_resource type="Resource" uid="uid://bhixx1qxewfq1" path="res://Upgrades/Damage.tres" id="8_1aln8"]
 [ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="8_mmps8"]
 [ext_resource type="Resource" uid="uid://k5v8apaqigod" path="res://Upgrades/Resolution.tres" id="9_6yepn"]
@@ -43,6 +44,12 @@ metadata/_custom_type_script = "uid://dwpx0a6fvly2m"
 script = ExtResource("3_db2gu")
 offer_id = &"Reload"
 program_data = ExtResource("6_1aln8")
+metadata/_custom_type_script = "uid://dwpx0a6fvly2m"
+
+[sub_resource type="Resource" id="Resource_241qo"]
+script = ExtResource("3_db2gu")
+offer_id = &"Repair"
+program_data = ExtResource("7_ijuus")
 metadata/_custom_type_script = "uid://dwpx0a6fvly2m"
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y01op"]
@@ -81,7 +88,7 @@ anchor_bottom = 0.347
 offset_right = 332.47986
 offset_bottom = 167.0
 script = ExtResource("2_q1p86")
-app_offers = Array[ExtResource("3_db2gu")]([SubResource("Resource_v3iwr"), SubResource("Resource_a4tqi"), SubResource("Resource_4qr77")])
+app_offers = Array[ExtResource("3_db2gu")]([SubResource("Resource_v3iwr"), SubResource("Resource_a4tqi"), SubResource("Resource_4qr77"), SubResource("Resource_241qo")])
 upgrade_offers = Array[ExtResource("5_lodkv")]([ExtResource("9_6yepn"), ExtResource("8_1aln8"), ExtResource("10_6ma4d"), ExtResource("11_bnxf7"), ExtResource("12_knrlb"), ExtResource("13_knrlb"), ExtResource("14_qu8np"), ExtResource("15_wqne4"), ExtResource("16_52y2s"), ExtResource("17_r42c3"), ExtResource("18_7uw6s")])
 offer_row_scene = ExtResource("6_13w5j")
 hide_scrollbars = true

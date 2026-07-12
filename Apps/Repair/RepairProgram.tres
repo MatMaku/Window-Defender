@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://cuduk7dmsm0p0"]
+
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_5xywu"]
+[ext_resource type="Texture2D" uid="uid://8qybrvb2uumv" path="res://Sprites/Icons/Repair Icon.png" id="1_tliij"]
+[ext_resource type="PackedScene" uid="uid://dwybj4306bdud" path="res://Apps/Repair/RepairWindow.tscn" id="3_hcf8f"]
+
+[resource]
+script = ExtResource("1_5xywu")
+program_id = &"Repair"
+display_name = "Repair.exe"
+icon = ExtResource("1_tliij")
+window_scene = ExtResource("3_hcf8f")
+default_window_size = Vector2(200, 220)
+ram_cost = 20
+metadata/_custom_type_script = "uid://cwpxv30ekbea1"

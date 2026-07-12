@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DesktopShortcutData" format=3 uid="uid://lnhtjm1vljwe"]
+
+[ext_resource type="Resource" uid="uid://cuduk7dmsm0p0" path="res://Apps/Repair/RepairProgram.tres" id="1_jeqca"]
+[ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="1_me3c1"]
+
+[resource]
+script = ExtResource("1_me3c1")
+program_data = ExtResource("1_jeqca")
+metadata/_custom_type_script = "uid://cyngw31l11lkj"

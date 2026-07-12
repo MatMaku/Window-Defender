@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://dwybj4306bdud"]
+
+[ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_cxneh"]
+[ext_resource type="Texture2D" uid="uid://dbh1pn4nwcnxs" path="res://Sprites/Windows/Window_Base_Hollow.png" id="2_r2jqn"]
+[ext_resource type="Script" uid="uid://b2etegkg2lxh" path="res://Scripts/Repair/RepairWindow.gd" id="3_306rn"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="3_a4lcm"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_iwu7j"]
+texture = ExtResource("2_r2jqn")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_maugy"]
+font = ExtResource("3_a4lcm")
+font_size = 18
+font_color = Color(0, 0, 0, 1)
+
+[node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_cxneh")]
+custom_minimum_size = Vector2(200, 220)
+custom_maximum_size = Vector2(200, 220)
+anchor_right = 0.078
+anchor_bottom = 0.15300001
+offset_right = 0.31999207
+offset_bottom = -0.32002258
+theme_override_styles/panel = SubResource("StyleBoxTexture_iwu7j")
+script = ExtResource("3_306rn")
+repair_area_path = NodePath("MainVBox/ContentRoot/RepairArea")
+repair_pulse_path = NodePath("MainVBox/ContentRoot/RepairArea/RepairPulse")
+status_label_path = NodePath("MainVBox/ContentRoot/RepairArea/StatusLabel")
+idle_text = "PLACE ON SYSTEM.EXE"
+repairing_text = "REPAIRING..."
+blocked_text = "CONTACT BLOCKED"
+full_text = "SYSTEM FULL"
+no_target_text = "NO SYSTEM TARGET"
+pulse_enabled = true
+pulse_duration = 0.42
+pulse_min_alpha = 0.18
+pulse_max_alpha = 0.75
+pulse_color = Color(0.15, 1, 0.35, 1)
+
+[node name="RepairArea" type="Control" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=2087850473]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="RepairPulse" type="Panel" parent="MainVBox/ContentRoot/RepairArea" index="0" unique_id=1304874786]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="StatusLabel" type="Label" parent="MainVBox/ContentRoot/RepairArea" index="1" unique_id=636546199]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "PLACE ON SYSTEM.EXE"
+label_settings = SubResource("LabelSettings_maugy")
+horizontal_alignment = 1
+vertical_alignment = 1
