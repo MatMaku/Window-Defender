@@ -29,14 +29,21 @@ signal shot_rejected(reason: ShotRejectionReason)
 signal reload_lock_changed(is_reloading: bool)
 
 @export var window_manager: WindowManager
+@export var enemy_manager: EnemyManager
 
 @onready var cooldown_timer: Timer = (
 	get_node_or_null("CooldownTimer") as Timer
 )
 
+@export_category("Area Shot Delay")
+
+@export_range(0.0, 0.5, 0.01)
+var area_shot_fire_delay_seconds: float = 0.08
+
 var _shooting_window: ShootingWindow
 var _is_reloading: bool = false
-
+var _area_shot_pending: bool = false
+var _area_shot_delay_remaining: float = 0.0
 
 func _ready() -> void:
 	_resolve_references()
@@ -48,6 +55,11 @@ func _ready() -> void:
 	_connect_signals()
 	_register_existing_windows()
 	_emit_current_ammo_state()
+	_sync_upgrade_state_to_window()
+
+
+func _process(delta: float) -> void:
+	_process_automatic_fire(delta)
 
 
 # ================================================================
@@ -108,6 +120,12 @@ func _resolve_references() -> void:
 			as WindowManager
 		)
 
+	if enemy_manager == null:
+		enemy_manager = (
+			get_node_or_null("../EnemyManager")
+			as EnemyManager
+		)
+
 
 func _validate_dependencies() -> bool:
 	if window_manager == null:
@@ -121,6 +139,11 @@ func _validate_dependencies() -> bool:
 			"ShootingManager requires a CooldownTimer child node."
 		)
 		return false
+
+	if enemy_manager == null:
+		push_warning(
+			"ShootingManager has no EnemyManager reference. Automatic enemy targeting will not work."
+		)
 
 	return true
 
@@ -156,6 +179,20 @@ func _connect_signals() -> void:
 	):
 		GameState.ammo_changed.connect(
 			_on_game_state_ammo_changed
+		)
+
+	if not GameState.auto_fire_changed.is_connected(
+		_on_auto_fire_changed
+	):
+		GameState.auto_fire_changed.connect(
+			_on_auto_fire_changed
+		)
+
+	if not GameState.area_shot_changed.is_connected(
+		_on_area_shot_changed
+	):
+		GameState.area_shot_changed.connect(
+			_on_area_shot_changed
 		)
 
 
@@ -207,6 +244,7 @@ func _bind_shooting_window(
 	window: ShootingWindow
 ) -> void:
 	if _shooting_window == window:
+		_sync_upgrade_state_to_window()
 		return
 
 	_shooting_window = window
@@ -217,6 +255,8 @@ func _bind_shooting_window(
 		window.fire_requested.connect(
 			_on_fire_requested
 		)
+
+	_sync_upgrade_state_to_window()
 
 
 func _unbind_shooting_window(
@@ -287,29 +327,72 @@ func _on_fire_requested(
 	shooter: ShootingWindow,
 	target_global_position: Vector2
 ) -> void:
+	_try_fire_at_position(
+		shooter,
+		target_global_position,
+		true,
+		false,
+		false
+	)
+
+
+func _try_fire_at_position(
+	shooter: ShootingWindow,
+	target_global_position: Vector2,
+	emit_rejections: bool,
+	require_enemy_target: bool,
+	prevent_blocked_shot_before_ammo: bool
+) -> bool:
 	if shooter == null:
-		return
+		return false
 
 	if not is_instance_valid(shooter):
-		return
+		return false
 
 	if _is_reloading:
-		shot_rejected.emit(
-			ShotRejectionReason.RELOADING
-		)
-		return
+		if emit_rejections:
+			shot_rejected.emit(
+				ShotRejectionReason.RELOADING
+			)
+
+		return false
 
 	if not cooldown_timer.is_stopped():
-		shot_rejected.emit(
-			ShotRejectionReason.COOLDOWN_ACTIVE
-		)
-		return
+		if emit_rejections:
+			shot_rejected.emit(
+				ShotRejectionReason.COOLDOWN_ACTIVE
+			)
+
+		return false
+
+	if GameState.current_ammo <= 0:
+		if emit_rejections:
+			shot_rejected.emit(
+				ShotRejectionReason.EMPTY_AMMO
+			)
+
+		return false
+
+	if require_enemy_target:
+		if not _has_enemy_target_at_position(
+			target_global_position
+		):
+			return false
+
+	if prevent_blocked_shot_before_ammo:
+		if _is_shot_blocked_by_window(
+			shooter,
+			target_global_position
+		):
+			return false
 
 	if not _try_consume_shot_ammo():
-		shot_rejected.emit(
-			ShotRejectionReason.EMPTY_AMMO
-		)
-		return
+		if emit_rejections:
+			shot_rejected.emit(
+				ShotRejectionReason.EMPTY_AMMO
+			)
+
+		return false
 
 	var cooldown_duration: float = (
 		GameState.fire_cooldown_seconds
@@ -328,12 +411,76 @@ func _on_fire_requested(
 		shot_blocked.emit(
 			target_global_position
 		)
-		return
+
+		return true
 
 	shot_fired.emit(
 		target_global_position,
 		GameState.shot_damage
 	)
+
+	return true
+
+
+func _try_fire_area_targets(
+	shooter: ShootingWindow,
+	target_enemies: Array[DesktopVirus]
+) -> bool:
+	if shooter == null:
+		return false
+
+	if not is_instance_valid(shooter):
+		return false
+
+	if _is_reloading:
+		return false
+
+	if not cooldown_timer.is_stopped():
+		return false
+
+	if GameState.current_ammo <= 0:
+		return false
+
+	if target_enemies.is_empty():
+		return false
+
+	var target_positions: Array[Vector2] = []
+
+	for enemy: DesktopVirus in target_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		target_positions.append(
+			enemy.get_center_global_position()
+		)
+
+	if target_positions.is_empty():
+		return false
+
+	if not _try_consume_shot_ammo():
+		return false
+
+	var cooldown_duration: float = (
+		GameState.fire_cooldown_seconds
+	)
+
+	_start_cooldown(cooldown_duration)
+
+	shooter.play_shot_feedback(
+		cooldown_duration
+	)
+
+	for target_position: Vector2 in target_positions:
+		shooter.present_area_shot_marker(
+			target_position
+		)
+
+		shot_fired.emit(
+			target_position,
+			GameState.shot_damage
+		)
+
+	return true
 
 
 func _try_consume_shot_ammo() -> bool:
@@ -368,6 +515,192 @@ func _is_shot_blocked_by_window(
 		shooter
 	)
 
+# ================================================================
+# AUTOMATIC FIRE
+# ================================================================
+
+func _process_automatic_fire(delta: float) -> void:
+	if GameState.area_shot_unlocked:
+		_process_area_shot(delta)
+		return
+
+	_cancel_pending_area_shot()
+
+	if GameState.auto_fire_unlocked:
+		_process_center_auto_fire()
+
+
+func _process_center_auto_fire() -> void:
+	if not is_instance_valid(_shooting_window):
+		return
+
+	var target_global_position: Vector2 = (
+		_shooting_window.get_aim_global_position()
+	)
+
+	_try_fire_at_position(
+		_shooting_window,
+		target_global_position,
+		false,
+		true,
+		true
+	)
+
+
+func _process_area_shot(delta: float) -> void:
+	if not _can_process_area_shot():
+		_cancel_pending_area_shot()
+		return
+
+	if _area_shot_pending:
+		_advance_pending_area_shot(delta)
+		return
+
+	var target_enemies: Array[DesktopVirus] = (
+		_get_current_area_shot_targets()
+	)
+
+	if target_enemies.is_empty():
+		return
+
+	_start_pending_area_shot()
+
+
+func _can_process_area_shot() -> bool:
+	if enemy_manager == null:
+		return false
+
+	if not is_instance_valid(_shooting_window):
+		return false
+
+	if _is_reloading:
+		return false
+
+	if not cooldown_timer.is_stopped():
+		return false
+
+	if GameState.current_ammo <= 0:
+		return false
+
+	return true
+
+
+func _start_pending_area_shot() -> void:
+	_area_shot_pending = true
+
+	_area_shot_delay_remaining = maxf(
+		0.0,
+		area_shot_fire_delay_seconds
+	)
+
+	if _area_shot_delay_remaining <= 0.0:
+		_fire_pending_area_shot()
+
+
+func _advance_pending_area_shot(delta: float) -> void:
+	_area_shot_delay_remaining = maxf(
+		0.0,
+		_area_shot_delay_remaining - delta
+	)
+
+	if _area_shot_delay_remaining > 0.0:
+		return
+
+	_fire_pending_area_shot()
+
+
+func _fire_pending_area_shot() -> void:
+	_area_shot_pending = false
+	_area_shot_delay_remaining = 0.0
+
+	if not _can_process_area_shot():
+		return
+
+	var target_enemies: Array[DesktopVirus] = (
+		_get_current_area_shot_targets()
+	)
+
+	if target_enemies.is_empty():
+		return
+
+	_try_fire_area_targets(
+		_shooting_window,
+		target_enemies
+	)
+
+
+func _cancel_pending_area_shot() -> void:
+	_area_shot_pending = false
+	_area_shot_delay_remaining = 0.0
+
+
+func _get_current_area_shot_targets() -> Array[DesktopVirus]:
+	if enemy_manager == null:
+		return []
+
+	if not is_instance_valid(_shooting_window):
+		return []
+
+	var area_rect: Rect2 = (
+		_shooting_window.get_area_shot_global_rect()
+	)
+
+	if area_rect.size.x <= 0.0 or area_rect.size.y <= 0.0:
+		return []
+
+	return enemy_manager.get_enemies_with_center_inside_global_rect(
+		area_rect,
+		_get_area_shot_max_targets()
+	)
+
+
+func _get_area_shot_max_targets() -> int:
+	if not GameState.area_shot_unlocked:
+		return 0
+
+	return maxi(
+		1,
+		GameState.area_shot_max_targets
+	)
+
+
+func _has_enemy_target_at_position(
+	target_global_position: Vector2
+) -> bool:
+	if enemy_manager == null:
+		return false
+
+	return enemy_manager.has_enemy_at_global_position(
+		target_global_position
+	)
+
+
+func _on_auto_fire_changed(_enabled: bool) -> void:
+	_sync_upgrade_state_to_window()
+
+
+func _on_area_shot_changed(
+	unlocked: bool,
+	_max_targets: int
+) -> void:
+	if not unlocked:
+		_cancel_pending_area_shot()
+
+	_sync_upgrade_state_to_window()
+
+
+func _sync_upgrade_state_to_window() -> void:
+	if not is_instance_valid(_shooting_window):
+		return
+
+	_shooting_window.set_auto_fire_enabled(
+		GameState.auto_fire_unlocked
+		or GameState.area_shot_unlocked
+	)
+
+	_shooting_window.set_area_shot_enabled(
+		GameState.area_shot_unlocked
+	)
 
 # ================================================================
 # GAMESTATE SYNC

@@ -55,10 +55,11 @@ desktop = NodePath("../..")
 window_manager = NodePath("../WindowManager")
 system_program_id = &"System"
 
-[node name="ShootingManager" type="Node" parent="Managers" unique_id=893765685 node_paths=PackedStringArray("window_manager")]
+[node name="ShootingManager" type="Node" parent="Managers" unique_id=893765685 node_paths=PackedStringArray("window_manager", "enemy_manager")]
 unique_name_in_owner = true
 script = ExtResource("7_lrxve")
 window_manager = NodePath("../WindowManager")
+enemy_manager = NodePath("../EnemyManager")
 
 [node name="CooldownTimer" type="Timer" parent="Managers/ShootingManager" unique_id=1399407429]
 unique_name_in_owner = true

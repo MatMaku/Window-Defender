@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://cdxtebcfrqdqi"]
+
+[ext_resource type="Texture2D" uid="uid://bl2teg5rnrslj" path="res://Sprites/Icons/Shooting Icon.png" id="1_0viwa"]
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="1_ebjxb"]
+
+[resource]
+script = ExtResource("1_ebjxb")
+offer_id = &"AutoShoot"
+display_name = "Auto Shoot"
+icon = ExtResource("1_0viwa")
+crypto_costs = Array[int]([100])
+virus_data_costs = Array[int]([50])
+required_program_id = &"Shooting"
+effect_type = 9
+metadata/_custom_type_script = "uid://87o5h1b251i0"

@@ -22,6 +22,8 @@
 [ext_resource type="Resource" uid="uid://bmimkga68jtab" path="res://Upgrades/MinerTime.tres" id="14_qu8np"]
 [ext_resource type="Resource" uid="uid://dnetpb63g4sm7" path="res://Upgrades/RAM.tres" id="15_wqne4"]
 [ext_resource type="Resource" uid="uid://p7etoy7itino" path="res://Upgrades/AutoReload.tres" id="16_52y2s"]
+[ext_resource type="Resource" uid="uid://cdxtebcfrqdqi" path="res://Upgrades/AutoShoot.tres" id="17_r42c3"]
+[ext_resource type="Resource" uid="uid://dmxi4sb148os4" path="res://Upgrades/AreaShoot.tres" id="18_7uw6s"]
 
 [sub_resource type="Resource" id="Resource_v3iwr"]
 script = ExtResource("3_db2gu")
@@ -80,7 +82,7 @@ offset_right = 332.47986
 offset_bottom = 167.0
 script = ExtResource("2_q1p86")
 app_offers = Array[ExtResource("3_db2gu")]([SubResource("Resource_v3iwr"), SubResource("Resource_a4tqi"), SubResource("Resource_4qr77")])
-upgrade_offers = Array[ExtResource("5_lodkv")]([ExtResource("9_6yepn"), ExtResource("8_1aln8"), ExtResource("10_6ma4d"), ExtResource("11_bnxf7"), ExtResource("12_knrlb"), ExtResource("13_knrlb"), ExtResource("14_qu8np"), ExtResource("15_wqne4"), ExtResource("16_52y2s")])
+upgrade_offers = Array[ExtResource("5_lodkv")]([ExtResource("9_6yepn"), ExtResource("8_1aln8"), ExtResource("10_6ma4d"), ExtResource("11_bnxf7"), ExtResource("12_knrlb"), ExtResource("13_knrlb"), ExtResource("14_qu8np"), ExtResource("15_wqne4"), ExtResource("16_52y2s"), ExtResource("17_r42c3"), ExtResource("18_7uw6s")])
 offer_row_scene = ExtResource("6_13w5j")
 hide_scrollbars = true
 

@@ -38,17 +38,25 @@ texture_margin_right = 5.0
 texture_margin_bottom = 5.0
 
 [node name="AppWindow" unique_id=1098355527 instance=ExtResource("1_1r5jn")]
-custom_minimum_size = Vector2(270, 368)
+custom_minimum_size = Vector2(270, 334)
 custom_maximum_size = Vector2(270, 368)
 anchor_right = 0.105000004
-anchor_bottom = 0.22900002
+anchor_bottom = 0.256
 offset_right = 1.1999817
-offset_bottom = 38.23999
+offset_bottom = -0.64001465
 theme_override_styles/panel = SubResource("StyleBoxTexture_iwu7j")
 script = ExtResource("3_gwdb8")
+shrink_when_auto_fire_enabled = true
 feedback_expand_duration = 0.06
-shake_duration = 0.1
-shake_distance = 3.0
+shake_target_path = NodePath("")
+shake_duration = 0.15000000000000002
+shake_distance = 4.0
+auto_fire_shake_multiplier = 1.0
+area_shot_marker_lifetime = 0.2
+area_shot_marker_fade_duration = 0.09999999999999999
+area_shot_marker_start_scale = 0.65
+area_shot_marker_end_scale = 0.8500000000000001
+keep_area_marker_fully_inside_window = false
 
 [node name="TitleLabel" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="1" unique_id=278973000]
 text = "Shooting.exe"
@@ -69,6 +77,8 @@ text = "SHOOT"
 
 [node name="AimArea" type="CenterContainer" parent="MainVBox/ContentRoot/ShootingVBox" index="1" unique_id=1122651708]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 260)
+custom_maximum_size = Vector2(260, 260)
 layout_mode = 2
 mouse_filter = 2
 
@@ -78,6 +88,28 @@ custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 mouse_filter = 2
 texture = ExtResource("3_iwu7j")
+
+[node name="AreaShotMarkerLayer" type="Control" parent="MainVBox/ContentRoot/ShootingVBox/AimArea" index="1" unique_id=1958496567]
+unique_name_in_owner = true
+z_index = 5
+custom_minimum_size = Vector2(300, 300)
+custom_maximum_size = Vector2(300, 300)
+clip_contents = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="AreaShotMarkerTemplate" type="TextureRect" parent="MainVBox/ContentRoot/ShootingVBox/AimArea/AreaShotMarkerLayer" index="0" unique_id=1674578806]
+visible = false
+custom_minimum_size = Vector2(100, 100)
+custom_maximum_size = Vector2(100, 100)
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 100.0
+pivot_offset = Vector2(50, 50)
+mouse_filter = 2
+texture = ExtResource("3_iwu7j")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="CooldownArea" type="Control" parent="MainVBox/ContentRoot/ShootingVBox" index="2" unique_id=1889404875]
 unique_name_in_owner = true

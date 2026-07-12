@@ -151,6 +151,92 @@ func get_active_enemies() -> Array[DesktopVirus]:
 
 	return enemies
 
+func has_enemy_at_global_position(
+	target_global_position: Vector2
+) -> bool:
+	return (
+		get_first_enemy_at_global_position(
+			target_global_position
+		)
+		!= null
+	)
+
+
+func get_first_enemy_at_global_position(
+	target_global_position: Vector2
+) -> DesktopVirus:
+	_prune_invalid_enemies()
+
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		if enemy.contains_global_point(
+			target_global_position
+		):
+			return enemy
+
+	return null
+
+func get_enemies_with_center_inside_global_rect(
+	global_rect: Rect2,
+	max_count: int = 1
+) -> Array[DesktopVirus]:
+	_prune_invalid_enemies()
+
+	var enemies: Array[DesktopVirus] = []
+
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		if not global_rect.has_point(
+			enemy.get_center_global_position()
+		):
+			continue
+
+		enemies.append(enemy)
+
+		if max_count > 0 and enemies.size() >= max_count:
+			break
+
+	return enemies
+
+func get_enemies_inside_or_intersecting_global_rect(
+	global_rect: Rect2,
+	max_count: int = 1
+) -> Array[DesktopVirus]:
+	_prune_invalid_enemies()
+
+	var enemies: Array[DesktopVirus] = []
+
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		var enemy_rect: Rect2 = enemy.get_global_rect()
+		var enemy_center: Vector2 = (
+			enemy.get_center_global_position()
+		)
+
+		var center_is_inside: bool = global_rect.has_point(
+			enemy_center
+		)
+
+		var rect_intersects: bool = global_rect.intersects(
+			enemy_rect,
+			true
+		)
+
+		if not center_is_inside and not rect_intersects:
+			continue
+
+		enemies.append(enemy)
+
+		if max_count > 0 and enemies.size() >= max_count:
+			break
+
+	return enemies
 
 func _resolve_references() -> void:
 	if playfield_layer == null:
