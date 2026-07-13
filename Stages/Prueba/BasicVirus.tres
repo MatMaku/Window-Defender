@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="EnemySpawnEntryData" format=3 uid="uid://cec7lgowdhuwn"]
-
-[ext_resource type="Script" uid="uid://6k2wosxfkwi" path="res://Data/Stages/EnemySpawnEntryData.gd" id="1_kccw4"]
-[ext_resource type="PackedScene" uid="uid://durl3mh3lugpi" path="res://Scenes/Virus/BasicVirus.tscn" id="1_q1coq"]
-
-[resource]
-script = ExtResource("1_kccw4")
-enemy_scene = ExtResource("1_q1coq")
-metadata/_custom_type_script = "uid://6k2wosxfkwi"

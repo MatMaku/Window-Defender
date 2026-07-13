@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ShopAppOfferData" format=3 uid="uid://bj6en6ekabyhc"]
+
+[ext_resource type="Resource" uid="uid://vp1u4ago21ju" path="res://Apps/Ammo/AmmoProgram.tres" id="1_8f7u6"]
+[ext_resource type="Script" uid="uid://dwpx0a6fvly2m" path="res://Data/Shop/ShopAppOfferData.gd" id="1_uuhn3"]
+
+[resource]
+script = ExtResource("1_uuhn3")
+offer_id = &"Ammo"
+program_data = ExtResource("1_8f7u6")
+price = 5
+metadata/_custom_type_script = "uid://dwpx0a6fvly2m"

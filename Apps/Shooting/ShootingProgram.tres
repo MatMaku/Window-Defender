@@ -11,5 +11,5 @@ display_name = "Shooting.exe"
 icon = ExtResource("1_28v4j")
 window_scene = ExtResource("2_35hor")
 default_window_size = Vector2(270, 334)
-ram_cost = 20
+ram_cost = 18
 metadata/_custom_type_script = "uid://cwpxv30ekbea1"

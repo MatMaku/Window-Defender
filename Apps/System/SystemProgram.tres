@@ -11,5 +11,5 @@ display_name = "System.exe"
 icon = ExtResource("1_sesad")
 window_scene = ExtResource("2_3ll6y")
 default_window_size = Vector2(250, 320)
-ram_cost = 10
+ram_cost = 8
 metadata/_custom_type_script = "uid://cwpxv30ekbea1"

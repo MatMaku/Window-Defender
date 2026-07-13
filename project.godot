@@ -34,9 +34,9 @@ folder_colors={
 "res://Fonts/": "pink",
 "res://Scenes/": "orange",
 "res://Scripts/": "green",
+"res://Shop/": "teal",
 "res://Sprites/": "red",
-"res://Stages/": "purple",
-"res://Upgrades/": "teal"
+"res://Stages/": "purple"
 }
 
 [physics]

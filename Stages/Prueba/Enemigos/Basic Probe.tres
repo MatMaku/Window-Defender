@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemySpawnEntryData" format=3 uid="uid://cbrongsdolp0v"]
+
+[ext_resource type="PackedScene" uid="uid://durl3mh3lugpi" path="res://Scenes/Virus/BasicVirus.tscn" id="1_yqfg1"]
+[ext_resource type="Script" uid="uid://6k2wosxfkwi" path="res://Data/Stages/EnemySpawnEntryData.gd" id="2_l0l46"]
+
+[resource]
+script = ExtResource("2_l0l46")
+enemy_id = &"basic_virus T1"
+enemy_scene = ExtResource("1_yqfg1")
+threat_cost = 2.0
+max_health = 1.0
+movement_speed = 24.0
+attack_damage = 0.2
+attack_interval_seconds = 3.5
+metadata/_custom_type_script = "uid://6k2wosxfkwi"

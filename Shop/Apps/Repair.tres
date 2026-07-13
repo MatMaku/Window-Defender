@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ShopAppOfferData" format=3 uid="uid://dnvwvm6ci07x1"]
+
+[ext_resource type="Script" uid="uid://dwpx0a6fvly2m" path="res://Data/Shop/ShopAppOfferData.gd" id="1_1n2iy"]
+[ext_resource type="Resource" uid="uid://cuduk7dmsm0p0" path="res://Apps/Repair/RepairProgram.tres" id="1_ejso0"]
+
+[resource]
+script = ExtResource("1_1n2iy")
+offer_id = &"Repair"
+program_data = ExtResource("1_ejso0")
+price = 45
+metadata/_custom_type_script = "uid://dwpx0a6fvly2m"

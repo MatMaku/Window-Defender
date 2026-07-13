@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemySpawnStageData" format=3 uid="uid://dwd0j2ntmaih"]
+
+[ext_resource type="Script" uid="uid://6k2wosxfkwi" path="res://Data/Stages/EnemySpawnEntryData.gd" id="1_dtlk5"]
+[ext_resource type="Script" uid="uid://dd7yu6x1g3p5b" path="res://Data/Stages/EnemySpawnStageData.gd" id="2_4nqg0"]
+[ext_resource type="Resource" uid="uid://cdppu8asp1ctk" path="res://Stages/Prueba/Enemigos/Basic T3.tres" id="2_xsno4"]
+[ext_resource type="Resource" uid="uid://v7icy567kvwc" path="res://Stages/Prueba/Enemigos/Basic T4.tres" id="3_hbja8"]
+[ext_resource type="Resource" uid="uid://dwkneeeer207v" path="res://Stages/Prueba/Enemigos/Basic Swarm.tres" id="4_e7sdw"]
+
+[resource]
+script = ExtResource("2_4nqg0")
+stage_name = "Stage 7"
+duration_seconds = 300.0
+threat_per_second = 4.4
+spawn_check_interval = 0.8
+max_alive_enemies = 55
+max_stored_threat_budget = 70.0
+max_spawns_per_check = 6
+enemy_pool = Array[ExtResource("1_dtlk5")]([ExtResource("2_xsno4"), ExtResource("3_hbja8"), ExtResource("4_e7sdw"), ExtResource("4_e7sdw"), ExtResource("4_e7sdw"), ExtResource("4_e7sdw")])
+metadata/_custom_type_script = "uid://dd7yu6x1g3p5b"
