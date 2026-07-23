@@ -37,11 +37,17 @@ signal desktop_resolution_applied(
 
 var _current_resolution: Vector2i = Vector2i.ZERO
 var _current_tier: int = -1
+var _desktop_state: GameDesktopState
 
 
 func _ready() -> void:
 	_resolve_references()
-	_connect_game_state_signals()
+
+	if _desktop_state == null:
+		push_error("DisplayManager requires GameDesktopState.")
+		return
+
+	_connect_state_signals()
 
 	if apply_on_ready:
 		apply_game_state_resolution()
@@ -49,17 +55,17 @@ func _ready() -> void:
 
 func apply_game_state_resolution() -> void:
 	apply_desktop_resolution(
-		GameState.desktop_resolution,
-		GameState.desktop_resolution_tier
+		_desktop_state.desktop_resolution,
+		_desktop_state.desktop_resolution_tier
 	)
 
 
 func apply_next_resolution_tier() -> void:
-	if not GameState.has_next_desktop_resolution_tier():
+	if not _desktop_state.has_next_desktop_resolution_tier():
 		return
 
-	GameState.set_desktop_resolution_tier(
-		GameState.get_next_desktop_resolution_tier()
+	_desktop_state.set_desktop_resolution_tier(
+		_desktop_state.get_next_desktop_resolution_tier()
 	)
 
 
@@ -116,6 +122,8 @@ func get_current_tier() -> int:
 
 
 func _resolve_references() -> void:
+	_desktop_state = GameState.desktop_state
+
 	if desktop == null:
 		desktop = get_parent() as Desktop
 
@@ -126,11 +134,11 @@ func _resolve_references() -> void:
 		)
 
 
-func _connect_game_state_signals() -> void:
-	if not GameState.desktop_resolution_changed.is_connected(
+func _connect_state_signals() -> void:
+	if not _desktop_state.desktop_resolution_changed.is_connected(
 		_on_desktop_resolution_changed
 	):
-		GameState.desktop_resolution_changed.connect(
+		_desktop_state.desktop_resolution_changed.connect(
 			_on_desktop_resolution_changed
 		)
 

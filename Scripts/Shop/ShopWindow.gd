@@ -43,18 +43,26 @@ var _current_tab: int = ShopTab.APPS
 var _hidden_program_ids: Dictionary = {}
 var _app_rows_by_offer_id: Dictionary = {}
 var _upgrade_rows: Array = []
+var _economy_state: GameEconomyState
+var _upgrade_state: GameUpgradeState
 
 
 func _ready() -> void:
 	super._ready()
+	_economy_state = GameState.economy_state
+	_upgrade_state = GameState.upgrade_state
 
 	if offer_row_scene == null:
 		push_error("ShopWindow requires an offer row scene.")
 		return
 
+	if _economy_state == null or _upgrade_state == null:
+		push_error("ShopWindow requires economy and upgrade states.")
+		return
+
 	_resolve_upgrade_manager()
 	_connect_buttons()
-	_connect_game_state_signals()
+	_connect_state_signals()
 
 	_configure_scroll_containers()
 	rebuild_shop()
@@ -168,25 +176,25 @@ func _connect_buttons() -> void:
 		)
 
 
-func _connect_game_state_signals() -> void:
-	if not GameState.crypto_changed.is_connected(
+func _connect_state_signals() -> void:
+	if not _economy_state.crypto_changed.is_connected(
 		_on_crypto_changed
 	):
-		GameState.crypto_changed.connect(
+		_economy_state.crypto_changed.connect(
 			_on_crypto_changed
 		)
 
-	if not GameState.virus_data_changed.is_connected(
+	if not _economy_state.virus_data_changed.is_connected(
 		_on_virus_data_changed
 	):
-		GameState.virus_data_changed.connect(
+		_economy_state.virus_data_changed.connect(
 			_on_virus_data_changed
 		)
 
-	if not GameState.upgrade_purchase_counts_changed.is_connected(
+	if not _upgrade_state.upgrade_purchase_counts_changed.is_connected(
 		_on_upgrade_purchase_counts_changed
 	):
-		GameState.upgrade_purchase_counts_changed.connect(
+		_upgrade_state.upgrade_purchase_counts_changed.connect(
 			_on_upgrade_purchase_counts_changed
 		)
 
@@ -335,7 +343,7 @@ func _refresh_all_rows_affordability() -> void:
 		if row == null:
 			continue
 
-		row.refresh_affordability(GameState.crypto)
+		row.refresh_affordability(_economy_state.crypto)
 
 	for row_variant in _upgrade_rows:
 		var row: ShopOfferRow = row_variant as ShopOfferRow
@@ -343,7 +351,7 @@ func _refresh_all_rows_affordability() -> void:
 		if row == null:
 			continue
 
-		row.refresh_affordability(GameState.crypto)
+		row.refresh_affordability(_economy_state.crypto)
 
 
 func _on_apps_button_pressed() -> void:

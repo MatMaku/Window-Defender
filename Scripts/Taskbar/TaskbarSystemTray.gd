@@ -27,37 +27,42 @@ class_name TaskbarSystemTray
 	get_node_or_null("ClockTimer") as Timer
 )
 
+var _ram_state: GameRamState
+var _economy_state: GameEconomyState
+
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ram_state = GameState.ram_state
+	_economy_state = GameState.economy_state
 
 	if not _validate_dependencies():
 		return
 
-	_connect_game_state_signals()
+	_connect_state_signals()
 	_configure_clock_timer()
 	_refresh_all_values()
 
 
-func _connect_game_state_signals() -> void:
-	if not GameState.ram_changed.is_connected(
+func _connect_state_signals() -> void:
+	if not _ram_state.ram_changed.is_connected(
 		_on_ram_changed
 	):
-		GameState.ram_changed.connect(
+		_ram_state.ram_changed.connect(
 			_on_ram_changed
 		)
 
-	if not GameState.crypto_changed.is_connected(
+	if not _economy_state.crypto_changed.is_connected(
 		_on_crypto_changed
 	):
-		GameState.crypto_changed.connect(
+		_economy_state.crypto_changed.connect(
 			_on_crypto_changed
 		)
 
-	if not GameState.virus_data_changed.is_connected(
+	if not _economy_state.virus_data_changed.is_connected(
 		_on_virus_data_changed
 	):
-		GameState.virus_data_changed.connect(
+		_economy_state.virus_data_changed.connect(
 			_on_virus_data_changed
 		)
 
@@ -79,16 +84,16 @@ func _configure_clock_timer() -> void:
 
 func _refresh_all_values() -> void:
 	_on_ram_changed(
-		GameState.used_ram,
-		GameState.max_ram
+		_ram_state.used_ram,
+		_ram_state.max_ram
 	)
 
 	_on_crypto_changed(
-		GameState.crypto
+		_economy_state.crypto
 	)
 
 	_on_virus_data_changed(
-		GameState.virus_data
+		_economy_state.virus_data
 	)
 
 	_refresh_clock()
@@ -159,6 +164,14 @@ func _refresh_clock() -> void:
 
 
 func _validate_dependencies() -> bool:
+	if _ram_state == null:
+		push_error("TaskbarSystemTray requires GameRamState.")
+		return false
+
+	if _economy_state == null:
+		push_error("TaskbarSystemTray requires GameEconomyState.")
+		return false
+
 	if ram_label == null:
 		push_error(
 			"TaskbarSystemTray could not find RamLabel."

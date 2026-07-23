@@ -8,6 +8,35 @@ signal upgrade_purchased(
 
 signal upgrades_changed
 
+var _economy_state: GameEconomyState
+var _upgrade_state: GameUpgradeState
+var _desktop_state: GameDesktopState
+var _weapon_state: GameWeaponState
+var _reload_stats_state: GameReloadStatsState
+var _miner_state: GameMinerState
+var _ram_state: GameRamState
+
+
+func _ready() -> void:
+	_economy_state = GameState.economy_state
+	_upgrade_state = GameState.upgrade_state
+	_desktop_state = GameState.desktop_state
+	_weapon_state = GameState.weapon_state
+	_reload_stats_state = GameState.reload_stats_state
+	_miner_state = GameState.miner_state
+	_ram_state = GameState.ram_state
+
+	if (
+		_economy_state == null
+		or _upgrade_state == null
+		or _desktop_state == null
+		or _weapon_state == null
+		or _reload_stats_state == null
+		or _miner_state == null
+		or _ram_state == null
+	):
+		push_error("UpgradeManager could not resolve required states.")
+
 
 func get_purchase_count(
 	offer: ShopUpgradeOfferData
@@ -15,7 +44,7 @@ func get_purchase_count(
 	if offer == null:
 		return 0
 
-	return GameState.get_upgrade_purchase_count(
+	return _upgrade_state.get_upgrade_purchase_count(
 		offer.offer_id
 	)
 
@@ -59,7 +88,7 @@ func can_purchase_upgrade(
 	if not can_show_upgrade(offer):
 		return false
 
-	return GameState.can_afford_resources(
+	return _economy_state.can_afford_resources(
 		get_crypto_cost(offer),
 		get_virus_data_cost(offer)
 	)
@@ -73,7 +102,7 @@ func purchase_upgrade(
 
 	var level_index: int = get_purchase_count(offer)
 
-	if not GameState.try_spend_resources(
+	if not _economy_state.try_spend_resources(
 		get_crypto_cost(offer),
 		get_virus_data_cost(offer)
 	):
@@ -85,7 +114,7 @@ func purchase_upgrade(
 	)
 
 	var new_purchase_count: int = (
-		GameState.increment_upgrade_purchase_count(
+		_upgrade_state.increment_upgrade_purchase_count(
 			offer.offer_id,
 			1
 		)
@@ -168,7 +197,7 @@ func _has_required_program(
 	if offer.required_program_id == StringName():
 		return true
 
-	return GameState.has_desktop_shortcut(
+	return _desktop_state.has_desktop_shortcut(
 		offer.required_program_id
 	)
 
@@ -180,7 +209,7 @@ func _has_required_upgrade(
 		return true
 
 	return (
-		GameState.get_upgrade_purchase_count(
+		_upgrade_state.get_upgrade_purchase_count(
 			offer.required_upgrade_id
 		)
 		>= maxi(1, offer.required_upgrade_level)
@@ -199,59 +228,59 @@ func _apply_upgrade_effect(
 
 	match offer.effect_type:
 		ShopUpgradeOfferData.EffectType.SHOT_DAMAGE_ADD:
-			GameState.set_shot_damage(
-				GameState.shot_damage + value
+			_weapon_state.set_shot_damage(
+				_weapon_state.shot_damage + value
 			)
 
 		ShopUpgradeOfferData.EffectType.FIRE_COOLDOWN_MULTIPLY:
-			GameState.set_fire_cooldown(
-				GameState.fire_cooldown_seconds * value
+			_weapon_state.set_fire_cooldown(
+				_weapon_state.fire_cooldown_seconds * value
 			)
 
 		ShopUpgradeOfferData.EffectType.MAX_AMMO_ADD:
-			GameState.set_max_ammo(
-				GameState.max_ammo + int(value),
+			_weapon_state.set_max_ammo(
+				_weapon_state.max_ammo + int(value),
 				true
 			)
 
 		ShopUpgradeOfferData.EffectType.NORMAL_RELOAD_DURATION_MULTIPLY:
-			GameState.set_normal_reload_duration(
-				GameState.normal_reload_duration * value
+			_reload_stats_state.set_normal_reload_duration(
+				_reload_stats_state.normal_reload_duration * value
 			)
 
 		ShopUpgradeOfferData.EffectType.MINER_CRYPTO_PER_TICK_ADD:
-			GameState.set_miner_crypto_per_tick(
-				GameState.miner_crypto_per_tick + int(value)
+			_miner_state.set_miner_crypto_per_tick(
+				_miner_state.miner_crypto_per_tick + int(value)
 			)
 
 		ShopUpgradeOfferData.EffectType.MINER_INTERVAL:
-			GameState.set_miner_interval_seconds(
-				GameState.miner_interval_seconds - value
+			_miner_state.set_miner_interval_seconds(
+				_miner_state.miner_interval_seconds - value
 			)
 
 		ShopUpgradeOfferData.EffectType.MAX_RAM_ADD:
-			GameState.set_max_ram(
-				GameState.max_ram + int(value)
+			_ram_state.set_max_ram(
+				_ram_state.max_ram + int(value)
 			)
 
 		ShopUpgradeOfferData.EffectType.DESKTOP_RESOLUTION_TIER_ADD:
-			GameState.set_desktop_resolution_tier(
-				GameState.desktop_resolution_tier + int(value)
+			_desktop_state.set_desktop_resolution_tier(
+				_desktop_state.desktop_resolution_tier + int(value)
 			)
 
 		ShopUpgradeOfferData.EffectType.UNLOCK_AUTO_FIRE:
-			GameState.set_auto_fire_unlocked(true)
+			_upgrade_state.set_auto_fire_unlocked(true)
 
 		ShopUpgradeOfferData.EffectType.UNLOCK_AREA_SHOT:
-			GameState.set_area_shot_unlocked(true)
+			_upgrade_state.set_area_shot_unlocked(true)
 
 		ShopUpgradeOfferData.EffectType.AREA_SHOT_TARGETS_ADD:
-			GameState.add_area_shot_max_targets(
+			_upgrade_state.add_area_shot_max_targets(
 				int(value)
 			)
 
 		ShopUpgradeOfferData.EffectType.UNLOCK_AUTO_RELOAD:
-			GameState.set_auto_reload_unlocked(true)
+			_upgrade_state.set_auto_reload_unlocked(true)
 
 		_:
 			push_warning(

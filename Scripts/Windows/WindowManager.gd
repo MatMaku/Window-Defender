@@ -381,7 +381,7 @@ func _show_insufficient_ram_error(
 		program_data.ram_cost
 	)
 
-	var available_ram: int = GameState.get_available_ram()
+	var available_ram: int = ram_manager.get_available_ram()
 
 	var error_message: String = (
 		"NOT ENOUGH RAM TO OPEN:\n\n"

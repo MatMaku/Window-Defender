@@ -16,12 +16,21 @@ var maximum_open_duration_multiplier: float = 6.0
 @export_range(0.05, 1.0, 0.01)
 var minimum_runtime_speed_multiplier: float = 0.25
 
+var _ram_state: GameRamState
+
+
+func _ready() -> void:
+	_ram_state = GameState.ram_state
+
+	if _ram_state == null:
+		push_error("RamManager requires GameRamState.")
+
 
 func can_reserve_ram(amount: int) -> bool:
 	if amount < 0:
 		return false
 
-	return GameState.can_allocate_ram(amount)
+	return _ram_state.can_allocate_ram(amount)
 
 
 func reserve_ram(amount: int) -> bool:
@@ -31,14 +40,18 @@ func reserve_ram(amount: int) -> bool:
 	if amount == 0:
 		return true
 
-	return GameState.try_allocate_ram(amount)
+	return _ram_state.try_allocate_ram(amount)
 
 
 func release_ram(amount: int) -> void:
 	if amount <= 0:
 		return
 
-	GameState.release_ram(amount)
+	_ram_state.release_ram(amount)
+
+
+func get_available_ram() -> int:
+	return _ram_state.get_available_ram()
 
 
 func get_open_duration_multiplier_for_cost(
@@ -50,17 +63,17 @@ func get_open_duration_multiplier_for_cost(
 	var safe_ram_cost: int = maxi(0, ram_cost)
 
 	var projected_used_ram: int = (
-		GameState.used_ram + safe_ram_cost
+		_ram_state.used_ram + safe_ram_cost
 	)
 
 	var projected_available_ram: int = maxi(
 		0,
-		GameState.max_ram - projected_used_ram
+		_ram_state.max_ram - projected_used_ram
 	)
 
 	var projected_available_ratio: float = (
 		float(projected_available_ram)
-		/ float(maxi(GameState.max_ram, 1))
+		/ float(maxi(_ram_state.max_ram, 1))
 	)
 
 	return _get_open_duration_multiplier(
@@ -70,7 +83,7 @@ func get_open_duration_multiplier_for_cost(
 
 func get_runtime_speed_multiplier() -> float:
 	return _get_runtime_speed_multiplier(
-		GameState.get_available_ram_ratio()
+		_ram_state.get_available_ram_ratio()
 	)
 
 

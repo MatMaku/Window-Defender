@@ -42,6 +42,7 @@ var _active_enemies: Array[DesktopVirus] = []
 var _random: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var _test_enemy_spawned: bool = false
+var _economy_state: GameEconomyState
 
 
 func _ready() -> void:
@@ -239,6 +240,8 @@ func get_enemies_inside_or_intersecting_global_rect(
 	return enemies
 
 func _resolve_references() -> void:
+	_economy_state = GameState.economy_state
+
 	if playfield_layer == null:
 		playfield_layer = (
 			get_node_or_null("../PlayfieldLayer")
@@ -265,6 +268,10 @@ func _resolve_references() -> void:
 
 
 func _validate_dependencies() -> bool:
+	if _economy_state == null:
+		push_error("EnemyManager requires GameEconomyState.")
+		return false
+
 	if playfield_layer == null:
 		push_error(
 			"EnemyManager requires a PlayfieldLayer reference."
@@ -664,7 +671,7 @@ func _on_enemy_died(enemy: DesktopVirus) -> void:
 		enemy
 	)
 
-	GameState.register_enemy_kill(
+	_economy_state.register_enemy_kill(
 		virus_data_reward
 	)
 

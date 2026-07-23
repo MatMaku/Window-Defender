@@ -44,6 +44,8 @@ var _shooting_window: ShootingWindow
 var _is_reloading: bool = false
 var _area_shot_pending: bool = false
 var _area_shot_delay_remaining: float = 0.0
+var _weapon_state: GameWeaponState
+var _upgrade_state: GameUpgradeState
 
 func _ready() -> void:
 	_resolve_references()
@@ -67,11 +69,11 @@ func _process(delta: float) -> void:
 # ================================================================
 
 func get_current_ammo() -> int:
-	return GameState.current_ammo
+	return _weapon_state.current_ammo
 
 
 func get_max_ammo() -> int:
-	return GameState.max_ammo
+	return _weapon_state.max_ammo
 
 
 func is_reloading() -> bool:
@@ -79,7 +81,7 @@ func is_reloading() -> bool:
 
 
 func has_full_ammo() -> bool:
-	return GameState.current_ammo >= GameState.max_ammo
+	return _weapon_state.current_ammo >= _weapon_state.max_ammo
 
 
 func can_start_reload() -> bool:
@@ -102,11 +104,11 @@ func set_reloading(active: bool) -> void:
 
 
 func refill_ammo() -> void:
-	GameState.refill_ammo()
+	_weapon_state.refill_ammo()
 
 
 func complete_reload() -> void:
-	GameState.refill_ammo()
+	_weapon_state.refill_ammo()
 
 
 # ================================================================
@@ -114,6 +116,9 @@ func complete_reload() -> void:
 # ================================================================
 
 func _resolve_references() -> void:
+	_weapon_state = GameState.weapon_state
+	_upgrade_state = GameState.upgrade_state
+
 	if window_manager == null:
 		window_manager = (
 			get_node_or_null("../WindowManager")
@@ -128,6 +133,14 @@ func _resolve_references() -> void:
 
 
 func _validate_dependencies() -> bool:
+	if _weapon_state == null:
+		push_error("ShootingManager requires GameWeaponState.")
+		return false
+
+	if _upgrade_state == null:
+		push_error("ShootingManager requires GameUpgradeState.")
+		return false
+
 	if window_manager == null:
 		push_error(
 			"ShootingManager requires a WindowManager reference."
@@ -174,24 +187,24 @@ func _connect_signals() -> void:
 			_on_window_closed
 		)
 
-	if not GameState.ammo_changed.is_connected(
-		_on_game_state_ammo_changed
+	if not _weapon_state.ammo_changed.is_connected(
+		_on_weapon_ammo_changed
 	):
-		GameState.ammo_changed.connect(
-			_on_game_state_ammo_changed
+		_weapon_state.ammo_changed.connect(
+			_on_weapon_ammo_changed
 		)
 
-	if not GameState.auto_fire_changed.is_connected(
+	if not _upgrade_state.auto_fire_changed.is_connected(
 		_on_auto_fire_changed
 	):
-		GameState.auto_fire_changed.connect(
+		_upgrade_state.auto_fire_changed.connect(
 			_on_auto_fire_changed
 		)
 
-	if not GameState.area_shot_changed.is_connected(
+	if not _upgrade_state.area_shot_changed.is_connected(
 		_on_area_shot_changed
 	):
-		GameState.area_shot_changed.connect(
+		_upgrade_state.area_shot_changed.connect(
 			_on_area_shot_changed
 		)
 
@@ -288,8 +301,8 @@ func _bind_ammo_window(window: AmmoWindow) -> void:
 		ammo_changed.connect(update_ammo_callable)
 
 	window.set_ammo(
-		GameState.current_ammo,
-		GameState.max_ammo,
+		_weapon_state.current_ammo,
+		_weapon_state.max_ammo,
 		false
 	)
 
@@ -365,7 +378,7 @@ func _try_fire_at_position(
 
 		return false
 
-	if GameState.current_ammo <= 0:
+	if _weapon_state.current_ammo <= 0:
 		if emit_rejections:
 			shot_rejected.emit(
 				ShotRejectionReason.EMPTY_AMMO
@@ -395,7 +408,7 @@ func _try_fire_at_position(
 		return false
 
 	var cooldown_duration: float = (
-		GameState.fire_cooldown_seconds
+		_weapon_state.fire_cooldown_seconds
 	)
 
 	_start_cooldown(cooldown_duration)
@@ -416,7 +429,7 @@ func _try_fire_at_position(
 
 	shot_fired.emit(
 		target_global_position,
-		GameState.shot_damage
+		_weapon_state.shot_damage
 	)
 
 	return true
@@ -438,7 +451,7 @@ func _try_fire_area_targets(
 	if not cooldown_timer.is_stopped():
 		return false
 
-	if GameState.current_ammo <= 0:
+	if _weapon_state.current_ammo <= 0:
 		return false
 
 	if target_enemies.is_empty():
@@ -461,7 +474,7 @@ func _try_fire_area_targets(
 		return false
 
 	var cooldown_duration: float = (
-		GameState.fire_cooldown_seconds
+		_weapon_state.fire_cooldown_seconds
 	)
 
 	_start_cooldown(cooldown_duration)
@@ -477,17 +490,17 @@ func _try_fire_area_targets(
 
 		shot_fired.emit(
 			target_position,
-			GameState.shot_damage
+			_weapon_state.shot_damage
 		)
 
 	return true
 
 
 func _try_consume_shot_ammo() -> bool:
-	if GameState.current_ammo <= 0:
+	if _weapon_state.current_ammo <= 0:
 		return false
 
-	return GameState.consume_ammo(1)
+	return _weapon_state.consume_ammo(1)
 
 
 func _start_cooldown(duration: float) -> void:
@@ -520,13 +533,13 @@ func _is_shot_blocked_by_window(
 # ================================================================
 
 func _process_automatic_fire(delta: float) -> void:
-	if GameState.area_shot_unlocked:
+	if _upgrade_state.area_shot_unlocked:
 		_process_area_shot(delta)
 		return
 
 	_cancel_pending_area_shot()
 
-	if GameState.auto_fire_unlocked:
+	if _upgrade_state.auto_fire_unlocked:
 		_process_center_auto_fire()
 
 
@@ -579,7 +592,7 @@ func _can_process_area_shot() -> bool:
 	if not cooldown_timer.is_stopped():
 		return false
 
-	if GameState.current_ammo <= 0:
+	if _weapon_state.current_ammo <= 0:
 		return false
 
 	return true
@@ -655,12 +668,12 @@ func _get_current_area_shot_targets() -> Array[DesktopVirus]:
 
 
 func _get_area_shot_max_targets() -> int:
-	if not GameState.area_shot_unlocked:
+	if not _upgrade_state.area_shot_unlocked:
 		return 0
 
 	return maxi(
 		1,
-		GameState.area_shot_max_targets
+		_upgrade_state.area_shot_max_targets
 	)
 
 
@@ -694,19 +707,19 @@ func _sync_upgrade_state_to_window() -> void:
 		return
 
 	_shooting_window.set_auto_fire_enabled(
-		GameState.auto_fire_unlocked
-		or GameState.area_shot_unlocked
+		_upgrade_state.auto_fire_unlocked
+		or _upgrade_state.area_shot_unlocked
 	)
 
 	_shooting_window.set_area_shot_enabled(
-		GameState.area_shot_unlocked
+		_upgrade_state.area_shot_unlocked
 	)
 
 # ================================================================
-# GAMESTATE SYNC
+# WEAPON STATE SYNC
 # ================================================================
 
-func _on_game_state_ammo_changed(
+func _on_weapon_ammo_changed(
 	current_ammo: int,
 	max_ammo: int
 ) -> void:
@@ -718,8 +731,8 @@ func _on_game_state_ammo_changed(
 
 func _emit_current_ammo_state() -> void:
 	ammo_changed.emit(
-		GameState.current_ammo,
-		GameState.max_ammo
+		_weapon_state.current_ammo,
+		_weapon_state.max_ammo
 	)
 
 

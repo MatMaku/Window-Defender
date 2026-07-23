@@ -38,6 +38,7 @@ var contact_sample_inset: float = 2.0
 var _repair_window: RepairWindow
 var _repair_tick_elapsed: float = 0.0
 var _was_repairing: bool = false
+var _system_state: GameSystemState
 
 
 func _ready() -> void:
@@ -59,6 +60,8 @@ func _process(delta: float) -> void:
 # ================================================================
 
 func _resolve_references() -> void:
+	_system_state = GameState.system_state
+
 	if window_manager == null:
 		window_manager = (
 			get_node_or_null("../WindowManager")
@@ -73,6 +76,10 @@ func _resolve_references() -> void:
 
 
 func _validate_dependencies() -> bool:
+	if _system_state == null:
+		push_error("RepairManager requires GameSystemState.")
+		return false
+
 	if window_manager == null:
 		push_error("RepairManager requires a WindowManager reference.")
 		return false
@@ -228,7 +235,10 @@ func _get_repair_status() -> int:
 	if _is_contact_blocked(contact_rect):
 		return RepairStatus.BLOCKED
 
-	if GameState.current_system_integrity >= GameState.max_system_integrity:
+	if (
+		_system_state.current_system_integrity
+		>= _system_state.max_system_integrity
+	):
 		return RepairStatus.FULL
 
 	return RepairStatus.REPAIRING
@@ -260,7 +270,7 @@ func _update_repair_presentation(status: int) -> void:
 func _get_repair_amount_for_tick() -> float:
 	var max_integrity: float = maxf(
 		1.0,
-		GameState.max_system_integrity
+		_system_state.max_system_integrity
 	)
 
 	return max_integrity * (

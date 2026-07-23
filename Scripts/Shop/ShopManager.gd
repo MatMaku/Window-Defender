@@ -6,6 +6,7 @@ class_name ShopManager
 @export var upgrade_manager: UpgradeManager
 
 var _active_shop_windows: Array = []
+var _economy_state: GameEconomyState
 
 
 func _ready() -> void:
@@ -28,6 +29,8 @@ func _ready() -> void:
 
 
 func _resolve_references() -> void:
+	_economy_state = GameState.economy_state
+
 	if desktop == null:
 		desktop = get_parent() as Desktop
 
@@ -51,6 +54,10 @@ func _resolve_references() -> void:
 
 
 func _validate_dependencies() -> bool:
+	if _economy_state == null:
+		push_error("ShopManager requires GameEconomyState.")
+		return false
+
 	if desktop == null:
 		push_error("ShopManager requires a Desktop reference.")
 		return false
@@ -138,7 +145,7 @@ func _on_app_purchase_requested(
 	var paid: bool = true
 
 	if price > 0:
-		paid = GameState.try_spend_crypto(price)
+		paid = _economy_state.try_spend_crypto(price)
 
 	if not paid:
 		shop_window.rebuild_shop()
@@ -152,7 +159,7 @@ func _on_app_purchase_requested(
 
 	if executable == null:
 		if price > 0:
-			GameState.add_crypto(price)
+			_economy_state.add_crypto(price)
 
 		shop_window.rebuild_shop()
 		return

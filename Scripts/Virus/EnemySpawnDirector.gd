@@ -46,6 +46,7 @@ var _spawn_budget: float = 0.0
 
 var _stage_index: int = 0
 var _run_progress_sync_elapsed_time: float = 0.0
+var _run_state: GameRunState
 
 
 func _ready() -> void:
@@ -129,23 +130,23 @@ func apply_run_progress_from_game_state() -> void:
 
 	_total_elapsed_time = maxf(
 		0.0,
-		GameState.run_total_elapsed_time
+		_run_state.run_total_elapsed_time
 	)
 
 	_stage_index = clampi(
-		GameState.enemy_spawn_stage_index,
+		_run_state.enemy_spawn_stage_index,
 		0,
 		stages.size() - 1
 	)
 
 	_stage_elapsed_time = maxf(
 		0.0,
-		GameState.enemy_spawn_stage_elapsed_time
+		_run_state.enemy_spawn_stage_elapsed_time
 	)
 
 	_spawn_budget = maxf(
 		0.0,
-		GameState.enemy_spawn_budget
+		_run_state.enemy_spawn_budget
 	)
 
 	_spawn_check_elapsed_time = 0.0
@@ -162,7 +163,7 @@ func write_run_progress_to_game_state() -> void:
 	if not sync_run_progress_to_game_state:
 		return
 
-	GameState.set_run_progress(
+	_run_state.set_run_progress(
 		_total_elapsed_time,
 		_stage_index,
 		_stage_elapsed_time,
@@ -187,6 +188,8 @@ func is_running() -> bool:
 
 
 func _resolve_references() -> void:
+	_run_state = GameState.run_state
+
 	if enemy_manager == null:
 		enemy_manager = (
 			get_node_or_null("../EnemyManager")
@@ -201,6 +204,10 @@ func _resolve_references() -> void:
 
 
 func _validate_dependencies() -> bool:
+	if _run_state == null:
+		push_error("EnemySpawnDirector requires GameRunState.")
+		return false
+
 	if enemy_manager == null:
 		push_error(
 			"EnemySpawnDirector requires an EnemyManager reference."

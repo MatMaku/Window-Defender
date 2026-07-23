@@ -1,20 +1,37 @@
 extends Node
 class_name GameSystemState
 
-var max_system_integrity: float = 100.0
-var current_system_integrity: float = 100.0
+signal system_integrity_changed(
+	current_integrity: float,
+	max_integrity: float
+)
+
+signal system_destroyed
+
+var max_system_integrity: float:
+	get:
+		return _max_system_integrity
+
+var current_system_integrity: float:
+	get:
+		return _current_system_integrity
+
+var _max_system_integrity: float = 100.0
+var _current_system_integrity: float = 100.0
 
 var _system_destroyed: bool = false
 
 
 func reset_from_start_data(start_data: GameStartData) -> void:
-	max_system_integrity = maxf(
+	_max_system_integrity = maxf(
 		1.0,
 		start_data.max_system_integrity
 	)
 
-	current_system_integrity = max_system_integrity
+	_current_system_integrity = _max_system_integrity
 	_system_destroyed = false
+
+	_emit_system_integrity_changed()
 
 
 func take_damage(amount: float) -> float:
@@ -24,19 +41,29 @@ func take_damage(amount: float) -> float:
 	if _system_destroyed:
 		return 0.0
 
-	var previous_integrity: float = current_system_integrity
+	var previous_integrity: float = _current_system_integrity
 
-	current_system_integrity = maxf(
-		current_system_integrity - amount,
+	_current_system_integrity = maxf(
+		_current_system_integrity - amount,
 		0.0
 	)
 
 	var applied_damage: float = (
-		previous_integrity - current_system_integrity
+		previous_integrity - _current_system_integrity
 	)
 
-	if current_system_integrity <= 0.0:
+	if applied_damage <= 0.0:
+		return 0.0
+
+	var became_destroyed: bool = false
+	if _current_system_integrity <= 0.0:
 		_system_destroyed = true
+		became_destroyed = true
+
+	_emit_system_integrity_changed()
+
+	if became_destroyed:
+		system_destroyed.emit()
 
 	return applied_damage
 
@@ -48,40 +75,56 @@ func heal(amount: float) -> float:
 	if _system_destroyed:
 		return 0.0
 
-	var previous_integrity: float = current_system_integrity
+	var previous_integrity: float = _current_system_integrity
 
-	current_system_integrity = minf(
-		current_system_integrity + amount,
-		max_system_integrity
+	_current_system_integrity = minf(
+		_current_system_integrity + amount,
+		_max_system_integrity
 	)
 
-	return current_system_integrity - previous_integrity
+	var healed_amount: float = (
+		_current_system_integrity - previous_integrity
+	)
+
+	if healed_amount > 0.0:
+		_emit_system_integrity_changed()
+
+	return healed_amount
 
 
 func set_max_integrity(
 	new_maximum: float,
 	fill_integrity: bool = false
 ) -> void:
-	max_system_integrity = maxf(
+	_max_system_integrity = maxf(
 		1.0,
 		new_maximum
 	)
 
 	if fill_integrity:
-		current_system_integrity = max_system_integrity
+		_current_system_integrity = _max_system_integrity
 	else:
-		current_system_integrity = minf(
-			current_system_integrity,
-			max_system_integrity
+		_current_system_integrity = minf(
+			_current_system_integrity,
+			_max_system_integrity
 		)
+
+	_emit_system_integrity_changed()
 
 
 func get_integrity_ratio() -> float:
-	if max_system_integrity <= 0.0:
+	if _max_system_integrity <= 0.0:
 		return 0.0
 
-	return current_system_integrity / max_system_integrity
+	return _current_system_integrity / _max_system_integrity
 
 
 func is_destroyed() -> bool:
 	return _system_destroyed
+
+
+func _emit_system_integrity_changed() -> void:
+	system_integrity_changed.emit(
+		_current_system_integrity,
+		_max_system_integrity
+	)

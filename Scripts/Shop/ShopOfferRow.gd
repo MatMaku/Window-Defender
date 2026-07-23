@@ -37,7 +37,6 @@ func bind_app_offer(offer: ShopAppOfferData) -> void:
 	_is_upgrade = false
 
 	_refresh_app_visuals()
-	refresh_affordability(GameState.crypto)
 
 
 func bind_upgrade_offer(
@@ -50,17 +49,16 @@ func bind_upgrade_offer(
 	_is_upgrade = true
 
 	_refresh_upgrade_visuals()
-	refresh_affordability(GameState.crypto)
 
 
 func refresh_affordability(
-	_current_crypto: int
+	current_crypto: int
 ) -> void:
 	if _is_upgrade:
 		_refresh_upgrade_affordability()
 		return
 
-	_refresh_app_affordability()
+	_refresh_app_affordability(current_crypto)
 
 
 func _refresh_app_visuals() -> void:
@@ -96,13 +94,13 @@ func _refresh_upgrade_visuals() -> void:
 	)
 
 
-func _refresh_app_affordability() -> void:
+func _refresh_app_affordability(current_crypto: int) -> void:
 	if _app_offer == null:
 		_apply_affordability(false)
 		return
 
 	var can_afford: bool = (
-		GameState.crypto >= maxi(0, _app_offer.price)
+		current_crypto >= maxi(0, _app_offer.price)
 	)
 
 	_apply_affordability(can_afford)

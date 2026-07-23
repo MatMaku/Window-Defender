@@ -51,6 +51,9 @@ var _perfect_finish_remaining: float = 0.0
 var _perfect_check_available: bool = false
 
 var _reload_window: ReloadWindow
+var _weapon_state: GameWeaponState
+var _reload_stats_state: GameReloadStatsState
+var _upgrade_state: GameUpgradeState
 
 
 func _ready() -> void:
@@ -60,7 +63,7 @@ func _ready() -> void:
 		return
 
 	_connect_signals()
-	_apply_reload_stats_from_game_state()
+	_apply_reload_stats_from_state()
 	_register_existing_reload_window()
 
 
@@ -81,6 +84,10 @@ func _process(delta: float) -> void:
 # ================================================================
 
 func _resolve_references() -> void:
+	_weapon_state = GameState.weapon_state
+	_reload_stats_state = GameState.reload_stats_state
+	_upgrade_state = GameState.upgrade_state
+
 	if window_manager == null:
 		window_manager = (
 			get_node_or_null("../WindowManager")
@@ -95,6 +102,18 @@ func _resolve_references() -> void:
 
 
 func _validate_dependencies() -> bool:
+	if _weapon_state == null:
+		push_error("ReloadManager requires GameWeaponState.")
+		return false
+
+	if _reload_stats_state == null:
+		push_error("ReloadManager requires GameReloadStatsState.")
+		return false
+
+	if _upgrade_state == null:
+		push_error("ReloadManager requires GameUpgradeState.")
+		return false
+
 	if window_manager == null:
 		push_error("ReloadManager requires a WindowManager reference.")
 		return false
@@ -121,37 +140,37 @@ func _connect_signals() -> void:
 			_on_window_closed
 		)
 
-	if not GameState.reload_stats_changed.is_connected(
-		_on_game_state_reload_stats_changed
+	if not _reload_stats_state.reload_stats_changed.is_connected(
+		_on_reload_stats_changed
 	):
-		GameState.reload_stats_changed.connect(
-			_on_game_state_reload_stats_changed
+		_reload_stats_state.reload_stats_changed.connect(
+			_on_reload_stats_changed
 		)
 
-	if not GameState.ammo_changed.is_connected(
-		_on_game_state_ammo_changed
+	if not _weapon_state.ammo_changed.is_connected(
+		_on_weapon_ammo_changed
 	):
-		GameState.ammo_changed.connect(
-			_on_game_state_ammo_changed
+		_weapon_state.ammo_changed.connect(
+			_on_weapon_ammo_changed
 		)
 
-	if not GameState.auto_reload_changed.is_connected(
+	if not _upgrade_state.auto_reload_changed.is_connected(
 		_on_auto_reload_changed
 	):
-		GameState.auto_reload_changed.connect(
+		_upgrade_state.auto_reload_changed.connect(
 			_on_auto_reload_changed
 		)
 
 
-func _apply_reload_stats_from_game_state() -> void:
+func _apply_reload_stats_from_state() -> void:
 	_apply_reload_stats(
-		GameState.normal_reload_duration,
-		GameState.perfect_reload_finish_delay,
-		GameState.reload_failure_penalty_duration
+		_reload_stats_state.normal_reload_duration,
+		_reload_stats_state.perfect_reload_finish_delay,
+		_reload_stats_state.reload_failure_penalty_duration
 	)
 
 
-func _on_game_state_reload_stats_changed(
+func _on_reload_stats_changed(
 	new_normal_reload_duration: float,
 	new_perfect_finish_delay: float,
 	new_failure_penalty_duration: float
@@ -325,7 +344,7 @@ func _try_active_reload() -> void:
 # AUTO RELOAD
 # ================================================================
 
-func _on_game_state_ammo_changed(
+func _on_weapon_ammo_changed(
 	current_ammo: int,
 	_max_ammo: int
 ) -> void:
@@ -343,7 +362,7 @@ func _on_auto_reload_changed(enabled: bool) -> void:
 
 
 func _try_start_auto_reload() -> void:
-	if not GameState.auto_reload_unlocked:
+	if not _upgrade_state.auto_reload_unlocked:
 		return
 
 	if not is_instance_valid(_reload_window):
@@ -352,10 +371,10 @@ func _try_start_auto_reload() -> void:
 	if _state != ReloadState.IDLE:
 		return
 
-	if GameState.current_ammo > 0:
+	if _weapon_state.current_ammo > 0:
 		return
 
-	if GameState.max_ammo <= 0:
+	if _weapon_state.max_ammo <= 0:
 		return
 
 	if shooting_manager.is_reloading():

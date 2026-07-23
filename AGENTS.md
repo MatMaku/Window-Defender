@@ -19,6 +19,14 @@ resource management, enemies represented as viruses, and data-driven stages.
 - Do not introduce new autoloads without justification.
 - Preserve existing public APIs unless the task requires changing them.
 - Prefer data-driven Resources for configurable gameplay content.
+- Keep `GameState` as the single session autoload and typed state container. It
+  must not expose domain property proxies, command wrappers, or signal relays.
+- Resolve required specialized states once during consumer initialization and
+  retain only those typed references. Managers and windows must not retain the
+  complete `GameState` container.
+- Specialized states own their data, clamps, invariants, mutation commands, and
+  domain signals. Consumers must not write protected state fields directly.
+- Connect state observers to the specialized state that owns the signal.
 
 ## GDScript
 
@@ -68,3 +76,45 @@ After modifying files:
 - Do not alter Git history.
 - Do not commit or push unless explicitly requested.
 - Do not claim runtime validation succeeded unless Godot was actually run.
+
+## Project documentation
+
+Project documentation is part of the implementation and must remain consistent
+with the codebase.
+
+Before working:
+
+1. Always read this `AGENTS.md`.
+2. Read `README.md` when starting a new thread or when general project context is
+   needed.
+3. Read only the domain documents relevant to the task:
+
+   * `docs/PROJECT_OVERVIEW.md` for product intent, gameplay loop, implemented,
+     partial and planned features.
+   * `docs/ARCHITECTURE.md` for ownership, dependencies, managers, autoloads and
+     architectural boundaries.
+   * `docs/GAMEPLAY_SYSTEMS.md` for observable gameplay rules.
+   * `docs/DATA_MODEL.md` for Resources, IDs, configuration and runtime state.
+   * `docs/SIGNALS.md` for signal contracts, emitters and consumers.
+4. Inspect the actual scripts, scenes and Resources involved. Documentation is
+   context, not a substitute for reading the implementation.
+5. Do not resolve questions marked as `Unknown` or identified with a question ID
+   without user confirmation when the task depends on them.
+
+After implementing:
+
+1. Determine whether the change made any documentation inaccurate.
+2. Update only the documents and sections affected by the change.
+3. Do not rewrite unrelated documentation.
+4. Preserve the distinction between:
+
+   * Implemented
+   * Partially implemented
+   * Planned
+   * Unknown
+5. Update source paths, signal contracts, ownership descriptions and configuration
+   values when they change.
+6. If no documentation update is necessary, state why.
+7. Report documentation changes separately from code changes.
+
+A task is not complete when the implementation contradicts the documentation.

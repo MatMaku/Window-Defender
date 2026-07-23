@@ -21,9 +21,16 @@ var shortcut_spacing: float = 100.0
 @onready var window_manager: WindowManager = %WindowManager
 
 var _executables_by_program_id: Dictionary = {}
+var _desktop_state: GameDesktopState
 
 
 func _ready() -> void:
+	_desktop_state = GameState.desktop_state
+
+	if _desktop_state == null:
+		push_error("Desktop requires GameDesktopState.")
+		return
+
 	_spawn_shortcuts()
 
 
@@ -154,7 +161,7 @@ func _spawn_shortcut(
 		program_id
 	] = executable
 
-	_register_shortcut_in_game_state(
+	_register_shortcut_in_state(
 		program_id,
 		executable.position
 	)
@@ -209,8 +216,8 @@ func _get_shortcut_spawn_position(
 		shortcut.program_data.program_id
 	)
 
-	if GameState.has_desktop_shortcut(program_id):
-		return GameState.get_desktop_shortcut_position(
+	if _desktop_state.has_desktop_shortcut(program_id):
+		return _desktop_state.get_desktop_shortcut_position(
 			program_id,
 			shortcut.start_position
 		)
@@ -218,14 +225,14 @@ func _get_shortcut_spawn_position(
 	return shortcut.start_position
 
 
-func _register_shortcut_in_game_state(
+func _register_shortcut_in_state(
 	program_id: StringName,
 	shortcut_position: Vector2
 ) -> void:
 	if program_id == StringName():
 		return
 
-	GameState.register_desktop_shortcut(
+	_desktop_state.register_desktop_shortcut(
 		program_id,
 		shortcut_position
 	)
@@ -298,7 +305,7 @@ func _on_executable_moved(
 	new_position: Vector2,
 	program_id: StringName
 ) -> void:
-	GameState.update_desktop_shortcut_position(
+	_desktop_state.update_desktop_shortcut_position(
 		program_id,
 		new_position
 	)

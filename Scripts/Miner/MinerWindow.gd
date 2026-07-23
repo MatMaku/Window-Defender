@@ -35,13 +35,21 @@ var _elapsed_since_tick: float = 0.0
 
 var _current_frame_index: int = 0
 var _animation_elapsed: float = 0.0
+var _miner_state: GameMinerState
+var _economy_state: GameEconomyState
 
 
 func _ready() -> void:
 	super._ready()
+	_miner_state = GameState.miner_state
+	_economy_state = GameState.economy_state
 
-	_connect_game_state_signals()
-	_apply_miner_stats_from_game_state()
+	if _miner_state == null or _economy_state == null:
+		push_error("MinerWindow requires miner and economy states.")
+		return
+
+	_connect_state_signals()
+	_apply_miner_stats_from_state()
 
 	opening_finished.connect(
 		_on_opening_finished
@@ -89,24 +97,24 @@ func is_mining() -> bool:
 	return _is_mining
 
 
-func _connect_game_state_signals() -> void:
-	if not GameState.miner_stats_changed.is_connected(
+func _connect_state_signals() -> void:
+	if not _miner_state.miner_stats_changed.is_connected(
 		_on_miner_stats_changed
 	):
-		GameState.miner_stats_changed.connect(
+		_miner_state.miner_stats_changed.connect(
 			_on_miner_stats_changed
 		)
 
 
-func _apply_miner_stats_from_game_state() -> void:
+func _apply_miner_stats_from_state() -> void:
 	crypto_per_tick = maxi(
 		0,
-		GameState.miner_crypto_per_tick
+		_miner_state.miner_crypto_per_tick
 	)
 
 	mining_interval_seconds = maxf(
 		0.05,
-		GameState.miner_interval_seconds
+		_miner_state.miner_interval_seconds
 	)
 
 
@@ -206,7 +214,7 @@ func _on_opening_finished(_window: AppWindow) -> void:
 
 
 func _generate_crypto_tick() -> void:
-	GameState.add_crypto(
+	_economy_state.add_crypto(
 		crypto_per_tick
 	)
 

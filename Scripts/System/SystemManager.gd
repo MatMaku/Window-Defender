@@ -19,9 +19,16 @@ signal system_destroyed
 
 var _system_executable: DesktopExecutable
 var _system_window: SystemWindow
+var _system_state: GameSystemState
 
 
 func _ready() -> void:
+	_system_state = GameState.system_state
+
+	if _system_state == null:
+		push_error("SystemManager requires GameSystemState.")
+		return
+
 	if desktop == null:
 		push_error("SystemManager requires a Desktop reference.")
 		return
@@ -42,11 +49,11 @@ func _ready() -> void:
 		_on_window_closed
 	)
 
-	GameState.system_integrity_changed.connect(
+	_system_state.system_integrity_changed.connect(
 		_on_system_integrity_changed
 	)
 
-	GameState.system_destroyed.connect(
+	_system_state.system_destroyed.connect(
 		_on_system_destroyed
 	)
 
@@ -71,11 +78,11 @@ func get_attack_target_global_rect() -> Rect2:
 
 
 func damage_system(damage_amount: float) -> float:
-	return GameState.take_system_damage(damage_amount)
+	return _system_state.take_damage(damage_amount)
 
 
 func heal_system(amount: float) -> float:
-	return GameState.heal_system(amount)
+	return _system_state.heal(amount)
 
 
 func get_system_executable() -> DesktopExecutable:
@@ -130,8 +137,8 @@ func _on_window_opened(
 	_system_window = system_window
 
 	_update_system_window(
-		GameState.current_system_integrity,
-		GameState.max_system_integrity
+		_system_state.current_system_integrity,
+		_system_state.max_system_integrity
 	)
 
 

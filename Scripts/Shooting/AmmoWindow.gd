@@ -18,6 +18,7 @@ var settle_duration: float = 0.03
 @onready var ammo_label: Label = %AmmoLabel
 
 var _ammo_feedback_tween: Tween
+var _weapon_state: GameWeaponState
 
 var _displayed_current_ammo: int = -1
 var _displayed_max_ammo: int = -1
@@ -25,6 +26,11 @@ var _displayed_max_ammo: int = -1
 
 func _ready() -> void:
 	super._ready()
+	_weapon_state = GameState.weapon_state
+
+	if _weapon_state == null:
+		push_error("AmmoWindow requires GameWeaponState.")
+		return
 
 	if not ammo_label.resized.is_connected(
 		_update_label_pivot
@@ -34,8 +40,8 @@ func _ready() -> void:
 		)
 
 	set_ammo(
-		GameState.current_ammo,
-		GameState.max_ammo,
+		_weapon_state.current_ammo,
+		_weapon_state.max_ammo,
 		false
 	)
 
