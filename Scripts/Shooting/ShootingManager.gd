@@ -463,9 +463,17 @@ func _try_fire_area_targets(
 		if not is_instance_valid(enemy):
 			continue
 
-		target_positions.append(
+		var target_position: Vector2 = (
 			enemy.get_center_global_position()
 		)
+
+		if _is_shot_blocked_by_window(
+			shooter,
+			target_position
+		):
+			continue
+
+		target_positions.append(target_position)
 
 	if target_positions.is_empty():
 		return false

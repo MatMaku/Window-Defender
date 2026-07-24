@@ -179,7 +179,7 @@ func _configure_area_shot_marker_layer() -> void:
 		area_shot_marker_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		area_shot_marker_layer.clip_contents = true
 		area_shot_marker_layer.visible = false
-		area_shot_marker_layer.z_index = 100
+		area_shot_marker_layer.z_index = 0
 		area_shot_marker_layer.z_as_relative = true
 
 	if area_shot_marker_template != null:
@@ -201,6 +201,11 @@ func present_area_shot_marker(
 		return
 
 	if area_shot_marker_template == null:
+		return
+
+	if not _is_global_position_inside_aim_area(
+		target_global_position
+	):
 		return
 
 	var marker_size: Vector2 = _get_marker_template_size()
@@ -248,7 +253,7 @@ func _create_area_marker_root(
 	marker_root.name = "AreaShotMarker"
 	marker_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	marker_root.position = local_center
-	marker_root.z_index = 10
+	marker_root.z_index = 0
 	marker_root.z_as_relative = true
 	marker_root.size = Vector2.ZERO
 	marker_root.pivot_offset = Vector2.ZERO
@@ -374,11 +379,35 @@ func _get_marker_template_size() -> Vector2:
 func _global_position_to_marker_layer_local(
 	target_global_position: Vector2
 ) -> Vector2:
-	var layer_global_rect: Rect2 = (
-		area_shot_marker_layer.get_global_rect()
+	var inverse_global_transform: Transform2D = (
+		area_shot_marker_layer
+		.get_global_transform()
+		.affine_inverse()
 	)
 
-	return target_global_position - layer_global_rect.position
+	return inverse_global_transform * target_global_position
+
+
+func _is_global_position_inside_aim_area(
+	target_global_position: Vector2
+) -> bool:
+	if aim_area == null:
+		return false
+
+	var inverse_global_transform: Transform2D = (
+		aim_area
+		.get_global_transform()
+		.affine_inverse()
+	)
+
+	var local_position: Vector2 = (
+		inverse_global_transform * target_global_position
+	)
+
+	return Rect2(
+		Vector2.ZERO,
+		aim_area.size
+	).has_point(local_position)
 
 
 func _clamp_marker_center_inside_layer(
