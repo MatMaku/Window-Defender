@@ -234,7 +234,9 @@ y costo de RAM. `WindowManager.open_program()`:
 - **Planeado:** ralentización runtime por RAM.
 - **Planeado:** guardado/carga y snapshots de enemigos.
 - **Parcialmente implementado:** game over.
-- **Planeado:** acciones del menú Inicio.
+- **Implementado:** pausa del `SceneTree` y apagado directo desde el menú Inicio,
+  coordinados por `Scripts/Taskbar/Taskbar.gd`.
+- **Planeado:** acciones Load Game, Save Game y Options del menú Inicio.
 
 ## 12. Registro de preguntas arquitectónicas
 

@@ -103,6 +103,7 @@ texture_margin_right = 5.0
 texture_margin_bottom = 5.0
 
 [node name="Taskbar" type="Control" unique_id=339390842]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -112,7 +113,46 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_masim")
 
-[node name="TaskbarBar" type="Panel" parent="." unique_id=475935327]
+[node name="UiLayer" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="PauseOverlay" type="Control" parent="UiLayer" unique_id=657461566]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PauseShade" type="ColorRect" parent="UiLayer/PauseOverlay" unique_id=1897445907]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.25, 0.25, 0.25, 0.68)
+
+[node name="PauseLabel" type="Label" parent="UiLayer/PauseOverlay" unique_id=1022679958]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_fonts/font = ExtResource("2_a4ffc")
+theme_override_font_sizes/font_size = 64
+text = "PAUSA"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TaskbarBar" type="Panel" parent="UiLayer" unique_id=475935327]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 custom_maximum_size = Vector2(-1, 36)
@@ -126,7 +166,7 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxTexture_maugy")
 
-[node name="StartButton" type="Button" parent="TaskbarBar" unique_id=1791246593]
+[node name="StartButton" type="Button" parent="UiLayer/TaskbarBar" unique_id=1791246593]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 4.0
@@ -138,10 +178,11 @@ theme_override_fonts/font = ExtResource("2_a4ffc")
 theme_override_styles/normal = SubResource("StyleBoxTexture_uylti")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_bjlfa")
 theme_override_styles/hover = SubResource("StyleBoxTexture_b3jmh")
+toggle_mode = true
 text = "START"
 alignment = 2
 
-[node name="TextureRect" type="TextureRect" parent="TaskbarBar/StartButton" unique_id=1090307895]
+[node name="TextureRect" type="TextureRect" parent="UiLayer/TaskbarBar/StartButton" unique_id=1090307895]
 layout_mode = 0
 offset_left = 4.0
 offset_top = 1.0
@@ -150,7 +191,7 @@ offset_bottom = 26.0
 texture = ExtResource("6_qngra")
 expand_mode = 1
 
-[node name="AppButtonArea" type="HBoxContainer" parent="TaskbarBar" unique_id=659464202]
+[node name="AppButtonArea" type="HBoxContainer" parent="UiLayer/TaskbarBar" unique_id=659464202]
 unique_name_in_owner = true
 clip_contents = true
 layout_mode = 1
@@ -164,7 +205,7 @@ offset_bottom = -4.0
 mouse_filter = 0
 theme_override_constants/separation = 2
 
-[node name="SystemTray" type="PanelContainer" parent="TaskbarBar" unique_id=1472079819]
+[node name="SystemTray" type="PanelContainer" parent="UiLayer/TaskbarBar" unique_id=1472079819]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = -1
@@ -179,7 +220,7 @@ theme_override_styles/panel = SubResource("StyleBoxTexture_f5l5t")
 script = ExtResource("9_fn2ch")
 virus_data_prefix = "D "
 
-[node name="RamLabel" type="Label" parent="TaskbarBar/SystemTray" unique_id=1354015561]
+[node name="RamLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray" unique_id=1354015561]
 unique_name_in_owner = true
 layout_mode = 2
 offset_transform_enabled = true
@@ -187,14 +228,14 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "RAM 100/100"
 label_settings = SubResource("LabelSettings_b3jmh")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="TaskbarBar/SystemTray" unique_id=935322925]
+[node name="HBoxContainer" type="HBoxContainer" parent="UiLayer/TaskbarBar/SystemTray" unique_id=935322925]
 layout_mode = 2
 offset_transform_enabled = true
 offset_transform_position = Vector2(15, 0)
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="CryptoLabel" type="Label" parent="TaskbarBar/SystemTray/HBoxContainer" unique_id=194764745]
+[node name="CryptoLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer" unique_id=194764745]
 unique_name_in_owner = true
 layout_mode = 2
 offset_transform_position = Vector2(15, 0)
@@ -202,7 +243,7 @@ text = "$10000"
 label_settings = SubResource("LabelSettings_2clil")
 horizontal_alignment = 1
 
-[node name="DataLabel" type="Label" parent="TaskbarBar/SystemTray/HBoxContainer" unique_id=1037340653]
+[node name="DataLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer" unique_id=1037340653]
 unique_name_in_owner = true
 layout_mode = 2
 offset_transform_position = Vector2(15, 0)
@@ -210,7 +251,7 @@ text = "D 1000"
 label_settings = SubResource("LabelSettings_2clil")
 horizontal_alignment = 1
 
-[node name="ClockLabel" type="Label" parent="TaskbarBar/SystemTray" unique_id=1527173067]
+[node name="ClockLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray" unique_id=1527173067]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
@@ -218,11 +259,12 @@ text = "12:00 PM"
 label_settings = SubResource("LabelSettings_802k2")
 horizontal_alignment = 2
 
-[node name="ClockTimer" type="Timer" parent="TaskbarBar/SystemTray" unique_id=314646239]
+[node name="ClockTimer" type="Timer" parent="UiLayer/TaskbarBar/SystemTray" unique_id=314646239]
 unique_name_in_owner = true
 
-[node name="StartMenu" type="PanelContainer" parent="." unique_id=204891514]
+[node name="StartMenu" type="PanelContainer" parent="UiLayer" unique_id=204891514]
 unique_name_in_owner = true
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 1.0
@@ -233,11 +275,11 @@ offset_right = 248.0
 offset_bottom = -35.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_a4ffc")
 
-[node name="Labels" type="Control" parent="StartMenu" unique_id=1300429017]
+[node name="Labels" type="Control" parent="UiLayer/StartMenu" unique_id=1300429017]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="DefenderLabel" type="Label" parent="StartMenu/Labels" unique_id=1616828834]
+[node name="DefenderLabel" type="Label" parent="UiLayer/StartMenu/Labels" unique_id=1616828834]
 unique_name_in_owner = true
 custom_maximum_size = Vector2(29, -1)
 layout_mode = 1
@@ -253,7 +295,7 @@ offset_transform_rotation = -1.5707964
 text = "Defender"
 label_settings = SubResource("LabelSettings_maugy")
 
-[node name="98Label" type="Label" parent="StartMenu/Labels" unique_id=937523515]
+[node name="98Label" type="Label" parent="UiLayer/StartMenu/Labels" unique_id=937523515]
 unique_name_in_owner = true
 custom_maximum_size = Vector2(29, -1)
 layout_mode = 1
@@ -269,19 +311,19 @@ offset_transform_rotation = -1.5707964
 text = "98"
 label_settings = SubResource("LabelSettings_uylti")
 
-[node name="MenuMargin" type="MarginContainer" parent="StartMenu" unique_id=509154958]
+[node name="MenuMargin" type="MarginContainer" parent="UiLayer/StartMenu" unique_id=509154958]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/margin_left = 31
 theme_override_constants/margin_top = -2
 theme_override_constants/margin_bottom = -2
 
-[node name="MenuVBox" type="VBoxContainer" parent="StartMenu/MenuMargin" unique_id=1622152866]
+[node name="MenuVBox" type="VBoxContainer" parent="UiLayer/StartMenu/MenuMargin" unique_id=1622152866]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="LoadButton" type="Button" parent="StartMenu/MenuMargin/MenuVBox" unique_id=1177921696]
+[node name="LoadButton" type="Button" parent="UiLayer/StartMenu/MenuMargin/MenuVBox" unique_id=1177921696]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 custom_maximum_size = Vector2(-1, 40)
@@ -295,7 +337,7 @@ theme_override_styles/hover = SubResource("StyleBoxTexture_qngra")
 text = "Load Game"
 expand_icon = true
 
-[node name="Icon" type="TextureRect" parent="StartMenu/MenuMargin/MenuVBox/LoadButton" unique_id=29514885]
+[node name="Icon" type="TextureRect" parent="UiLayer/StartMenu/MenuMargin/MenuVBox/LoadButton" unique_id=29514885]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -305,7 +347,7 @@ offset_transform_scale = Vector2(1.5, 1.5)
 texture = ExtResource("11_mbvsq")
 expand_mode = 1
 
-[node name="SaveButton" type="Button" parent="StartMenu/MenuMargin/MenuVBox" unique_id=1495785968]
+[node name="SaveButton" type="Button" parent="UiLayer/StartMenu/MenuMargin/MenuVBox" unique_id=1495785968]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 custom_maximum_size = Vector2(-1, 40)
@@ -319,7 +361,7 @@ theme_override_styles/hover = SubResource("StyleBoxTexture_qngra")
 text = "Save Game"
 expand_icon = true
 
-[node name="Icon" type="TextureRect" parent="StartMenu/MenuMargin/MenuVBox/SaveButton" unique_id=242021503]
+[node name="Icon" type="TextureRect" parent="UiLayer/StartMenu/MenuMargin/MenuVBox/SaveButton" unique_id=242021503]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -329,7 +371,7 @@ offset_transform_scale = Vector2(1.5, 1.5)
 texture = ExtResource("11_qngra")
 expand_mode = 1
 
-[node name="OptionsButton" type="Button" parent="StartMenu/MenuMargin/MenuVBox" unique_id=450152164]
+[node name="OptionsButton" type="Button" parent="UiLayer/StartMenu/MenuMargin/MenuVBox" unique_id=450152164]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 custom_maximum_size = Vector2(-1, 40)
@@ -343,7 +385,7 @@ theme_override_styles/hover = SubResource("StyleBoxTexture_qngra")
 text = "Options"
 expand_icon = true
 
-[node name="Icon" type="TextureRect" parent="StartMenu/MenuMargin/MenuVBox/OptionsButton" unique_id=904047247]
+[node name="Icon" type="TextureRect" parent="UiLayer/StartMenu/MenuMargin/MenuVBox/OptionsButton" unique_id=904047247]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -353,7 +395,7 @@ offset_transform_scale = Vector2(1.5, 1.5)
 texture = ExtResource("13_q1a8q")
 expand_mode = 1
 
-[node name="ShutDownButton" type="Button" parent="StartMenu/MenuMargin/MenuVBox" unique_id=1784386116]
+[node name="ShutDownButton" type="Button" parent="UiLayer/StartMenu/MenuMargin/MenuVBox" unique_id=1784386116]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 custom_maximum_size = Vector2(-1, 40)
@@ -367,7 +409,7 @@ theme_override_styles/hover = SubResource("StyleBoxTexture_qngra")
 text = "Shut Down"
 expand_icon = true
 
-[node name="Icon" type="TextureRect" parent="StartMenu/MenuMargin/MenuVBox/ShutDownButton" unique_id=2118770361]
+[node name="Icon" type="TextureRect" parent="UiLayer/StartMenu/MenuMargin/MenuVBox/ShutDownButton" unique_id=2118770361]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0

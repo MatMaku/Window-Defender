@@ -12,18 +12,35 @@ var menu_slide_distance: float = 10.0
 @export var menu_start_scale: Vector2 = Vector2(0.98, 0.94)
 
 @onready var start_button: Button = (
-	get_node_or_null("TaskbarBar/StartButton")
+	get_node_or_null("UiLayer/TaskbarBar/StartButton")
 	as Button
 )
 
+@onready var taskbar_bar: Control = (
+	get_node_or_null("UiLayer/TaskbarBar")
+	as Control
+)
+
 @onready var app_button_area: HBoxContainer = (
-	get_node_or_null("TaskbarBar/AppButtonArea")
+	get_node_or_null("UiLayer/TaskbarBar/AppButtonArea")
 	as HBoxContainer
 )
 
 @onready var start_menu: PanelContainer = (
-	get_node_or_null("StartMenu")
+	get_node_or_null("UiLayer/StartMenu")
 	as PanelContainer
+)
+
+@onready var pause_overlay: Control = (
+	get_node_or_null("UiLayer/PauseOverlay")
+	as Control
+)
+
+@onready var shutdown_button: Button = (
+	get_node_or_null(
+		"UiLayer/StartMenu/MenuMargin/MenuVBox/ShutDownButton"
+	)
+	as Button
 )
 
 var _is_start_menu_open: bool = false
@@ -37,30 +54,61 @@ func _ready() -> void:
 
 	if start_button == null:
 		push_error(
-			"Taskbar could not find TaskbarBar/StartButton."
+			"Taskbar could not find "
+			+ "UiLayer/TaskbarBar/StartButton."
+		)
+		return
+
+	if taskbar_bar == null:
+		push_error(
+			"Taskbar could not find UiLayer/TaskbarBar."
 		)
 		return
 
 	if app_button_area == null:
 		push_error(
-			"Taskbar could not find TaskbarBar/AppButtonArea."
+			"Taskbar could not find "
+			+ "UiLayer/TaskbarBar/AppButtonArea."
 		)
 		return
 
 	if start_menu == null:
 		push_error(
-			"Taskbar could not find StartMenu."
+			"Taskbar could not find UiLayer/StartMenu."
+		)
+		return
+
+	if pause_overlay == null:
+		push_error(
+			"Taskbar could not find UiLayer/PauseOverlay."
+		)
+		return
+
+	if shutdown_button == null:
+		push_error(
+			"Taskbar could not find ShutDownButton."
 		)
 		return
 
 	start_button.pressed.connect(_on_start_button_pressed)
+	shutdown_button.pressed.connect(
+		_on_shutdown_button_pressed
+	)
 	start_menu.resized.connect(_update_start_menu_pivot)
-
-	start_menu.visible = false
 
 	resized.connect(_on_taskbar_resized)
 
+	_set_start_menu_open(false)
 	call_deferred("_cache_start_menu_rest_state")
+
+
+func _exit_tree() -> void:
+	_kill_menu_tween()
+
+	var scene_tree: SceneTree = get_tree()
+
+	if scene_tree != null:
+		scene_tree.paused = false
 
 
 func _input(event: InputEvent) -> void:
@@ -87,6 +135,11 @@ func _input(event: InputEvent) -> void:
 	if _is_click_inside_start_interface(click_global_position):
 		return
 
+	if not taskbar_bar.get_global_rect().has_point(
+		click_global_position
+	):
+		get_viewport().set_input_as_handled()
+
 	close_start_menu()
 
 
@@ -102,11 +155,31 @@ func toggle_start_menu() -> void:
 
 
 func open_start_menu() -> void:
-	if _is_start_menu_open:
+	_set_start_menu_open(true)
+
+
+func close_start_menu() -> void:
+	_set_start_menu_open(false)
+
+
+func _set_start_menu_open(open: bool) -> void:
+	var state_changed: bool = _is_start_menu_open != open
+	_is_start_menu_open = open
+
+	start_button.set_pressed_no_signal(open)
+	pause_overlay.visible = open
+	get_tree().paused = open
+
+	if not state_changed:
 		return
 
-	_is_start_menu_open = true
+	if open:
+		_animate_start_menu_open()
+	else:
+		_animate_start_menu_close()
 
+
+func _animate_start_menu_open() -> void:
 	_kill_menu_tween()
 	_update_start_menu_pivot()
 
@@ -160,12 +233,7 @@ func open_start_menu() -> void:
 	)
 
 
-func close_start_menu() -> void:
-	if not _is_start_menu_open:
-		return
-
-	_is_start_menu_open = false
-
+func _animate_start_menu_close() -> void:
 	_kill_menu_tween()
 
 	var final_position: Vector2 = (
@@ -216,6 +284,11 @@ func close_start_menu() -> void:
 
 func _on_start_button_pressed() -> void:
 	toggle_start_menu()
+
+
+func _on_shutdown_button_pressed() -> void:
+	# Future: request confirmation, then return to the main menu or quit.
+	get_tree().quit()
 
 
 func _is_click_inside_start_interface(

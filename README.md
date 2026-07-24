@@ -26,7 +26,8 @@ Las etiquetas usadas en todos los documentos significan:
 
 - **Implementado:** escritorio, accesos directos, ventanas, foco, RAM, taskbar,
   minería, economía, tienda, mejoras, integridad del sistema, enemigos, stages,
-  disparo, munición, recarga activa y reparación.
+  disparo, munición, recarga activa, reparación, pausa desde el menú Inicio y
+  apagado directo.
 - **Parcialmente implementado:** fin de partida, feedback de algunos rechazos,
   cambio de resolución con reacomodo, persistencia del progreso y presentación
   de stages.
@@ -98,8 +99,10 @@ docs/       Documentación funcional y técnica.
 
 - **Parcialmente implementado:** llegar a cero de integridad detiene el director
   de spawns, pero no inicia una pantalla de derrota ni un reinicio.
-- **Planeado:** el menú Inicio muestra Load Game, Save Game, Options y Shut Down,
-  pero esos botones no tienen comportamiento conectado.
+- **Implementado:** el menú Inicio pausa el `SceneTree`, presenta el overlay de
+  pausa y permite cerrar la aplicación mediante Shut Down.
+- **Planeado:** Load Game, Save Game y Options permanecen visibles sin
+  comportamiento conectado.
 - **Planeado:** hay estado para progreso de run y snapshots de enemigos, pero no
   persistencia a disco.
 - **Parcialmente implementado:** la RAM ralentiza la animación de apertura; la API

@@ -39,8 +39,11 @@ Fuentes:
 - **Implementado:** instancia única salvo que `ProgramData` permita múltiples.
 - **Implementado:** botones de taskbar por ventana, foco y reordenamiento.
 - **Implementado:** menú Inicio animado.
+- **Implementado:** el menú Inicio pausa el `SceneTree`, muestra un overlay y
+  permanece interactivo para reanudar o ejecutar Shut Down.
+- **Implementado:** Shut Down cierra directamente la aplicación.
 - **Parcialmente implementado:** los botones de taskbar no minimizan.
-- **Planeado:** Load, Save, Options y Shut Down existen visualmente, sin handlers.
+- **Planeado:** Load, Save y Options existen visualmente, sin handlers.
 
 ## 4. RAM
 
@@ -239,7 +242,7 @@ Fuentes:
 
 - **Parcialmente implementado:** destrucción del sistema.
 - **Planeado:** guardado/carga.
-- **Planeado:** Options y Shut Down.
+- **Planeado:** Options.
 - **Planeado:** efecto runtime de RAM.
 - **Parcialmente implementado:** presentación de stages y errores de disparo.
 

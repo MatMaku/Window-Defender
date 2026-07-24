@@ -144,14 +144,16 @@ Hay nueve Resources en `Stages/Prueba/Stages/`, cargados en orden por
 - **Desconocido (Q-PROD-003):** definir si existe condición de victoria y cómo se
   relaciona con Stage 8.
 
-## 9. Funciones planeadas visibles
+## 9. Funciones visibles y alcance actual
 
-Estas funciones tienen scaffolding, pero su alcance no debe inferirse sin
-consulta:
+Las opciones incompletas tienen scaffolding, pero su alcance no debe inferirse
+sin consulta:
 
 - **Planeado:** Save Game y Load Game, visibles en
   `Scenes/Taskbar/Taskbar.tscn`.
-- **Planeado:** Options y Shut Down, visibles en la misma escena.
+- **Planeado:** Options, visible en la misma escena.
+- **Implementado:** abrir el menú Inicio pausa el `SceneTree`; Shut Down cierra
+  directamente la aplicación desde `Scripts/Taskbar/Taskbar.gd`.
 - **Planeado:** snapshots de enemigos en
   `Scripts/Autoload/GameEnemySnapshotState.gd`.
 - **Planeado:** restauración del director mediante
