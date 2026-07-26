@@ -9,7 +9,7 @@ decisiones de diseño que todavía deben confirmarse.
 
 ## Estado de la documentación
 
-Estado verificado el 2026-07-22 sobre la base Git `223d385`.
+Estado verificado el 2026-07-24.
 
 Las etiquetas usadas en todos los documentos significan:
 
@@ -25,12 +25,12 @@ Las etiquetas usadas en todos los documentos significan:
 ## Estado actual resumido
 
 - **Implementado:** escritorio, accesos directos, ventanas, foco, RAM, taskbar,
-  minería, economía, tienda, mejoras, integridad del sistema, enemigos, stages,
-  disparo, munición, recarga activa, reparación, pausa desde el menú Inicio y
-  apagado directo.
+  minería, economía, tienda, mejoras, integridad del sistema, enemigos, reloj
+  ficticio, oleadas diarias, modo infinito, disparo, munición, recarga activa,
+  reparación, pausa desde el menú Inicio y apagado directo.
 - **Parcialmente implementado:** fin de partida, feedback de algunos rechazos,
   cambio de resolución con reacomodo, persistencia del progreso y presentación
-  de stages.
+  del ciclo diario.
 - **Planeado:** guardado/carga, snapshots de enemigos, efectos runtime de presión
   de RAM y acciones adicionales del menú Inicio tienen scaffolding visible.
 - **Desconocido:** balance definitivo, condición de victoria, plataformas
@@ -62,11 +62,11 @@ ejecución del juego.
 
 ```text
 Apps/       Ventanas de aplicaciones y sus ProgramData/shortcuts.
-Data/       Clases Resource para estado inicial, programas, tienda y stages.
+Data/       Clases Resource para estado inicial, programas, tienda, enemigos y waves.
 Scenes/     Escenas base: desktop, autoload, taskbar, virus y ventanas.
 Scripts/    Lógica organizada por dominio.
 Shop/       Ofertas de aplicaciones y mejoras.
-Stages/     Enemigos y progresión de stages configurados como Resources.
+Stages/     Configuración editable de arquetipos y oleadas diarias.
 Sprites/    Recursos gráficos.
 Fonts/      Tipografías.
 docs/       Documentación funcional y técnica.
@@ -93,6 +93,9 @@ docs/       Documentación funcional y técnica.
 - `Scripts/Autoload/GameState.gd`
 - `Scripts/Autoload/GameSystemState.gd` y los demás estados de dominio de
   `Scripts/Autoload/`
+- `Scripts/Autoload/GameClockState.gd`
+- `Scripts/GameClock/GameClockManager.gd`
+- `Stages/Daily/DailyWaveSequence.tres`
 - `Data/GameState/GameStart.tres`
 
 ## Limitaciones conocidas
@@ -103,8 +106,8 @@ docs/       Documentación funcional y técnica.
   pausa y permite cerrar la aplicación mediante Shut Down.
 - **Planeado:** Load Game, Save Game y Options permanecen visibles sin
   comportamiento conectado.
-- **Planeado:** hay estado para progreso de run y snapshots de enemigos, pero no
-  persistencia a disco.
+- **Parcialmente implementado:** reloj y progreso diario producen snapshots
+  primitivos restaurables en memoria, pero no existe persistencia a disco.
 - **Parcialmente implementado:** la RAM ralentiza la animación de apertura; la API
   de ralentización runtime no tiene consumidores.
 - **Desconocido:** consultar los registros de preguntas de cada documento antes

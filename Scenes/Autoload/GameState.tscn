@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://cfc33kf4metto" path="res://Scripts/Autoload/GameUpgradeState.gd" id="9_xey4g"]
 [ext_resource type="Script" uid="uid://bweelcyv4aibv" path="res://Scripts/Autoload/GameRunState.gd" id="10_win1h"]
 [ext_resource type="Script" uid="uid://dsgxrwcny7j33" path="res://Scripts/Autoload/GameEnemySnapshotState.gd" id="11_s4716"]
+[ext_resource type="Script" uid="uid://dnacbjtuien1" path="res://Scripts/Autoload/GameClockState.gd" id="12_clock"]
 
 [node name="GameState" type="Node" unique_id=1229002845]
 script = ExtResource("1_8cwqe")
@@ -40,6 +41,9 @@ script = ExtResource("8_efxqx")
 
 [node name="UpgradeState" type="Node" parent="." unique_id=2045805377]
 script = ExtResource("9_xey4g")
+
+[node name="ClockState" type="Node" parent="."]
+script = ExtResource("12_clock")
 
 [node name="RunState" type="Node" parent="." unique_id=877776226]
 script = ExtResource("10_win1h")

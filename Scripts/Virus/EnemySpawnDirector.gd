@@ -4,48 +4,36 @@ class_name EnemySpawnDirector
 signal director_started
 signal director_stopped
 
-signal stage_changed(
-	stage_index: int,
-	stage: EnemySpawnStageData
+signal day_started(
+	game_day_index: int,
+	wave_configuration_index: int
 )
 
-signal spawn_budget_changed(
-	current_budget: float,
-	max_budget: float
-)
+signal active_period_started(game_day_index: int)
+signal rest_period_started(game_day_index: int)
 
 @export var enemy_manager: EnemyManager
 @export var system_manager: SystemManager
-
-@export var stages: Array[EnemySpawnStageData] = []
+@export var wave_sequence: WaveSequenceData
 
 @export var autostart: bool = true
 @export var pause_when_system_destroyed: bool = true
-@export var reset_budget_on_stage_change: bool = false
 
-@export_category("GameState Sync")
-
-@export var sync_run_progress_to_game_state: bool = true
-
-@export_range(0.05, 5.0, 0.05)
-var run_progress_sync_interval: float = 0.25
+@export var initial_spawn_mode: GameRunState.SpawnMode = (
+	GameRunState.SpawnMode.DAILY_CYCLE
+)
 
 @export_category("Debug")
 
-@export var debug_print_stage_changes: bool = false
+@export var debug_print_phase_changes: bool = false
 @export var debug_print_spawns: bool = false
 
 var _random: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var _is_running: bool = false
+var _observed_game_day_index: int = -1
 
-var _total_elapsed_time: float = 0.0
-var _stage_elapsed_time: float = 0.0
-var _spawn_check_elapsed_time: float = 0.0
-var _spawn_budget: float = 0.0
-
-var _stage_index: int = 0
-var _run_progress_sync_elapsed_time: float = 0.0
+var _clock_state: GameClockState
 var _run_state: GameRunState
 
 
@@ -62,43 +50,37 @@ func _ready() -> void:
 		call_deferred("start_director")
 
 
-func _process(delta: float) -> void:
-	if not _can_process_director():
+func _process(_delta: float) -> void:
+	if not _is_running:
 		return
 
-	_update_elapsed_time(delta)
-	_advance_stage_if_needed()
-
-	var current_stage: EnemySpawnStageData = _get_current_stage()
-
-	if current_stage == null:
-		return
-
-	_update_spawn_budget(
-		current_stage,
-		delta
-	)
-
-	_update_spawn_check(
-		current_stage,
-		delta
-	)
-
-	_update_game_state_sync(delta)
+	_synchronize_current_day()
+	_update_phase()
+	_try_spawn_if_due()
 
 
-func start_director(reset_state: bool = true) -> void:
-	if reset_state:
-		reset_director_state()
-
+func start_director(
+	reset_progress: bool = true
+) -> void:
 	if _is_running:
 		return
 
+	if reset_progress:
+		_run_state.reset()
+		_run_state.set_spawn_mode(
+			initial_spawn_mode
+		)
+
 	_is_running = true
+	_observed_game_day_index = -1
 
 	director_started.emit()
-	_emit_current_stage()
-	write_run_progress_to_game_state()
+
+	_synchronize_current_day(
+		reset_progress
+	)
+
+	_update_phase()
 
 
 func stop_director() -> void:
@@ -106,88 +88,39 @@ func stop_director() -> void:
 		return
 
 	_is_running = false
-
-	write_run_progress_to_game_state()
+	_run_state.set_spawn_phase(
+		GameRunState.SpawnPhase.STOPPED
+	)
 
 	director_stopped.emit()
-
-
-func reset_director_state() -> void:
-	_total_elapsed_time = 0.0
-	_stage_elapsed_time = 0.0
-	_spawn_check_elapsed_time = 0.0
-	_spawn_budget = 0.0
-	_stage_index = 0
-	_run_progress_sync_elapsed_time = 0.0
-
-	_emit_spawn_budget_changed()
-	write_run_progress_to_game_state()
-
-
-func apply_run_progress_from_game_state() -> void:
-	if stages.is_empty():
-		return
-
-	_total_elapsed_time = maxf(
-		0.0,
-		_run_state.run_total_elapsed_time
-	)
-
-	_stage_index = clampi(
-		_run_state.enemy_spawn_stage_index,
-		0,
-		stages.size() - 1
-	)
-
-	_stage_elapsed_time = maxf(
-		0.0,
-		_run_state.enemy_spawn_stage_elapsed_time
-	)
-
-	_spawn_budget = maxf(
-		0.0,
-		_run_state.enemy_spawn_budget
-	)
-
-	_spawn_check_elapsed_time = 0.0
-	_run_progress_sync_elapsed_time = 0.0
-
-	_clamp_budget_to_current_stage()
-	_emit_current_stage()
-	_emit_spawn_budget_changed()
-
-	write_run_progress_to_game_state()
-
-
-func write_run_progress_to_game_state() -> void:
-	if not sync_run_progress_to_game_state:
-		return
-
-	_run_state.set_run_progress(
-		_total_elapsed_time,
-		_stage_index,
-		_stage_elapsed_time,
-		_spawn_budget
-	)
-
-
-func get_total_elapsed_time() -> float:
-	return _total_elapsed_time
-
-
-func get_current_stage_index() -> int:
-	return _stage_index
-
-
-func get_current_spawn_budget() -> float:
-	return _spawn_budget
 
 
 func is_running() -> bool:
 	return _is_running
 
 
+func get_current_game_day_index() -> int:
+	return _clock_state.get_game_day_index()
+
+
+func get_current_wave_configuration_index() -> int:
+	return wave_sequence.get_day_configuration_index(
+		get_current_game_day_index()
+	)
+
+
+func get_current_daily_wave() -> DailyWaveData:
+	return wave_sequence.get_day_configuration(
+		get_current_game_day_index()
+	)
+
+
+func get_current_spawn_budget() -> float:
+	return _run_state.spawn_budget_remaining
+
+
 func _resolve_references() -> void:
+	_clock_state = GameState.clock_state
 	_run_state = GameState.run_state
 
 	if enemy_manager == null:
@@ -204,19 +137,33 @@ func _resolve_references() -> void:
 
 
 func _validate_dependencies() -> bool:
+	if _clock_state == null:
+		push_error(
+			"EnemySpawnDirector requires GameClockState."
+		)
+		return false
+
 	if _run_state == null:
-		push_error("EnemySpawnDirector requires GameRunState.")
+		push_error(
+			"EnemySpawnDirector requires GameRunState."
+		)
 		return false
 
 	if enemy_manager == null:
 		push_error(
-			"EnemySpawnDirector requires an EnemyManager reference."
+			"EnemySpawnDirector requires EnemyManager."
 		)
 		return false
 
-	if stages.is_empty():
+	if wave_sequence == null:
 		push_error(
-			"EnemySpawnDirector requires at least one spawn stage."
+			"EnemySpawnDirector requires WaveSequenceData."
+		)
+		return false
+
+	if wave_sequence.days.is_empty():
+		push_error(
+			"EnemySpawnDirector requires at least one daily wave."
 		)
 		return false
 
@@ -224,6 +171,13 @@ func _validate_dependencies() -> bool:
 
 
 func _connect_signals() -> void:
+	if not _run_state.spawn_mode_changed.is_connected(
+		_on_spawn_mode_changed
+	):
+		_run_state.spawn_mode_changed.connect(
+			_on_spawn_mode_changed
+		)
+
 	if not pause_when_system_destroyed:
 		return
 
@@ -240,311 +194,342 @@ func _connect_signals() -> void:
 	)
 
 
-func _can_process_director() -> bool:
-	return (
-		_is_running
-		and not stages.is_empty()
+func _synchronize_current_day(
+	force_reset_budget: bool = false
+) -> void:
+	var current_game_day_index: int = (
+		_clock_state.get_game_day_index()
+	)
+	var run_progress_needs_initialization: bool = (
+		_run_state.spawn_phase
+		== GameRunState.SpawnPhase.STOPPED
 	)
 
-
-func _update_elapsed_time(delta: float) -> void:
-	_total_elapsed_time += delta
-	_stage_elapsed_time += delta
-
-
-func _get_current_stage() -> EnemySpawnStageData:
-	if stages.is_empty():
-		return null
-
-	_stage_index = clampi(
-		_stage_index,
-		0,
-		stages.size() - 1
-	)
-
-	return stages[_stage_index]
-
-
-func _advance_stage_if_needed() -> void:
-	while true:
-		var current_stage: EnemySpawnStageData = (
-			_get_current_stage()
-		)
-
-		if current_stage == null:
-			return
-
-		if current_stage.is_infinite():
-			return
-
-		if _stage_elapsed_time < current_stage.duration_seconds:
-			return
-
-		if _stage_index >= stages.size() - 1:
-			_stage_elapsed_time = current_stage.duration_seconds
-			return
-
-		_stage_elapsed_time -= current_stage.duration_seconds
-		_stage_index += 1
-		_spawn_check_elapsed_time = 0.0
-
-		_on_stage_changed()
-
-
-func _on_stage_changed() -> void:
-	_clamp_budget_to_current_stage()
-
-	if reset_budget_on_stage_change:
-		_spawn_budget = 0.0
-
-	var current_stage: EnemySpawnStageData = (
-		_get_current_stage()
-	)
-
-	if current_stage == null:
+	if (
+		not force_reset_budget
+		and not run_progress_needs_initialization
+		and _observed_game_day_index
+			== current_game_day_index
+	):
 		return
 
-	if debug_print_stage_changes:
+	_observed_game_day_index = current_game_day_index
+
+	var daily_wave: DailyWaveData = (
+		get_current_daily_wave()
+	)
+
+	if daily_wave == null:
+		return
+
+	var run_day_does_not_match: bool = (
+		_run_state.game_day_index
+		!= current_game_day_index
+	)
+
+	if (
+		force_reset_budget
+		or run_day_does_not_match
+		or run_progress_needs_initialization
+	):
+		_run_state.begin_game_day(
+			current_game_day_index,
+			daily_wave.get_safe_spawn_budget(),
+			_clock_state.total_game_minutes
+		)
+
+	day_started.emit(
+		current_game_day_index,
+		get_current_wave_configuration_index()
+	)
+
+
+func _update_phase() -> void:
+	var desired_phase: GameRunState.SpawnPhase = (
+		_get_desired_phase()
+	)
+
+	var phase_changed: bool = (
+		_run_state.set_spawn_phase(
+			desired_phase
+		)
+	)
+
+	if phase_changed:
+		_run_state.record_spawn_attempt(
+			_clock_state.total_game_minutes
+		)
+
+	if not phase_changed:
+		return
+
+	if debug_print_phase_changes:
 		print(
-			"EnemySpawnDirector stage changed to: ",
-			current_stage.stage_name
+			"EnemySpawnDirector phase: ",
+			GameRunState.SpawnPhase.keys()[
+				int(desired_phase)
+			]
 		)
 
-	stage_changed.emit(
-		_stage_index,
-		current_stage
+	match desired_phase:
+		GameRunState.SpawnPhase.ACTIVE:
+			active_period_started.emit(
+				_clock_state.get_game_day_index()
+			)
+
+		GameRunState.SpawnPhase.REST:
+			rest_period_started.emit(
+				_clock_state.get_game_day_index()
+			)
+
+
+func _get_desired_phase() -> GameRunState.SpawnPhase:
+	if not _is_running:
+		return GameRunState.SpawnPhase.STOPPED
+
+	if (
+		_run_state.spawn_mode
+		== GameRunState.SpawnMode.INFINITE
+	):
+		return GameRunState.SpawnPhase.ACTIVE
+
+	var daily_wave: DailyWaveData = (
+		get_current_daily_wave()
 	)
 
-	_emit_spawn_budget_changed()
-	write_run_progress_to_game_state()
+	if daily_wave == null:
+		return GameRunState.SpawnPhase.STOPPED
+
+	if wave_sequence.is_minute_in_active_period(
+		_clock_state.get_minute_of_day(),
+		daily_wave
+	):
+		return GameRunState.SpawnPhase.ACTIVE
+
+	return GameRunState.SpawnPhase.REST
 
 
-func _update_spawn_budget(
-	stage: EnemySpawnStageData,
-	delta: float
-) -> void:
-	var max_budget: float = (
-		stage.get_safe_max_stored_budget()
-	)
-
-	var threat_gain: float = (
-		maxf(0.0, stage.threat_per_second)
-		* delta
-	)
-
-	_spawn_budget = minf(
-		_spawn_budget + threat_gain,
-		max_budget
-	)
-
-	spawn_budget_changed.emit(
-		_spawn_budget,
-		max_budget
-	)
-
-
-func _update_spawn_check(
-	stage: EnemySpawnStageData,
-	delta: float
-) -> void:
-	_spawn_check_elapsed_time += delta
-
-	var spawn_check_interval: float = (
-		stage.get_safe_spawn_check_interval()
-	)
-
-	if _spawn_check_elapsed_time < spawn_check_interval:
+func _try_spawn_if_due() -> void:
+	if (
+		_run_state.spawn_phase
+		!= GameRunState.SpawnPhase.ACTIVE
+	):
 		return
 
-	_spawn_check_elapsed_time -= spawn_check_interval
+	if _run_state.spawning_exhausted_for_period:
+		return
 
-	_try_spawn_from_stage(stage)
-
-
-func _try_spawn_from_stage(
-	stage: EnemySpawnStageData
-) -> void:
-	var max_alive: int = maxi(
-		0,
-		stage.max_alive_enemies
+	var daily_wave: DailyWaveData = (
+		get_current_daily_wave()
 	)
 
-	var current_alive: int = (
+	if daily_wave == null:
+		return
+
+	var current_game_minute: float = (
+		_clock_state.total_game_minutes
+	)
+
+	if (
+		current_game_minute
+		< _run_state.last_spawn_game_minute
+	):
+		_run_state.record_spawn_attempt(
+			current_game_minute
+		)
+		return
+
+	var elapsed_since_attempt: float = (
+		current_game_minute
+		- _run_state.last_spawn_game_minute
+	)
+
+	if (
+		elapsed_since_attempt
+		< daily_wave.get_safe_spawn_interval_game_minutes()
+	):
+		return
+
+	_run_state.record_spawn_attempt(
+		current_game_minute
+	)
+
+	if _is_global_enemy_limit_reached(daily_wave):
+		return
+
+	var affordable_entries: Array[WaveEnemyEntry] = (
+		_get_affordable_entries(daily_wave)
+	)
+
+	if affordable_entries.is_empty():
+		_run_state.set_spawning_exhausted_for_period(
+			true
+		)
+		return
+
+	var eligible_entries: Array[WaveEnemyEntry] = (
+		_get_entries_below_archetype_limit(
+			affordable_entries
+		)
+	)
+
+	if eligible_entries.is_empty():
+		return
+
+	var selected_entry: WaveEnemyEntry = (
+		_choose_weighted_entry(
+			eligible_entries
+		)
+	)
+
+	if selected_entry == null:
+		_run_state.set_spawning_exhausted_for_period(
+			true
+		)
+		return
+
+	var spawned_enemy: DesktopVirus = (
+		enemy_manager.spawn_enemy_from_wave_entry(
+			selected_entry,
+			daily_wave
+		)
+	)
+
+	if spawned_enemy == null:
+		_run_state.set_spawning_exhausted_for_period(
+			true
+		)
+		return
+
+	var spawn_cost: float = (
+		selected_entry.get_spawn_cost()
+	)
+
+	if not _run_state.try_consume_spawn_budget(
+		spawn_cost
+	):
+		push_error(
+			"Spawn budget changed unexpectedly after spawning."
+		)
+		return
+
+	if debug_print_spawns:
+		print(
+			"Spawned ",
+			selected_entry.archetype.display_name,
+			" | budget: ",
+			_run_state.spawn_budget_remaining
+		)
+
+	if _get_affordable_entries(daily_wave).is_empty():
+		_run_state.set_spawning_exhausted_for_period(
+			true
+		)
+
+
+func _is_global_enemy_limit_reached(
+	daily_wave: DailyWaveData
+) -> bool:
+	var maximum_active_enemies: int = (
+		daily_wave.get_safe_max_active_enemies()
+	)
+
+	if maximum_active_enemies <= 0:
+		return true
+
+	return (
 		enemy_manager.get_active_enemy_count()
+		>= maximum_active_enemies
 	)
 
-	if current_alive >= max_alive:
-		return
 
-	var available_slots: int = max_alive - current_alive
+func _get_affordable_entries(
+	daily_wave: DailyWaveData
+) -> Array[WaveEnemyEntry]:
+	var affordable_entries: Array[WaveEnemyEntry] = []
 
-	var spawn_attempts: int = mini(
-		maxi(1, stage.max_spawns_per_check),
-		available_slots
-	)
-
-	var spawned_count: int = 0
-
-	for _spawn_index: int in range(spawn_attempts):
-		var entry: EnemySpawnEntryData = (
-			_choose_spawn_entry(stage)
-		)
-
+	for entry: WaveEnemyEntry in daily_wave.enemy_entries:
 		if entry == null:
-			break
+			continue
 
-		var enemy: DesktopVirus = (
-			enemy_manager.spawn_enemy_from_spawn_entry(
-				entry
+		if not entry.is_configured():
+			continue
+
+		if (
+			entry.get_spawn_cost()
+			> _run_state.spawn_budget_remaining
+		):
+			continue
+
+		affordable_entries.append(entry)
+
+	return affordable_entries
+
+
+func _get_entries_below_archetype_limit(
+	entries: Array[WaveEnemyEntry]
+) -> Array[WaveEnemyEntry]:
+	var eligible_entries: Array[WaveEnemyEntry] = []
+
+	for entry: WaveEnemyEntry in entries:
+		if entry.max_alive <= 0:
+			eligible_entries.append(entry)
+			continue
+
+		var active_for_archetype: int = (
+			enemy_manager.get_active_enemy_count_by_id(
+				entry.archetype.enemy_id
 			)
 		)
 
-		if enemy == null:
-			break
+		if active_for_archetype >= entry.max_alive:
+			continue
 
-		_consume_spawn_budget(
-			entry.threat_cost
+		eligible_entries.append(entry)
+
+	return eligible_entries
+
+
+func _choose_weighted_entry(
+	entries: Array[WaveEnemyEntry]
+) -> WaveEnemyEntry:
+	var total_weight: float = 0.0
+
+	for entry: WaveEnemyEntry in entries:
+		total_weight += maxf(
+			0.0,
+			entry.weight
 		)
 
-		spawned_count += 1
-
-		if debug_print_spawns:
-			print(
-				"Spawned enemy: ",
-				entry.display_name,
-				" | budget: ",
-				_spawn_budget
-			)
-
-	if spawned_count <= 0:
-		return
-
-	_emit_spawn_budget_changed()
-	write_run_progress_to_game_state()
-
-
-func _choose_spawn_entry(
-	stage: EnemySpawnStageData
-) -> EnemySpawnEntryData:
-	var total_weight: int = _get_total_eligible_weight(stage)
-
-	if total_weight <= 0:
+	if total_weight <= 0.0:
 		return null
 
-	var roll: int = _random.randi_range(
-		1,
+	var roll: float = _random.randf_range(
+		0.0,
 		total_weight
 	)
 
-	var running_weight: int = 0
+	var running_weight: float = 0.0
 
-	for entry: EnemySpawnEntryData in stage.enemy_pool:
-		if not _is_entry_eligible(entry):
-			continue
-
-		running_weight += maxi(
-			0,
+	for entry: WaveEnemyEntry in entries:
+		running_weight += maxf(
+			0.0,
 			entry.weight
 		)
 
 		if roll <= running_weight:
 			return entry
 
-	return null
+	return entries.back()
 
 
-func _get_total_eligible_weight(
-	stage: EnemySpawnStageData
-) -> int:
-	var total_weight: int = 0
-
-	for entry: EnemySpawnEntryData in stage.enemy_pool:
-		if not _is_entry_eligible(entry):
-			continue
-
-		total_weight += maxi(
-			0,
-			entry.weight
-		)
-
-	return total_weight
-
-
-func _is_entry_eligible(
-	entry: EnemySpawnEntryData
-) -> bool:
-	if entry == null:
-		return false
-
-	return entry.can_spawn(
-		_total_elapsed_time,
-		_spawn_budget
-	)
-
-
-func _consume_spawn_budget(amount: float) -> void:
-	_spawn_budget = maxf(
-		0.0,
-		_spawn_budget - maxf(0.0, amount)
-	)
-
-
-func _clamp_budget_to_current_stage() -> void:
-	var current_stage: EnemySpawnStageData = (
-		_get_current_stage()
-	)
-
-	if current_stage == null:
+func _on_spawn_mode_changed(
+	_mode: GameRunState.SpawnMode
+) -> void:
+	if not _is_running:
 		return
 
-	_spawn_budget = minf(
-		_spawn_budget,
-		current_stage.get_safe_max_stored_budget()
-	)
-
-
-func _emit_current_stage() -> void:
-	var current_stage: EnemySpawnStageData = (
-		_get_current_stage()
-	)
-
-	if current_stage == null:
-		return
-
-	stage_changed.emit(
-		_stage_index,
-		current_stage
-	)
-
-	_emit_spawn_budget_changed()
-
-
-func _emit_spawn_budget_changed() -> void:
-	var current_stage: EnemySpawnStageData = (
-		_get_current_stage()
-	)
-
-	if current_stage == null:
-		return
-
-	spawn_budget_changed.emit(
-		_spawn_budget,
-		current_stage.get_safe_max_stored_budget()
-	)
-
-
-func _update_game_state_sync(delta: float) -> void:
-	if not sync_run_progress_to_game_state:
-		return
-
-	_run_progress_sync_elapsed_time += delta
-
-	if _run_progress_sync_elapsed_time < run_progress_sync_interval:
-		return
-
-	_run_progress_sync_elapsed_time = 0.0
-
-	write_run_progress_to_game_state()
+	_update_phase()
 
 
 func _on_system_destroyed() -> void:

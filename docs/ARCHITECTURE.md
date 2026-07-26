@@ -21,9 +21,10 @@ GameState._ready()
 
 Desktop.tscn
   -> managers conectan dependencias y señales
+  -> GameClockManager inicia el reloj ficticio
   -> Desktop._ready() crea shortcuts
   -> SystemManager registra System.exe
-  -> EnemySpawnDirector inicia diferidamente
+  -> EnemySpawnDirector inicia diferidamente el ciclo diario
 ```
 
 - **Implementado:** este flujo está conectado en escenas y scripts.
@@ -51,6 +52,7 @@ El nodo `Managers` contiene:
 - `TaskbarManager`
 - `ShopManager`
 - `DisplayManager`
+- `GameClockManager`
 - `EnemyManager`
 - `EnemySpawnDirector`
 - `UpgradeManager`
@@ -66,7 +68,7 @@ El nodo `Managers` contiene:
 
 `Scripts/Autoload/GameState.gd` (`RuntimeGameState`) es el contenedor estable de
 la sesión. `Scenes/Autoload/GameState.tscn` sigue siendo el único autoload y
-compone diez nodos especializados.
+compone once nodos especializados.
 
 | Componente | Estado propietario |
 |---|---|
@@ -78,7 +80,8 @@ compone diez nodos especializados.
 | `GameRamState` | RAM máxima y utilizada |
 | `GameDesktopState` | Resolución y posiciones de shortcuts |
 | `GameUpgradeState` | Compras y automatizaciones |
-| `GameRunState` | Tiempo, stage y presupuesto |
+| `GameClockState` | Fecha, hora, minutos ficticios y velocidad |
+| `GameRunState` | Modo, fase, día, presupuesto y timestamp de spawn |
 | `GameEnemySnapshotState` | Array de snapshots futuros |
 
 - **Implementado:** `GameState` sólo conserva `start_data`, referencias tipadas,
@@ -89,10 +92,11 @@ compone diez nodos especializados.
   comandos explícitos, y emiten sus propias señales.
 - **Implementado:** los consumidores resuelven una sola vez los estados que
   necesitan desde `GameState` y conservan referencias tipadas específicas.
-- **Parcialmente implementado:** `GameRunState` y
-  `GameEnemySnapshotState` son propietarios y emisores de sus eventos, pero sus
-  campos runtime siguen expuestos y su diseño queda pendiente del futuro flujo
-  de persistencia.
+- **Implementado:** `GameClockState` y `GameRunState` protegen sus campos,
+  exponen comandos y producen snapshots formados únicamente por valores
+  serializables.
+- **Parcialmente implementado:** `GameEnemySnapshotState` conserva un Array sin
+  esquema de enemigo definitivo.
 - **Riesgo:** el acceso inicial sigue siendo global. Es un acoplamiento aceptado
   en esta etapa, limitado a localización de sesión durante `_ready()`.
 
@@ -101,7 +105,7 @@ API pública final del contenedor:
 - `start_data`
 - `system_state`, `weapon_state`, `reload_stats_state`, `miner_state`
 - `economy_state`, `ram_state`, `desktop_state`, `upgrade_state`
-- `run_state`, `enemy_snapshot_state`
+- `clock_state`, `run_state`, `enemy_snapshot_state`
 - `reset_run()`
 
 `_ready()` y `_ensure_start_data()` son implementación privada de
@@ -115,10 +119,11 @@ arquitectónica actual.
 | `Desktop` | Ejecutables por `program_id` |
 | `WindowManager` | Ventanas únicas, error activo y z-index |
 | `TaskbarManager` | Botones por instancia y ventana enfocada |
+| `GameClockManager` | Estado activo/inactivo del avance del reloj |
 | `ShootingManager` | Ventana Shooting activa, cooldown y lock de recarga |
 | `ReloadManager` | Máquina de estados y timers de recarga |
 | `EnemyManager` | Array de enemigos vivos |
-| `EnemySpawnDirector` | Progreso temporal antes de sincronizarlo |
+| `EnemySpawnDirector` | Día observado y RNG; el progreso pertenece a `GameRunState` |
 | `RepairManager` | Ventana activa y progreso de tick |
 | `ShopManager` | Ventanas Shop activas |
 | `SystemManager` | Referencias al shortcut y ventana System |
@@ -126,9 +131,8 @@ arquitectónica actual.
 
 - **Implementado:** el estado compartido y el transitorio están separados en la
   mayoría de los sistemas.
-- **Riesgo:** `Desktop`/`GameDesktopState` y
-  `EnemySpawnDirector`/`GameRunState` mantienen representaciones relacionadas
-  que pueden divergir si se agregan flujos de carga.
+- **Implementado:** el director no mantiene un reloj, presupuesto ni timer
+  temporal paralelo; consulta `GameClockState` y muta `GameRunState`.
 
 ## 6. Dependencias principales
 
@@ -138,7 +142,11 @@ GameState -> estados especializados
 Desktop -> GameDesktopState
 DesktopExecutable -> WindowManager -> RamManager -> GameRamState
 
-EnemySpawnDirector -> GameRunState
+GameClockManager -> GameClockState
+
+EnemySpawnDirector -> GameClockState
+                   -> GameRunState
+                   -> WaveSequenceData
                    -> EnemyManager -> GameEconomyState
                                    -> DesktopVirus/BasicVirus
                                    -> SystemManager -> GameSystemState
@@ -164,6 +172,7 @@ Fuentes:
 - `Scripts/Windows/WindowManager.gd`
 - `Scripts/Virus/EnemyManager.gd`
 - `Scripts/Virus/EnemySpawnDirector.gd`
+- `Scripts/GameClock/GameClockManager.gd`
 - `Scripts/Shooting/ShootingManager.gd`
 - `Scripts/Shooting/ReloadManager.gd`
 - `Scripts/Shop/ShopManager.gd`
@@ -201,14 +210,16 @@ y costo de RAM. `WindowManager.open_program()`:
 
 ## 9. Persistencia
 
-- **Implementado:** `GameDesktopState`, `GameUpgradeState`, `GameRunState` y
-  `GameEnemySnapshotState` producen snapshots parciales en memoria.
+- **Implementado:** `GameDesktopState`, `GameUpgradeState`, `GameClockState`,
+  `GameRunState` y `GameEnemySnapshotState` producen snapshots parciales en
+  memoria.
 - **Planeado:** `GameEnemySnapshotState` reserva un Array para enemigos.
-- **Planeado:** el director tiene una API de restauración.
+- **Implementado:** reloj y progreso diario aceptan restauración controlada
+  desde snapshots primitivos.
 - **Parcialmente implementado:** no existe serializador, archivo de guardado,
   versionado ni restauración coordinada.
-- **Riesgo:** el autostart actual llama `start_director()` con reset por defecto,
-  por lo que descartaría progreso cargado si no se coordina el arranque.
+- **Riesgo:** el autostart actual reinicia progreso por defecto; una futura carga
+  deberá restaurar estados y arrancar el director con `reset_progress = false`.
 
 ## 10. Escalabilidad y riesgos
 
@@ -219,7 +230,8 @@ y costo de RAM. `WindowManager.open_program()`:
   acoplamiento que debe vigilarse al agregar nuevos efectos.
 - El reset de estados persistentes no reconstruye ventanas, enemigos ni otros
   objetos runtime; ese alcance permanece fuera de este refactor.
-- `EnemyManager` separa enemigos en O(n²) por frame; Stage 8 permite 100.
+- `EnemyManager` separa enemigos en O(n²) por frame; los Resources diarios deben
+  mantener límites activos razonables.
 - Bloqueo de disparos y reparación recorre ventanas y no usa el helper de ventanas
   superiores.
 - IDs y requisitos se conectan manualmente con `StringName`.
@@ -246,5 +258,5 @@ y costo de RAM. `WindowManager.open_program()`:
 - **Resuelto (Q-ARCH-004):** `GameState` no conserva API de fachada; sólo
   localización tipada, carga inicial y reset de estados.
 - **Q-ARCH-005:** ¿qué manager coordinará guardado, carga y restauración?
-- **Q-ARCH-006:** ¿se desea determinismo o persistencia del RNG de los stages?
+- **Q-ARCH-006:** ¿se desea determinismo o persistencia del RNG de las oleadas?
 - **Q-ARCH-007:** ¿qué referencias de escena deben considerarse API estable?

@@ -6,7 +6,8 @@ This is a Godot 4 game written in typed GDScript.
 
 The game presents a fictional Windows 98-style operating system. It combines
 incremental progression, tower-defense elements, desktop applications,
-resource management, enemies represented as viruses, and data-driven stages.
+resource management, enemies represented as viruses, and data-driven daily
+waves driven by a fictional in-game clock.
 
 ## Architecture
 
@@ -19,6 +20,11 @@ resource management, enemies represented as viruses, and data-driven stages.
 - Do not introduce new autoloads without justification.
 - Preserve existing public APIs unless the task requires changing them.
 - Prefer data-driven Resources for configurable gameplay content.
+- Treat `GameClockState` as the only source of fictional game time.
+  `GameClockManager` is the only component that advances it.
+- Configure enemy progression through `WaveSequenceData`, `DailyWaveData`,
+  `WaveEnemyEntry`, and `EnemyArchetypeData`; do not reintroduce elapsed-time
+  progression parallel to the daily-wave system.
 - Keep `GameState` as the single session autoload and typed state container. It
   must not expose domain property proxies, command wrappers, or signal relays.
 - Resolve required specialized states once during consumer initialization and

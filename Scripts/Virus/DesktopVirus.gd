@@ -59,23 +59,23 @@ func configure(
 	_window_manager = window_manager
 
 
-func apply_spawn_entry_data(
-	spawn_entry_data: EnemySpawnEntryData
+func apply_runtime_stats(
+	runtime_stats: EnemyRuntimeStats
 ) -> void:
-	if spawn_entry_data == null:
+	if runtime_stats == null:
 		return
 
-	enemy_id = spawn_entry_data.enemy_id
-	display_name = spawn_entry_data.display_name
+	enemy_id = runtime_stats.enemy_id
+	display_name = runtime_stats.display_name
 
 	max_health = maxf(
 		0.1,
-		spawn_entry_data.max_health
+		runtime_stats.max_health
 	)
 
 	virus_data_reward = maxi(
 		0,
-		spawn_entry_data.virus_data_reward
+		runtime_stats.virus_data_reward
 	)
 
 	if is_node_ready():

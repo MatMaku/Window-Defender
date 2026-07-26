@@ -14,8 +14,10 @@ identidad observadas. Las rutas `.tres` son parte de la configuración jugable.
 | `DesktopShortcutData` | `Data/Programs/DesktopShortcutData.gd` | App y posición inicial | Implementado |
 | `ShopAppOfferData` | `Data/Shop/ShopAppOfferData.gd` | Oferta de aplicación | Implementado |
 | `ShopUpgradeOfferData` | `Data/Shop/ShopUpgradeOfferData.gd` | Costos, requisitos y efecto | Implementado |
-| `EnemySpawnEntryData` | `Data/Stages/EnemySpawnEntryData.gd` | Escena, costo y stats de enemigo | Implementado |
-| `EnemySpawnStageData` | `Data/Stages/EnemySpawnStageData.gd` | Reglas de una etapa | Implementado |
+| `EnemyArchetypeData` | `Data/Enemies/EnemyArchetypeData.gd` | Escena y stats base de un arquetipo | Implementado |
+| `WaveEnemyEntry` | `Data/Waves/WaveEnemyEntry.gd` | Peso, coste, límite y multiplicadores | Implementado |
+| `DailyWaveData` | `Data/Waves/DailyWaveData.gd` | Presupuesto y reglas de un día | Implementado |
+| `WaveSequenceData` | `Data/Waves/WaveSequenceData.gd` | Horario común y secuencia de días | Implementado |
 
 ## 3. GameStartData
 
@@ -129,57 +131,67 @@ Resources activos en `Apps/Shop/ShopWindow.tscn`:
   configurada; Area Shot fuerza al menos un objetivo.
 - **Riesgo:** no existe validación central de IDs, arrays o efectos `NONE`.
 
-## 7. Datos de enemigos
+## 7. Arquetipos y stats de enemigos
 
-Resources en `Stages/Prueba/Enemigos/`:
+Arquetipo activo:
 
-- `Basic Probe.tres`
-- `Basic T1.tres`
-- `Basic T2.tres`
-- `Basic T3.tres`
-- `Basic T4.tres`
-- `Basic T5.tres`
-- `Basic Swarm.tres`
+- `Stages/Daily/Archetypes/BasicVirus.tres`
 
-Cada entrada puede definir:
+`EnemyArchetypeData` define:
 
-- ID, nombre y escena;
-- costo de amenaza y peso;
-- tiempo mínimo;
-- salud, velocidad y ataque;
-- distancias de llegada/overlap;
-- recompensa de datos.
+- ID, nombre y `PackedScene`;
+- salud, velocidad, daño e intervalo de ataque base;
+- distancias de llegada y overlap;
+- recompensa base y coste de spawn por defecto.
 
-- **Implementado:** valores omitidos heredan defaults del script Resource.
-- **Riesgo confirmado:** Probe y T1 comparten `enemy_id = "basic_virus T1"`.
-- **Riesgo confirmado:** T5 no sobrescribe `enemy_id` y conserva
-  `basic_virus`.
-- **Riesgo confirmado:** otros IDs incluyen espacios.
-- **Desconocido (Q-DATA-003):** definir identidad canónica de cada variante.
+`WaveEnemyEntry` agrega peso, override opcional de coste, máximo vivo por
+`enemy_id` y multiplicadores de stats.
 
-## 8. Datos de stages
+`EnemyRuntimeStats` (`Data/Enemies/EnemyRuntimeStats.gd`) es una estructura
+`RefCounted` nueva por spawn. El valor final es:
 
-| Stage | Duración | Amenaza/s | Máximo vivos | Máximo presupuesto |
-|---|---:|---:|---:|---:|
-| 0 | 90 s | 0,35 | 4 | 8 |
-| 1 | 120 s | 0,55 | 6 | 10 |
-| 2 | 150 s | 80,0 | 8 | 14 |
-| 3 | 180 s | 1,15 | 12 | 20 |
-| 4 | 210 s | 1,55 | 16 | 28 |
-| 5 | 240 s | 2,1 | 24 | 38 |
-| 6 | 240 s | 3,0 | 34 | 52 |
-| 7 | 300 s | 4,4 | 55 | 70 |
-| 8 | Infinito | 6,5 | 100 | 100 |
+```text
+base del arquetipo × multiplicador del día × multiplicador de la entrada
+```
 
-Fuentes: `Stages/Prueba/Stages/*.tres`.
+- **Implementado:** la instancia copia esos valores antes de entrar al árbol.
+- **Implementado:** no se mutan el arquetipo, el día ni la entrada compartidos.
+- **Implementado:** el arquetipo Basic conserva los defaults actuales de
+  `Scenes/Virus/BasicVirus.tscn`.
+- **Planeado:** FastVirus y TankVirus podrán usar escenas y arquetipos propios;
+  todavía no existen.
 
-- **Implementado:** duración menor o igual a cero significa stage infinito.
-- **Implementado:** el pool es un Array de `EnemySpawnEntryData`.
-- **Riesgo confirmado:** los pools repiten Resources aunque cada entrada ya tiene
-  un campo `weight`.
-- **Desconocido (Q-DATA-004):** confirmar si la repetición es la forma deseada de
-  ponderación.
-- **Desconocido (Q-DATA-005):** confirmar el valor 80,0 de Stage 2.
+## 8. Secuencia y configuración diaria
+
+Resource de producción:
+
+- `Stages/Daily/DailyWaveSequence.tres`
+
+Dependencias:
+
+- `Stages/Daily/Days/Day01.tres`
+- `Stages/Daily/Entries/BasicVirusEntry.tres`
+- `Stages/Daily/Archetypes/BasicVirus.tres`
+
+Configuración provisional:
+
+| Campo | Valor editable |
+|---|---:|
+| Inicio activo común | 120 (02:00) |
+| Fin activo común | 0 (00:00) |
+| Presupuesto diario | 8 |
+| Intervalo | 30 minutos ficticios |
+| Máximo activo | 4 |
+| Arquetipos | BasicVirus |
+
+- **Implementado:** cada día puede usar el horario común o activar un override.
+- **Implementado:** inicio igual a fin representa actividad todo el día.
+- **Implementado:** horarios con inicio mayor que fin cruzan medianoche.
+- **Implementado:** si el índice excede `days`, se mantiene el último Resource.
+- **Implementado:** el peso se expresa una sola vez; no se duplican entradas en
+  el Array.
+- **Parcialmente implementado:** los valores son configuración de prueba, no
+  balance final.
 
 ## 9. Estado runtime
 
@@ -197,26 +209,28 @@ resetea y expone como referencias tipadas.
 | RAM máxima y usada | `GameRamState` | reserva, liberación y cambio de máximo |
 | Resolución y shortcuts | `GameDesktopState` | comandos de desktop |
 | Compras y automatizaciones | `GameUpgradeState` | comandos de upgrades |
-| Progreso de run | `GameRunState` | `set_run_progress()` |
+| Fecha, hora y velocidad | `GameClockState` | avance, velocidad y restauración |
+| Progreso diario | `GameRunState` | comandos de modo, fase, día y presupuesto |
 | Snapshots de enemigos | `GameEnemySnapshotState` | comandos de snapshots |
 
-- **Implementado:** los primeros ocho estados usan backing fields privados para
-  los datos sensibles y devuelven copias de sus contenedores.
+- **Implementado:** reloj y progreso diario también usan backing fields privados.
 - **Implementado:** no hay escritores directos confirmados sobre esos backing
   fields; managers y ventanas usan comandos del propietario.
-- **Parcialmente implementado:** run y snapshots conservan su modelo previo; se
-  les trasladaron sus señales para retirar los relays de `GameState`, sin
-  rediseñar persistencia.
+- **Parcialmente implementado:** snapshots de enemigos conservan su modelo sin
+  esquema.
 
 Snapshots disponibles en memoria:
 
 - `GameDesktopState.get_desktop_shortcuts_snapshot()` devuelve `Dictionary`.
 - `GameUpgradeState.get_upgrade_purchase_counts_snapshot()` devuelve
   `Dictionary`.
-- `GameRunState.get_run_progress_snapshot()` devuelve tiempo, stage, tiempo de
-  stage y presupuesto.
+- `GameClockState.get_clock_snapshot()` devuelve minutos y velocidad.
+- `GameRunState.get_run_progress_snapshot()` devuelve modo, fase, día,
+  presupuesto, timestamp y estado de agotamiento.
 - `GameEnemySnapshotState.get_enemy_snapshots()` devuelve `Array` sin esquema.
 
+- **Implementado:** los snapshots de reloj y run contienen únicamente números y
+  booleanos; no guardan nodos ni Resources.
 - **Implementado:** copias profundas evitan exponer directamente shortcuts,
   contadores de upgrades y snapshots de enemigos.
 - **Parcialmente implementado:** no existe snapshot completo de partida.
@@ -240,7 +254,7 @@ Snapshots disponibles en memoria:
 - Unicidad de `program_id`, `offer_id` y `enemy_id`.
 - Coherencia entre cantidad de niveles, costos y valores de efecto.
 - Rechazo transaccional de upgrades sin efecto válido.
-- Validación de pools duplicados.
+- Validación editorial automatizada de secuencias, días y entradas.
 - Versionado/migración de snapshots.
 - Validación automatizada de dependencias de escenas y Resources.
 
@@ -248,9 +262,12 @@ Snapshots disponibles en memoria:
 
 - **Q-DATA-001:** ¿los recursos iniciales son de desarrollo o definitivos?
 - **Q-DATA-002:** ¿qué convención de mayúsculas deben usar los programas?
-- **Q-DATA-003:** ¿cuáles son los IDs correctos de las variantes de virus?
-- **Q-DATA-004:** ¿pool duplicado, `weight` o ambos deben ponderar spawns?
-- **Q-DATA-005:** ¿Stage 2 debe generar 80 de amenaza por segundo?
+- **Resuelto (Q-DATA-003):** el único arquetipo productivo actual usa
+  `enemy_id = "basic_virus"`; variantes futuras tendrán Resources propios.
+- **Resuelto (Q-DATA-004):** la selección usa exclusivamente `weight`; no se
+  duplican entradas para ponderar.
+- **Obsoleto (Q-DATA-005):** el valor atípico de amenaza desapareció junto con el
+  modelo anterior.
 - **Q-DATA-006:** ¿cuál será el esquema/versionado de guardado?
 - **Q-DATA-007:** ¿deben conservarse los shortcut Resources no referenciados?
 - **Q-DATA-008:** ¿Area Shot tendrá upgrades de cantidad de objetivos?

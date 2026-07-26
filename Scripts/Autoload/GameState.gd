@@ -11,6 +11,7 @@ class_name RuntimeGameState
 @onready var ram_state: GameRamState = $RamState
 @onready var desktop_state: GameDesktopState = $DesktopState
 @onready var upgrade_state: GameUpgradeState = $UpgradeState
+@onready var clock_state: GameClockState = $ClockState
 @onready var run_state: GameRunState = $RunState
 @onready var enemy_snapshot_state: GameEnemySnapshotState = $EnemySnapshotState
 
@@ -34,6 +35,7 @@ func reset_run() -> void:
 	desktop_state.clear_desktop_shortcuts()
 
 	upgrade_state.reset()
+	clock_state.reset()
 	run_state.reset()
 	enemy_snapshot_state.reset()
 

@@ -42,6 +42,11 @@ Fuentes:
 - **Implementado:** el menú Inicio pausa el `SceneTree`, muestra un overlay y
   permanece interactivo para reanudar o ejecutar Shut Down.
 - **Implementado:** Shut Down cierra directamente la aplicación.
+- **Implementado:** `TimeLabel` y `DateLabel` presentan el reloj ficticio de la
+  partida desde `GameClockState`; no consultan la fecha ni la hora del sistema
+  operativo.
+- **Implementado:** la Taskbar actualiza el reloj únicamente cuando cambia el
+  minuto o el día y conserva el último valor visible durante la pausa.
 - **Parcialmente implementado:** los botones de taskbar no minimizan.
 - **Planeado:** Load, Save y Options existen visualmente, sin handlers.
 
@@ -127,7 +132,9 @@ Fuentes:
 - `Scripts/Virus/BasicVirus.gd`
 - `Scripts/Virus/EnemyManager.gd`
 - `Scenes/Virus/BasicVirus.tscn`
-- `Stages/Prueba/Enemigos/`
+- `Data/Enemies/EnemyArchetypeData.gd`
+- `Data/Enemies/EnemyRuntimeStats.gd`
+- `Stages/Daily/Archetypes/BasicVirus.tres`
 
 - **Implementado:** spawn desde un borde aleatorio.
 - **Implementado:** salud, daño, muerte y recompensa.
@@ -137,30 +144,58 @@ Fuentes:
 - **Implementado:** el arrastre se corta cuando el cursor entra sobre una ventana.
 - **Implementado:** separación entre pares evita acumulación excesiva.
 - **Implementado:** un disparo daña todos los enemigos que contienen el punto.
+- **Implementado:** cada arquetipo referencia su propia `PackedScene` y sus
+  estadísticas base.
+- **Implementado:** cada instancia recibe un `EnemyRuntimeStats` nuevo calculado
+  desde arquetipo × modificadores diarios × modificadores de entrada; los
+  Resources compartidos no se modifican durante el spawn.
 - **Desconocido (Q-GAME-003):** confirmar si arrastrar virus es una mecánica
   definitiva.
 - **Desconocido (Q-GAME-004):** confirmar si dañar todos los enemigos superpuestos
   es intencional.
 
-## 9. Stages y spawn
+## 9. Reloj de partida, ciclos diarios y spawn
 
 Fuentes:
 
+- `Scripts/Autoload/GameClockState.gd`
+- `Scripts/GameClock/GameClockManager.gd`
+- `Scripts/Autoload/GameRunState.gd`
 - `Scripts/Virus/EnemySpawnDirector.gd`
-- `Data/Stages/EnemySpawnStageData.gd`
-- `Data/Stages/EnemySpawnEntryData.gd`
-- `Stages/Prueba/Stages/`
+- `Data/Waves/WaveSequenceData.gd`
+- `Data/Waves/DailyWaveData.gd`
+- `Data/Waves/WaveEnemyEntry.gd`
+- `Stages/Daily/DailyWaveSequence.tres`
 
-- **Implementado:** presupuesto continuo de amenaza con tope por stage.
-- **Implementado:** chequeos periódicos de spawn.
-- **Implementado:** límites de enemigos y spawns por chequeo.
-- **Implementado:** selección ponderada entre entradas elegibles.
-- **Implementado:** requisitos por tiempo total y costo de amenaza.
-- **Implementado:** avance de Stage 0 a Stage 8; Stage 8 es infinito.
-- **Parcialmente implementado:** progreso sincronizado, pero no restaurado.
-- **Parcialmente implementado:** señales de stage/presupuesto sin UI.
-- **Desconocido (Q-GAME-005):** confirmar si `Stage 2` con amenaza `80.0` es
-  intencional.
+- **Implementado:** el reloj comienza en `01/01/1998 00:00`, usa minutos
+  numéricos desde ese origen y maneja calendario gregoriano, incluidos años
+  bisiestos.
+- **Implementado:** `GameClockManager` es el único componente que avanza el
+  reloj con `delta`; se detiene con la pausa normal del `SceneTree` y cuando
+  System es destruido.
+- **Implementado:** `DAILY_CYCLE` alterna descanso y periodo activo según un
+  horario configurable. El inicio es inclusivo, el final exclusivo y los
+  horarios que cruzan medianoche son válidos.
+- **Implementado:** `INFINITE` conserva la fase activa durante todo el día, sin
+  omitir presupuesto, intervalo ni límites de enemigos.
+- **Implementado:** cada día reinicia su presupuesto y selecciona una
+  `DailyWaveData`; al superar la secuencia se conserva la última configuración.
+- **Implementado:** el intervalo se expresa en minutos ficticios y se controla
+  mediante timestamps del mismo reloj, sin un timer paralelo.
+- **Implementado:** la selección ponderada considera coste, límite global y
+  `max_alive` por entrada.
+- **Implementado:** al alcanzar un límite no se consume presupuesto ni se
+  acumulan intentos; al liberarse espacio puede ocurrir como máximo un spawn en
+  el siguiente intervalo válido.
+- **Implementado:** durante el descanso sólo se detienen nuevos spawns; enemigos
+  vivos, minería, reparaciones y el reloj siguen activos.
+- **Parcialmente implementado:** `GameClockState` y `GameRunState` exponen
+  snapshots primitivos y restauración controlada, pero no existe guardado en
+  disco ni un flujo de carga.
+- **Planeado:** selección y desbloqueo de `INFINITE` desde UI.
+- **Configuración provisional:** el Resource de prueba usa `02:00–00:00`, un
+  único día repetible y sólo el enemigo básico. Sus tiempos y presupuesto no son
+  balance definitivo.
 
 ## 10. Disparo y munición
 
@@ -244,7 +279,8 @@ Fuentes:
 - **Planeado:** guardado/carga.
 - **Planeado:** Options.
 - **Planeado:** efecto runtime de RAM.
-- **Parcialmente implementado:** presentación de stages y errores de disparo.
+- **Parcialmente implementado:** presentación de fase diaria, presupuesto y
+  errores de disparo.
 
 ## 15. Registro de preguntas de gameplay
 
@@ -252,7 +288,8 @@ Fuentes:
 - **Q-GAME-002:** ¿múltiples Miners deben apilar producción linealmente?
 - **Q-GAME-003:** ¿arrastrar enemigos es parte del diseño final?
 - **Q-GAME-004:** ¿un disparo debe dañar todos los enemigos superpuestos?
-- **Q-GAME-005:** ¿la amenaza 80.0 de Stage 2 es intencional?
+- **Resuelto (Q-GAME-005):** la configuración antigua de amenaza fue reemplazada
+  por oleadas diarias editables.
 - **Q-GAME-006:** ¿qué ventanas deben bloquear disparos según z-order?
 - **Q-GAME-007:** ¿Auto Reload requiere Reload.exe abierto?
 - **Q-GAME-008:** ¿qué ventanas deben bloquear contacto de Repair?

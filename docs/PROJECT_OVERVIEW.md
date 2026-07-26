@@ -35,7 +35,8 @@ Fuentes principales:
 2. `Desktop.tscn` crea managers, capas visuales, taskbar y accesos directos.
 3. El jugador abre `Miner.exe` para producir criptomonedas.
 4. `Shop.exe` permite comprar aplicaciones y mejoras.
-5. `EnemySpawnDirector` acumula presupuesto de amenaza y genera virus.
+5. El reloj ficticio avanza y `EnemySpawnDirector` alterna descanso/actividad,
+   consume presupuesto diario y genera virus.
 6. Los virus se desplazan hasta `System.exe` y atacan su integridad.
 7. `Shooting.exe` consume munición para dañarlos.
 8. Las muertes entregan datos de virus.
@@ -63,6 +64,7 @@ Estado del loop:
 - Producción minera: 1 criptomoneda cada 5 segundos por instancia abierta.
 - RAM máxima: 100.
 - Resolución lógica inicial: 1280 × 720.
+- Fecha y hora inicial: 01/01/1998 00:00.
 - Criptomonedas iniciales: 10.000.
 - Datos de virus iniciales: 10.000.
 
@@ -116,20 +118,31 @@ Fuentes:
 - `Shop/Apps/`
 - `Shop/Upgrades/`
 
-## 7. Amenaza y stages
+## 7. Reloj, amenaza y oleadas diarias
 
-Hay nueve Resources en `Stages/Prueba/Stages/`, cargados en orden por
-`Scenes/Desktop/Desktop.tscn`.
+`GameClockState` conserva minutos ficticios desde `01/01/1998 00:00`.
+`GameClockManager` lo hace avanzar con una velocidad editable en
+`Scenes/Desktop/Desktop.tscn`; la pausa del `SceneTree` detiene automáticamente
+ese procesamiento.
 
-- **Implementado:** Stage 0 a Stage 7 tienen duración finita.
-- **Implementado:** Stage 8 tiene duración 0 y se interpreta como infinito.
-- **Implementado:** cada stage define amenaza por segundo, intervalo de chequeo,
-  máximo de enemigos, presupuesto y pool.
-- **Implementado:** el director resuelve `GameRunState` al inicializarse y
-  sincroniza allí tiempo, índice y presupuesto cada 0,25 segundos.
-- **Parcialmente implementado:** ese progreso no se restaura al iniciar.
-- **Parcialmente implementado:** no existe UI conectada a `stage_changed` o
-  `spawn_budget_changed`.
+La configuración activa es `Stages/Daily/DailyWaveSequence.tres`.
+
+- **Implementado:** `DAILY_CYCLE` alterna descanso y actividad según minutos del
+  día; el horario común inicial es 02:00–00:00.
+- **Implementado:** horarios que cruzan medianoche usan inicio inclusivo y fin
+  exclusivo.
+- **Implementado:** `INFINITE` mantiene la fase activa durante todo el día, pero
+  sigue respetando presupuesto, intervalo y límite activo.
+- **Implementado:** cada spawn descuenta un coste de un presupuesto diario
+  finito; no existe acumulación de amenaza por segundo.
+- **Implementado:** los intentos bloqueados por el límite activo se descartan y
+  no producen ráfagas posteriores.
+- **Implementado:** cada arquetipo referencia su propia `PackedScene`; los stats
+  finales se calculan por instancia sin mutar Resources compartidos.
+- **Implementado:** al superar la lista `days`, se reutiliza la última
+  configuración.
+- **Parcialmente implementado:** existe una sola configuración provisional de
+  prueba y no hay UI para elegir o desbloquear `INFINITE`.
 
 ## 8. Fallo y final de partida
 
@@ -142,7 +155,7 @@ Hay nueve Resources en `Stages/Prueba/Stages/`, cargados en orden por
 - **Desconocido (Q-PROD-002):** definir el flujo deseado después de system
   failure.
 - **Desconocido (Q-PROD-003):** definir si existe condición de victoria y cómo se
-  relaciona con Stage 8.
+  relaciona con los modos diario e infinito.
 
 ## 9. Funciones visibles y alcance actual
 
@@ -156,9 +169,8 @@ sin consulta:
   directamente la aplicación desde `Scripts/Taskbar/Taskbar.gd`.
 - **Planeado:** snapshots de enemigos en
   `Scripts/Autoload/GameEnemySnapshotState.gd`.
-- **Planeado:** restauración del director mediante
-  `EnemySpawnDirector.apply_run_progress_from_game_state()`; el nombre conserva
-  compatibilidad, pero la fuente runtime es `GameRunState`.
+- **Parcialmente implementado:** `GameClockState` y `GameRunState` exponen
+  snapshots primitivos y restauración controlada, sin archivos de guardado.
 
 ## 10. Registro de preguntas de producto
 
@@ -166,7 +178,8 @@ Estas preguntas deben formularse cuando una tarea dependa de ellas:
 
 - **Q-PROD-001:** ¿los 10.000 recursos iniciales son configuración de pruebas?
 - **Q-PROD-002:** ¿cuál es el flujo exacto de derrota, reinicio o continuación?
-- **Q-PROD-003:** ¿hay victoria, supervivencia infinita o ambas modalidades?
+- **Q-PROD-003:** ¿cómo concluye el modo diario y qué relación tiene con la
+  supervivencia infinita?
 - **Q-PROD-004:** ¿múltiples instancias de Miner son una estrategia definitiva?
 - **Q-PROD-005:** ¿qué estados debe preservar Save Game?
 - **Q-PROD-006:** ¿`Apps/Test` debe conservarse, integrarse o eliminarse?

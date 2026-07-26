@@ -35,46 +35,43 @@ var _attack_tween: Tween
 func _ready() -> void:
 	super._ready()
 
-	enemy_id = &"basic_virus"
-	display_name = "Basic Virus"
-
 	var visual_node: Control = get_visual_node()
 
 	if visual_node != null:
 		_visual_rest_position = visual_node.position
 
 
-func apply_spawn_entry_data(
-	spawn_entry_data: EnemySpawnEntryData
+func apply_runtime_stats(
+	runtime_stats: EnemyRuntimeStats
 ) -> void:
-	if spawn_entry_data == null:
+	if runtime_stats == null:
 		return
 
-	super.apply_spawn_entry_data(spawn_entry_data)
+	super.apply_runtime_stats(runtime_stats)
 
 	movement_speed = maxf(
 		0.0,
-		spawn_entry_data.movement_speed
+		runtime_stats.movement_speed
 	)
 
 	attack_damage = maxf(
 		0.0,
-		spawn_entry_data.attack_damage
+		runtime_stats.attack_damage
 	)
 
 	attack_interval_seconds = maxf(
 		0.05,
-		spawn_entry_data.attack_interval_seconds
+		runtime_stats.attack_interval_seconds
 	)
 
 	attack_arrival_distance = maxf(
 		0.0,
-		spawn_entry_data.attack_arrival_distance
+		runtime_stats.attack_arrival_distance
 	)
 
 	attack_overlap_distance = maxf(
 		0.0,
-		spawn_entry_data.attack_overlap_distance
+		runtime_stats.attack_overlap_distance
 	)
 
 

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="DailyWaveData" load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://0wil4xt52iv4" path="res://Data/Waves/WaveEnemyEntry.gd" id="1_entry_script"]
+[ext_resource type="Script" uid="uid://bobll52pxcoaj" path="res://Data/Waves/DailyWaveData.gd" id="2_day"]
+[ext_resource type="Resource" path="res://Stages/Daily/Entries/BasicVirusEntry.tres" id="3_entry"]
+
+[resource]
+script = ExtResource("2_day")
+display_name = "Day 1 - Provisional"
+override_sequence_active_period = false
+spawn_budget = 8.0
+spawn_interval_game_minutes = 30.0
+max_active_enemies = 4
+enemy_entries = Array[ExtResource("1_entry_script")]([ExtResource("3_entry")])
+health_multiplier = 1.0
+speed_multiplier = 1.0
+damage_multiplier = 1.0
+attack_interval_multiplier = 1.0
+reward_multiplier = 1.0

@@ -64,7 +64,7 @@ font_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_802k2"]
 font = ExtResource("2_a4ffc")
-font_size = 20
+font_size = 15
 font_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_a4ffc"]
@@ -113,12 +113,11 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_masim")
 
-[node name="UiLayer" type="CanvasLayer" parent="."]
-layer = 1
+[node name="UiLayer" type="CanvasLayer" parent="." unique_id=160820318]
 
 [node name="PauseOverlay" type="Control" parent="UiLayer" unique_id=657461566]
 visible = false
-layout_mode = 1
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -156,7 +155,6 @@ vertical_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 custom_maximum_size = Vector2(-1, 36)
-layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.96700007
 anchor_right = 1.0
@@ -207,35 +205,48 @@ theme_override_constants/separation = 2
 
 [node name="SystemTray" type="PanelContainer" parent="UiLayer/TaskbarBar" unique_id=1472079819]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(400, 30)
+custom_maximum_size = Vector2(400, 30)
+propagate_maximum_size = false
 layout_mode = 1
-anchors_preset = -1
+anchors_preset = 3
 anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -403.0
-offset_top = 3.0
-offset_right = -3.0
-offset_bottom = -3.0
+offset_left = -400.0
+offset_top = -30.0
+grow_horizontal = 0
+grow_vertical = 0
+offset_transform_enabled = true
+offset_transform_position = Vector2(-3, -3)
 theme_override_styles/panel = SubResource("StyleBoxTexture_f5l5t")
 script = ExtResource("9_fn2ch")
 virus_data_prefix = "D "
 
-[node name="RamLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray" unique_id=1354015561]
+[node name="HBoxContainer" type="HBoxContainer" parent="UiLayer/TaskbarBar/SystemTray" unique_id=517595111]
+layout_mode = 2
+offset_transform_enabled = true
+offset_transform_position = Vector2(0, -3)
+theme_override_constants/separation = 50
+alignment = 1
+
+[node name="RamLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer" unique_id=1354015561]
 unique_name_in_owner = true
 layout_mode = 2
 offset_transform_enabled = true
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "RAM 100/100"
 label_settings = SubResource("LabelSettings_b3jmh")
+horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="UiLayer/TaskbarBar/SystemTray" unique_id=935322925]
+[node name="HBoxCenter" type="HBoxContainer" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer" unique_id=935322925]
 layout_mode = 2
-offset_transform_enabled = true
 offset_transform_position = Vector2(15, 0)
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="CryptoLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer" unique_id=194764745]
+[node name="CryptoLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer/HBoxCenter" unique_id=194764745]
 unique_name_in_owner = true
 layout_mode = 2
 offset_transform_position = Vector2(15, 0)
@@ -243,7 +254,7 @@ text = "$10000"
 label_settings = SubResource("LabelSettings_2clil")
 horizontal_alignment = 1
 
-[node name="DataLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer" unique_id=1037340653]
+[node name="DataLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer/HBoxCenter" unique_id=1037340653]
 unique_name_in_owner = true
 layout_mode = 2
 offset_transform_position = Vector2(15, 0)
@@ -251,21 +262,32 @@ text = "D 1000"
 label_settings = SubResource("LabelSettings_2clil")
 horizontal_alignment = 1
 
-[node name="ClockLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray" unique_id=1527173067]
+[node name="VBoxContainer" type="VBoxContainer" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer" unique_id=1211965716]
+layout_mode = 2
+offset_transform_enabled = true
+offset_transform_position = Vector2(-8, 0)
+theme_override_constants/separation = -2
+
+[node name="ClockLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer/VBoxContainer" unique_id=1527173067]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-text = "12:00 PM"
+text = "00:00 AM"
 label_settings = SubResource("LabelSettings_802k2")
-horizontal_alignment = 2
+horizontal_alignment = 1
+vertical_alignment = 2
 
-[node name="ClockTimer" type="Timer" parent="UiLayer/TaskbarBar/SystemTray" unique_id=314646239]
+[node name="DateLabel" type="Label" parent="UiLayer/TaskbarBar/SystemTray/HBoxContainer/VBoxContainer" unique_id=637105934]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "01/01/1998"
+label_settings = SubResource("LabelSettings_802k2")
+horizontal_alignment = 1
 
 [node name="StartMenu" type="PanelContainer" parent="UiLayer" unique_id=204891514]
 unique_name_in_owner = true
 visible = false
-layout_mode = 1
 anchors_preset = -1
 anchor_top = 1.0
 anchor_bottom = 1.0

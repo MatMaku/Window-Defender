@@ -38,7 +38,14 @@ forman parte importante del flujo.
 | `GameUpgradeState` | `auto_reload_changed(enabled)` | `ReloadManager` | Implementado |
 | `GameUpgradeState` | `auto_fire_changed(enabled)` | `ShootingManager` | Implementado |
 | `GameUpgradeState` | `area_shot_changed(unlocked, max_targets)` | `ShootingManager` | Implementado |
-| `GameRunState` | `run_progress_changed(...)` | Ninguno | Planeado |
+| `GameClockState` | `time_changed(total_game_minutes)` | `TaskbarSystemTray` | Implementado |
+| `GameClockState` | `hour_changed(hour)` | Ninguno | Punto de extensión |
+| `GameClockState` | `day_changed(game_day_index)` | `TaskbarSystemTray` | Implementado |
+| `GameClockState` | `clock_speed_changed(game_minutes_per_real_second)` | Ninguno | Punto de extensión |
+| `GameRunState` | `spawn_mode_changed(mode)` | `EnemySpawnDirector` | Implementado |
+| `GameRunState` | `spawn_phase_changed(phase)` | Ninguno | Punto de extensión |
+| `GameRunState` | `wave_budget_changed(current, maximum)` | Ninguno | Punto de extensión |
+| `GameRunState` | `run_progress_changed(snapshot)` | Ninguno | Preparación para persistencia |
 | `GameEnemySnapshotState` | `enemy_snapshots_changed(snapshots)` | Ninguno | Planeado |
 
 `GameState.reset_run()` invoca el reset de cada propietario. Cada estado emite su
@@ -104,7 +111,7 @@ Managers que consumen `window_opened/window_closed`:
 |---|---|---|---|
 | `system_target_registered(executable)` | `SystemManager` | `EnemyManager` | Implementado |
 | `system_integrity_changed(current, max)` | `SystemManager` | Ninguno | Desconocido |
-| `system_destroyed()` | `SystemManager` | `EnemySpawnDirector` | Implementado |
+| `system_destroyed()` | `SystemManager` | `EnemySpawnDirector`, `GameClockManager` | Implementado |
 | `health_changed(current, max)` | `DesktopVirus` | Ninguno | Desconocido |
 | `died(virus)` | `DesktopVirus` | `EnemyManager` | Implementado |
 | `dragging_changed(virus, active)` | `DesktopVirus` | Ninguno | Desconocido |
@@ -112,8 +119,9 @@ Managers que consumen `window_opened/window_closed`:
 | `enemy_removed(enemy)` | `EnemyManager` | Ninguno | Desconocido |
 | `director_started()` | `EnemySpawnDirector` | Ninguno | Desconocido |
 | `director_stopped()` | `EnemySpawnDirector` | Ninguno | Desconocido |
-| `stage_changed(index, stage)` | `EnemySpawnDirector` | Ninguno | Parcialmente implementado |
-| `spawn_budget_changed(current, max)` | `EnemySpawnDirector` | Ninguno | Parcialmente implementado |
+| `day_started(game_day, wave_configuration_index)` | `EnemySpawnDirector` | Ninguno | Punto de extensión |
+| `active_period_started(game_day)` | `EnemySpawnDirector` | Ninguno | Punto de extensión |
+| `rest_period_started(game_day)` | `EnemySpawnDirector` | Ninguno | Punto de extensión |
 | `repair_started()` | `RepairManager` | Ninguno | Desconocido |
 | `repair_stopped()` | `RepairManager` | Ninguno | Desconocido |
 | `repair_tick(amount)` | `RepairManager` | Ninguno | Desconocido |
@@ -150,6 +158,10 @@ reordenamiento, por lo que el flujo funciona sin una acción de inicio adicional
 - `ShopWindow` conecta dinámicamente cada fila creada.
 - `TaskbarManager` crea botones y conecta foco/reordenamiento.
 - `EnemyManager` conecta `died` para cada enemigo generado.
+- `TaskbarSystemTray` conecta el tiempo y el día del `GameClockState` que resolvió
+  al inicializarse.
+- `EnemySpawnDirector` conecta cambios de modo de `GameRunState` y consulta el
+  `GameClockState` que resolvió al inicializarse.
 
 - **Implementado:** los bindings de ventana se limpian explícitamente en varios
   managers o desaparecen al liberar el emisor.
@@ -167,7 +179,7 @@ integrar cualquiera, consultar su propósito.
 Grupos pendientes:
 
 - Feedback de arma y recarga.
-- HUD de stages y presupuesto.
+- HUD de fase diaria, día y presupuesto.
 - Salud/drag/spawn de enemigos.
 - Eventos de reparación.
 - Persistencia de shortcuts, run y enemigos.
@@ -177,7 +189,7 @@ Grupos pendientes:
 
 - **Q-SIG-001:** ¿el orden de señales durante reset/carga es contractual?
 - **Q-SIG-002:** ¿qué consumidores futuros tendrán las señales de arma/recarga?
-- **Q-SIG-003:** ¿stage y presupuesto deben mostrarse en HUD?
+- **Q-SIG-003:** ¿fase diaria, día y presupuesto deben mostrarse en HUD?
 - **Q-SIG-004:** ¿las señales relay de SystemManager deben conservarse?
 - **Q-SIG-005:** ¿qué señales son API pública estable?
 - **Resuelto (Q-SIG-006):** los consumidores conectan directamente al estado

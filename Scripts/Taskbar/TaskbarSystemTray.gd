@@ -7,40 +7,28 @@ class_name TaskbarSystemTray
 @export var crypto_prefix: String = "$"
 @export var virus_data_prefix: String = "DATA "
 
-@onready var ram_label: Label = (
-	get_node_or_null("RamLabel") as Label
-)
-
-@onready var crypto_label: Label = (
-	get_node_or_null("HBoxContainer/CryptoLabel") as Label
-)
-
-@onready var data_label: Label = (
-	get_node_or_null("HBoxContainer/DataLabel") as Label
-)
-
-@onready var clock_label: Label = (
-	get_node_or_null("ClockLabel") as Label
-)
-
-@onready var clock_timer: Timer = (
-	get_node_or_null("ClockTimer") as Timer
-)
+@onready var ram_label: Label = %RamLabel
+@onready var crypto_label: Label = %CryptoLabel
+@onready var data_label: Label = %DataLabel
+@onready var clock_label: Label = %ClockLabel
+@onready var date_label: Label = %DateLabel
 
 var _ram_state: GameRamState
 var _economy_state: GameEconomyState
+var _clock_state: GameClockState
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	_ram_state = GameState.ram_state
 	_economy_state = GameState.economy_state
+	_clock_state = GameState.clock_state
 
 	if not _validate_dependencies():
 		return
 
 	_connect_state_signals()
-	_configure_clock_timer()
 	_refresh_all_values()
 
 
@@ -66,20 +54,19 @@ func _connect_state_signals() -> void:
 			_on_virus_data_changed
 		)
 
-
-func _configure_clock_timer() -> void:
-	if not clock_timer.timeout.is_connected(
-		_refresh_clock
+	if not _clock_state.time_changed.is_connected(
+		_on_clock_time_changed
 	):
-		clock_timer.timeout.connect(
-			_refresh_clock
+		_clock_state.time_changed.connect(
+			_on_clock_time_changed
 		)
 
-	clock_timer.wait_time = 1.0
-	clock_timer.one_shot = false
-	clock_timer.ignore_time_scale = true
-	clock_timer.process_mode = Node.PROCESS_MODE_ALWAYS
-	clock_timer.start()
+	if not _clock_state.day_changed.is_connected(
+		_on_clock_day_changed
+	):
+		_clock_state.day_changed.connect(
+			_on_clock_day_changed
+		)
 
 
 func _refresh_all_values() -> void:
@@ -96,7 +83,8 @@ func _refresh_all_values() -> void:
 		_economy_state.virus_data
 	)
 
-	_refresh_clock()
+	_refresh_time_label()
+	_refresh_date_label()
 
 
 func _on_ram_changed(
@@ -133,19 +121,21 @@ func _on_virus_data_changed(
 	]
 
 
-func _refresh_clock() -> void:
-	var date_time: Dictionary = (
-		Time.get_datetime_dict_from_system()
-	)
+func _on_clock_time_changed(
+	_total_game_minutes: float
+) -> void:
+	_refresh_time_label()
 
-	var hour_24: int = int(
-		date_time.get("hour", 0)
-	)
 
-	var minute: int = int(
-		date_time.get("minute", 0)
-	)
+func _on_clock_day_changed(
+	_game_day_index: int
+) -> void:
+	_refresh_date_label()
 
+
+func _refresh_time_label() -> void:
+	var hour_24: int = _clock_state.get_hour_24()
+	var minute: int = _clock_state.get_minute()
 	var meridiem: String = "AM"
 
 	if hour_24 >= 12:
@@ -163,13 +153,35 @@ func _refresh_clock() -> void:
 	]
 
 
+func _refresh_date_label() -> void:
+	var date_time: Dictionary = (
+		_clock_state.get_date_time_dict()
+	)
+
+	date_label.text = "%02d/%02d/%04d" % [
+		int(date_time.get("day", 1)),
+		int(date_time.get("month", 1)),
+		int(date_time.get("year", 1998))
+	]
+
+
 func _validate_dependencies() -> bool:
 	if _ram_state == null:
-		push_error("TaskbarSystemTray requires GameRamState.")
+		push_error(
+			"TaskbarSystemTray requires GameRamState."
+		)
 		return false
 
 	if _economy_state == null:
-		push_error("TaskbarSystemTray requires GameEconomyState.")
+		push_error(
+			"TaskbarSystemTray requires GameEconomyState."
+		)
+		return false
+
+	if _clock_state == null:
+		push_error(
+			"TaskbarSystemTray requires GameClockState."
+		)
 		return false
 
 	if ram_label == null:
@@ -180,13 +192,13 @@ func _validate_dependencies() -> bool:
 
 	if crypto_label == null:
 		push_error(
-			"TaskbarSystemTray could not find HBoxContainer/CryptoLabel."
+			"TaskbarSystemTray could not find CryptoLabel."
 		)
 		return false
 
 	if data_label == null:
 		push_error(
-			"TaskbarSystemTray could not find HBoxContainer/DataLabel."
+			"TaskbarSystemTray could not find DataLabel."
 		)
 		return false
 
@@ -196,9 +208,9 @@ func _validate_dependencies() -> bool:
 		)
 		return false
 
-	if clock_timer == null:
+	if date_label == null:
 		push_error(
-			"TaskbarSystemTray could not find ClockTimer."
+			"TaskbarSystemTray could not find DateLabel."
 		)
 		return false
 

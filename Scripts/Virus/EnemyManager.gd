@@ -102,30 +102,41 @@ func spawn_enemy_from_random_edge(
 	return enemy
 
 
-func spawn_enemy_from_spawn_entry(
-	spawn_entry_data: EnemySpawnEntryData
+func spawn_enemy_from_wave_entry(
+	wave_entry: WaveEnemyEntry,
+	daily_wave: DailyWaveData
 ) -> DesktopVirus:
-	if spawn_entry_data == null:
-		push_error("Cannot spawn enemy: spawn entry is null.")
+	if wave_entry == null:
+		push_error("Cannot spawn enemy: wave entry is null.")
 		return null
 
-	if spawn_entry_data.enemy_scene == null:
+	if not wave_entry.is_configured():
 		push_error(
-			"Cannot spawn enemy '%s': enemy scene is null."
-			% spawn_entry_data.display_name
+			"Cannot spawn enemy: wave entry is not configured."
 		)
 		return null
 
+	var archetype: EnemyArchetypeData = (
+		wave_entry.archetype
+	)
+
 	var enemy: DesktopVirus = _instantiate_enemy(
-		spawn_entry_data.enemy_scene
+		archetype.enemy_scene
 	)
 
 	if enemy == null:
 		return null
 
-	enemy.apply_spawn_entry_data(
-		spawn_entry_data
+	var runtime_stats: EnemyRuntimeStats = (
+		wave_entry.create_runtime_stats(
+			daily_wave
+		)
 	)
+
+	if runtime_stats == null:
+		return null
+
+	enemy.apply_runtime_stats(runtime_stats)
 
 	_register_spawned_enemy(enemy)
 	_place_enemy_at_random_edge(enemy)
@@ -137,6 +148,28 @@ func get_active_enemy_count() -> int:
 	_prune_invalid_enemies()
 
 	return _active_enemies.size()
+
+
+func get_active_enemy_count_by_id(
+	enemy_id: StringName
+) -> int:
+	if enemy_id == StringName():
+		return 0
+
+	_prune_invalid_enemies()
+
+	var enemy_count: int = 0
+
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		if enemy.enemy_id != enemy_id:
+			continue
+
+		enemy_count += 1
+
+	return enemy_count
 
 
 func get_active_enemies() -> Array[DesktopVirus]:

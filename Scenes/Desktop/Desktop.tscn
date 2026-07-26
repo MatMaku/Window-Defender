@@ -19,20 +19,12 @@
 [ext_resource type="PackedScene" uid="uid://c7cowr46oepbr" path="res://Scenes/Taskbar/TaskbarAppButton.tscn" id="18_b33g3"]
 [ext_resource type="PackedScene" uid="uid://c2igrixgh7fww" path="res://Scenes/Taskbar/Taskbar.tscn" id="18_dmnow"]
 [ext_resource type="Script" uid="uid://12i6uwwtsgpm" path="res://Scripts/Shop/ShopManager.gd" id="21_4qr77"]
-[ext_resource type="Resource" uid="uid://c4oiqgse6x5yv" path="res://Stages/Prueba/Stages/Stage 0.tres" id="21_ack2h"]
 [ext_resource type="Script" uid="uid://depuse7p0i1bi" path="res://Scripts/Virus/EnemySpawnDirector.gd" id="22_4qr77"]
-[ext_resource type="Resource" uid="uid://dacshisspfoeb" path="res://Stages/Prueba/Stages/Stage 1.tres" id="22_l7toj"]
 [ext_resource type="Script" uid="uid://cessh0eh04be3" path="res://Scripts/Desktop/DisplayManager.gd" id="23_2q1tr"]
-[ext_resource type="Script" uid="uid://dd7yu6x1g3p5b" path="res://Data/Stages/EnemySpawnStageData.gd" id="23_8y6pq"]
-[ext_resource type="Resource" uid="uid://dpt1kp7035rd7" path="res://Stages/Prueba/Stages/Stage 2.tres" id="23_lopgk"]
-[ext_resource type="Resource" uid="uid://djwk2hbwsk1u4" path="res://Stages/Prueba/Stages/Stage 3.tres" id="24_2kvr8"]
 [ext_resource type="Script" uid="uid://cio6x2ti3037n" path="res://Scripts/Shop/UpgradeManager.gd" id="24_swus7"]
 [ext_resource type="Script" uid="uid://dvk48gcarpdf1" path="res://Scripts/Repair/RepairManager.gd" id="25_241qo"]
-[ext_resource type="Resource" uid="uid://xtvlx4iqocjq" path="res://Stages/Prueba/Stages/Stage 4.tres" id="25_q2x0g"]
-[ext_resource type="Resource" uid="uid://bh1ofv7b8lmbl" path="res://Stages/Prueba/Stages/Stage 5.tres" id="26_ungbk"]
-[ext_resource type="Resource" uid="uid://c0r0awxrt2gi8" path="res://Stages/Prueba/Stages/Stage 6.tres" id="27_4umrw"]
-[ext_resource type="Resource" uid="uid://dwd0j2ntmaih" path="res://Stages/Prueba/Stages/Stage 7.tres" id="28_8sx5g"]
-[ext_resource type="Resource" uid="uid://desgf2gjn4kkm" path="res://Stages/Prueba/Stages/Stage 8.tres" id="29_wawgv"]
+[ext_resource type="Script" uid="uid://d1dx8lhbxepcm" path="res://Scripts/GameClock/GameClockManager.gd" id="30_clock_manager"]
+[ext_resource type="Resource" path="res://Stages/Daily/DailyWaveSequence.tres" id="31_wave_sequence"]
 
 [node name="Desktop" type="Control" unique_id=583655013]
 layout_mode = 3
@@ -105,6 +97,12 @@ script = ExtResource("23_2q1tr")
 desktop = NodePath("../..")
 window_manager = NodePath("../WindowManager")
 
+[node name="GameClockManager" type="Node" parent="Managers" node_paths=PackedStringArray("system_manager")]
+unique_name_in_owner = true
+script = ExtResource("30_clock_manager")
+system_manager = NodePath("../SystemManager")
+game_minutes_per_real_second = 10.0
+
 [node name="EnemyManager" type="Node" parent="Managers" unique_id=1970666892 node_paths=PackedStringArray("playfield_layer", "system_manager", "shooting_manager", "window_manager")]
 unique_name_in_owner = true
 script = ExtResource("13_ppvbo")
@@ -119,7 +117,7 @@ unique_name_in_owner = true
 script = ExtResource("22_4qr77")
 enemy_manager = NodePath("../EnemyManager")
 system_manager = NodePath("../SystemManager")
-stages = Array[ExtResource("23_8y6pq")]([ExtResource("21_ack2h"), ExtResource("22_l7toj"), ExtResource("23_lopgk"), ExtResource("24_2kvr8"), ExtResource("25_q2x0g"), ExtResource("26_ungbk"), ExtResource("27_4umrw"), ExtResource("28_8sx5g"), ExtResource("29_wawgv")])
+wave_sequence = ExtResource("31_wave_sequence")
 
 [node name="UpgradeManager" type="Node" parent="Managers" unique_id=1678589272]
 unique_name_in_owner = true
