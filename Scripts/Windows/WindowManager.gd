@@ -18,6 +18,7 @@ var _z_index_counter: int = 100
 
 var _single_instance_windows: Dictionary = {}
 var _error_window: SystemErrorWindow
+var _windows_pending_restore_reveal: Array[AppWindow] = []
 
 
 func _ready() -> void:
@@ -112,6 +113,122 @@ func open_program(
 	)
 
 	return window
+
+
+func create_windows_save_snapshot() -> Array[Dictionary]:
+	var sorted_windows: Array[AppWindow] = _get_app_windows()
+	sorted_windows.sort_custom(_sort_windows_by_z_order)
+
+	var snapshot: Array[Dictionary] = []
+	for window: AppWindow in sorted_windows:
+		window.cancel_drag_for_save()
+		snapshot.append({
+			"program_id": str(window.program_id),
+			"position": SaveDataCodec.vector2_to_data(
+				window.position
+			),
+			"z_order": window.z_index,
+			"app_state": (
+				window.create_save_snapshot().duplicate(true)
+			)
+		})
+
+	return snapshot
+
+
+func clear_windows_for_restore() -> void:
+	if window_layer == null:
+		return
+
+	for child: Node in window_layer.get_children():
+		var window: AppWindow = child as AppWindow
+		if window == null:
+			continue
+
+		_unregister_window(window)
+		window_closed.emit(window)
+		window.free()
+
+	_single_instance_windows.clear()
+	_windows_pending_restore_reveal.clear()
+	_error_window = null
+	_z_index_counter = 100
+
+
+func restore_windows(
+	windows_snapshot: Array,
+	content_registry: GameContentRegistry
+) -> PersistenceResult:
+	if content_registry == null:
+		return PersistenceResult.failure(
+			&"missing_content_registry",
+			"Cannot restore windows without a content registry."
+		)
+
+	clear_windows_for_restore()
+
+	var sorted_snapshot: Array = windows_snapshot.duplicate(
+		true
+	)
+	sorted_snapshot.sort_custom(_sort_window_snapshots)
+
+	for value: Variant in sorted_snapshot:
+		if not value is Dictionary:
+			return PersistenceResult.failure(
+				&"invalid_window_snapshot",
+				"A window snapshot is not an object."
+			)
+
+		var window_data: Dictionary = value as Dictionary
+		var program_id: StringName = StringName(
+			str(window_data.get("program_id", ""))
+		)
+		var program: ProgramData = (
+			content_registry.get_program(program_id)
+		)
+		if program == null:
+			return PersistenceResult.failure(
+				&"unknown_program",
+				"Cannot restore unknown program '%s'."
+					% str(program_id)
+			)
+
+		var restore_result: PersistenceResult = (
+			_restore_program_window(
+				program,
+				window_data
+			)
+		)
+		if not restore_result.success:
+			return restore_result
+
+	return PersistenceResult.ok()
+
+
+func reveal_restored_windows(
+	maximum_total_duration: float = 0.6
+) -> void:
+	if _windows_pending_restore_reveal.is_empty():
+		return
+
+	var windows: Array[AppWindow] = (
+		_windows_pending_restore_reveal.duplicate()
+	)
+	_windows_pending_restore_reveal.clear()
+	windows.sort_custom(_sort_windows_by_z_order)
+
+	var duration_per_window: float = clampf(
+		maximum_total_duration / float(windows.size()),
+		0.03,
+		0.1
+	)
+	for window: AppWindow in windows:
+		if not is_instance_valid(window):
+			continue
+
+		await window.play_restore_reveal_animation(
+			duration_per_window
+		)
 
 
 func show_system_error(
@@ -373,6 +490,73 @@ func _instantiate_app_window(
 	return window
 
 
+func _restore_program_window(
+	program_data: ProgramData,
+	window_data: Dictionary
+) -> PersistenceResult:
+	if not _can_open_program_request(program_data):
+		return PersistenceResult.failure(
+			&"window_restore_failed",
+			"Program '%s' cannot be instantiated."
+				% str(program_data.program_id)
+		)
+
+	var ram_cost: int = maxi(0, program_data.ram_cost)
+	if not ram_manager.reserve_ram(ram_cost):
+		return PersistenceResult.failure(
+			&"window_restore_insufficient_ram",
+			"Not enough RAM to restore '%s'."
+				% str(program_data.program_id)
+		)
+
+	var window: AppWindow = _instantiate_app_window(program_data)
+	if window == null:
+		ram_manager.release_ram(ram_cost)
+		return PersistenceResult.failure(
+			&"window_restore_failed",
+			"Could not instantiate '%s'."
+				% str(program_data.program_id)
+		)
+
+	window_layer.add_child(window)
+	window.allocated_ram = ram_cost
+	window.setup(program_data)
+	window.position = SaveDataCodec.data_to_vector2(
+		window_data.get("position"),
+		_get_centered_position(window)
+	)
+
+	window.focus_requested.connect(focus_window)
+	window.close_requested.connect(close_window)
+	_register_window(program_data, window)
+
+	window.z_index = maxi(
+		100,
+		int(window_data.get("z_order", 100))
+	)
+	_z_index_counter = maxi(
+		_z_index_counter,
+		window.z_index
+	)
+
+	var app_state_variant: Variant = window_data.get(
+		"app_state",
+		{}
+	)
+	var app_state: Dictionary = {}
+	if app_state_variant is Dictionary:
+		app_state = (
+			app_state_variant as Dictionary
+		).duplicate(true)
+
+	window.restore_from_save_snapshot(app_state)
+	window.prepare_after_restore()
+	window.prepare_for_restore_reveal()
+	_windows_pending_restore_reveal.append(window)
+	window_opened.emit(window, program_data)
+	return PersistenceResult.ok(window)
+
+
 func _show_insufficient_ram_error(
 	program_data: ProgramData
 ) -> void:
@@ -488,3 +672,40 @@ func _is_window_above(
 		return candidate.z_index > reference_window.z_index
 
 	return candidate.get_index() > reference_window.get_index()
+
+
+func _get_app_windows() -> Array[AppWindow]:
+	var windows: Array[AppWindow] = []
+	if window_layer == null:
+		return windows
+
+	for child: Node in window_layer.get_children():
+		var window: AppWindow = child as AppWindow
+		if window == null:
+			continue
+
+		if window.program_id == StringName():
+			continue
+
+		windows.append(window)
+
+	return windows
+
+
+func _sort_windows_by_z_order(
+	first: AppWindow,
+	second: AppWindow
+) -> bool:
+	if first.z_index == second.z_index:
+		return first.get_index() < second.get_index()
+
+	return first.z_index < second.z_index
+
+
+func _sort_window_snapshots(
+	first: Dictionary,
+	second: Dictionary
+) -> bool:
+	return int(first.get("z_order", 100)) < int(
+		second.get("z_order", 100)
+	)

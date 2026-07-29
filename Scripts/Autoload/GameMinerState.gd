@@ -50,6 +50,26 @@ func set_miner_interval_seconds(new_interval: float) -> void:
 	_emit_miner_stats_changed()
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"miner_crypto_per_tick": _miner_crypto_per_tick,
+		"miner_interval_seconds": _miner_interval_seconds
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	_miner_crypto_per_tick = maxi(
+		0,
+		int(snapshot.get("miner_crypto_per_tick", 0))
+	)
+	_miner_interval_seconds = maxf(
+		0.05,
+		float(snapshot.get("miner_interval_seconds", 0.05))
+	)
+
+	_emit_miner_stats_changed()
+
+
 func _emit_miner_stats_changed() -> void:
 	miner_stats_changed.emit(
 		_miner_crypto_per_tick,

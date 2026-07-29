@@ -141,6 +141,9 @@ func _on_window_opened(
 		_system_state.max_system_integrity
 	)
 
+	if _system_state.is_destroyed():
+		_system_window.present_system_failure()
+
 
 func _on_window_closed(window: AppWindow) -> void:
 	if window == _system_window:

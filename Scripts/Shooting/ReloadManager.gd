@@ -79,6 +79,58 @@ func _process(delta: float) -> void:
 			_advance_perfect_finish(delta)
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"state": _state,
+		"normal_elapsed": _normal_elapsed,
+		"penalty_remaining": _penalty_remaining,
+		"perfect_finish_remaining": (
+			_perfect_finish_remaining
+		),
+		"perfect_check_available": (
+			_perfect_check_available
+		)
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	var restored_state: int = int(
+		snapshot.get("state", ReloadState.IDLE)
+	)
+	if restored_state < ReloadState.IDLE or (
+		restored_state > ReloadState.PERFECT_FINISH
+	):
+		restored_state = ReloadState.IDLE
+
+	_state = restored_state
+	_normal_elapsed = maxf(
+		0.0,
+		float(snapshot.get("normal_elapsed", 0.0))
+	)
+	_penalty_remaining = maxf(
+		0.0,
+		float(snapshot.get("penalty_remaining", 0.0))
+	)
+	_perfect_finish_remaining = maxf(
+		0.0,
+		float(
+			snapshot.get(
+				"perfect_finish_remaining",
+				0.0
+			)
+		)
+	)
+	_perfect_check_available = bool(
+		snapshot.get("perfect_check_available", false)
+	)
+
+	_clamp_current_timers_to_reload_stats()
+	shooting_manager.set_reloading(
+		_state != ReloadState.IDLE
+	)
+	_sync_reload_window()
+
+
 # ================================================================
 # SETUP
 # ================================================================

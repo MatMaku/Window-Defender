@@ -97,6 +97,33 @@ func is_mining() -> bool:
 	return _is_mining
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"is_mining": _is_mining,
+		"elapsed_since_tick": _elapsed_since_tick
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	_is_mining = bool(snapshot.get("is_mining", false))
+	_elapsed_since_tick = clampf(
+		float(snapshot.get("elapsed_since_tick", 0.0)),
+		0.0,
+		mining_interval_seconds
+	)
+
+	_current_frame_index = 0
+	_animation_elapsed = 0.0
+	_refresh_static_labels()
+	_refresh_progress()
+	_apply_current_animation_frame()
+
+	if _is_mining:
+		status_label.text = "MINING ACTIVE"
+	else:
+		_present_idle_state()
+
+
 func _connect_state_signals() -> void:
 	if not _miner_state.miner_stats_changed.is_connected(
 		_on_miner_stats_changed

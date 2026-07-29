@@ -55,6 +55,32 @@ func _process(delta: float) -> void:
 	_update_repair(delta)
 
 
+func create_save_snapshot() -> Dictionary:
+	var status: int = _get_repair_status()
+	var elapsed: float = 0.0
+
+	if status == RepairStatus.REPAIRING:
+		elapsed = clampf(
+			_repair_tick_elapsed,
+			0.0,
+			repair_tick_interval
+		)
+
+	return {
+		"repair_tick_elapsed": elapsed
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	_repair_tick_elapsed = clampf(
+		float(snapshot.get("repair_tick_elapsed", 0.0)),
+		0.0,
+		repair_tick_interval
+	)
+	_was_repairing = false
+	_update_repair_presentation(_get_repair_status())
+
+
 # ================================================================
 # SETUP
 # ================================================================

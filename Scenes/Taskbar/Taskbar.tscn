@@ -12,7 +12,6 @@
 [ext_resource type="Script" uid="uid://b4htrghkgvf4r" path="res://Scripts/Taskbar/TaskbarSystemTray.gd" id="9_fn2ch"]
 [ext_resource type="FontFile" uid="uid://cvhrb0djq3hfq" path="res://Fonts/Microsoft Sans Serif.ttf" id="9_gq2or"]
 [ext_resource type="Texture2D" uid="uid://c4v4oxjwsduig" path="res://Sprites/Windows/Windows_Progress_Fill.png" id="10_gq2or"]
-[ext_resource type="Texture2D" uid="uid://dbc3fl0f1jf1i" path="res://Sprites/Icons/Load Icon.png" id="11_mbvsq"]
 [ext_resource type="Texture2D" uid="uid://bohb8ne4253au" path="res://Sprites/Icons/Save Icon.png" id="11_qngra"]
 [ext_resource type="Texture2D" uid="uid://ba34vbefshkn7" path="res://Sprites/Icons/Options Icon.png" id="13_q1a8q"]
 [ext_resource type="Texture2D" uid="uid://wgegfxrsl16u" path="res://Sprites/Icons/ShutDown Icon.png" id="14_tdnhc"]
@@ -76,13 +75,13 @@ texture_margin_bottom = 5.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_maugy"]
 font = ExtResource("9_gq2or")
-font_size = 26
+font_size = 24
 font_color = Color(0.84313726, 0.81960785, 0.7882353, 1)
 shadow_color = Color(0, 0, 0, 0.39215687)
 
 [sub_resource type="LabelSettings" id="LabelSettings_uylti"]
 font = ExtResource("9_gq2or")
-font_size = 25
+font_size = 22
 font_color = Color(0.84313726, 0.81960785, 0.7882353, 1)
 shadow_color = Color(0, 0, 0, 0.39215687)
 
@@ -292,7 +291,7 @@ anchors_preset = -1
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 2.0
-offset_top = -225.0
+offset_top = -179.0
 offset_right = 248.0
 offset_bottom = -35.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_a4ffc")
@@ -312,7 +311,7 @@ grow_vertical = 2
 size_flags_horizontal = 0
 size_flags_vertical = 1
 offset_transform_enabled = true
-offset_transform_position = Vector2(75, 75)
+offset_transform_position = Vector2(51, 52)
 offset_transform_rotation = -1.5707964
 text = "Defender"
 label_settings = SubResource("LabelSettings_maugy")
@@ -323,12 +322,12 @@ custom_maximum_size = Vector2(29, -1)
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_right = 28.0
+offset_right = 29.0
 grow_vertical = 2
 size_flags_horizontal = 0
 size_flags_vertical = 1
 offset_transform_enabled = true
-offset_transform_position = Vector2(75, -35)
+offset_transform_position = Vector2(52, -51)
 offset_transform_rotation = -1.5707964
 text = "98"
 label_settings = SubResource("LabelSettings_uylti")
@@ -344,30 +343,6 @@ theme_override_constants/margin_bottom = -2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
-
-[node name="LoadButton" type="Button" parent="UiLayer/StartMenu/MenuMargin/MenuVBox" unique_id=1177921696]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
-custom_maximum_size = Vector2(-1, 40)
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("2_a4ffc")
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxTexture_mbvsq")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_gq2or")
-theme_override_styles/hover = SubResource("StyleBoxTexture_qngra")
-text = "Load Game"
-expand_icon = true
-
-[node name="Icon" type="TextureRect" parent="UiLayer/StartMenu/MenuMargin/MenuVBox/LoadButton" unique_id=29514885]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-offset_transform_enabled = true
-offset_transform_position = Vector2(10, 0)
-offset_transform_scale = Vector2(1.5, 1.5)
-texture = ExtResource("11_mbvsq")
-expand_mode = 1
 
 [node name="SaveButton" type="Button" parent="UiLayer/StartMenu/MenuMargin/MenuVBox" unique_id=1495785968]
 unique_name_in_owner = true

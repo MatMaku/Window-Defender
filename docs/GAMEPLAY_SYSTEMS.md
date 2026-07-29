@@ -41,14 +41,17 @@ Fuentes:
 - **Implementado:** menú Inicio animado.
 - **Implementado:** el menú Inicio pausa el `SceneTree`, muestra un overlay y
   permanece interactivo para reanudar o ejecutar Shut Down.
-- **Implementado:** Shut Down cierra directamente la aplicación.
+- **Implementado:** Shut Down cierra el menú Inicio, normaliza la pausa y vuelve
+  a MainMenu sin guardar automáticamente.
 - **Implementado:** `TimeLabel` y `DateLabel` presentan el reloj ficticio de la
   partida desde `GameClockState`; no consultan la fecha ni la hora del sistema
   operativo.
 - **Implementado:** la Taskbar actualiza el reloj únicamente cuando cambia el
   minuto o el día y conserva el último valor visible durante la pausa.
 - **Parcialmente implementado:** los botones de taskbar no minimizan.
-- **Planeado:** Load, Save y Options existen visualmente, sin handlers.
+- **Implementado:** Save solicita una captura coherente para el perfil activo.
+- **Implementado:** Taskbar no ofrece Load; la carga se realiza exclusivamente
+  desde MainMenu. Options permanece sin handler.
 
 ## 4. RAM
 
@@ -82,6 +85,8 @@ Fuentes:
 - **Implementado:** Miner empieza después de terminar su animación de apertura.
 - **Implementado:** upgrades pueden cambiar cantidad e intervalo.
 - **Implementado:** matar un virus entrega datos y aumenta muertes totales.
+- **Implementado:** cada Miner abierto conserva si estaba activo y el tiempo
+  transcurrido hasta su siguiente tick.
 - **Desconocido (Q-GAME-002):** confirmar si la multiplicación lineal por
   múltiples Miners es comportamiento final.
 
@@ -149,6 +154,9 @@ Fuentes:
 - **Implementado:** cada instancia recibe un `EnemyRuntimeStats` nuevo calculado
   desde arquetipo × modificadores diarios × modificadores de entrada; los
   Resources compartidos no se modifican durante el spawn.
+- **Implementado:** cada enemigo vivo guarda arquetipo, posición, salud, stats
+  finales y cooldown de ataque; la restauración no entrega recompensa ni emite
+  un nuevo evento de spawn.
 - **Desconocido (Q-GAME-003):** confirmar si arrastrar virus es una mecánica
   definitiva.
 - **Desconocido (Q-GAME-004):** confirmar si dañar todos los enemigos superpuestos
@@ -189,9 +197,8 @@ Fuentes:
   el siguiente intervalo válido.
 - **Implementado:** durante el descanso sólo se detienen nuevos spawns; enemigos
   vivos, minería, reparaciones y el reloj siguen activos.
-- **Parcialmente implementado:** `GameClockState` y `GameRunState` exponen
-  snapshots primitivos y restauración controlada, pero no existe guardado en
-  disco ni un flujo de carga.
+- **Implementado:** reloj y run se guardan y restauran antes de reactivar el
+  director; el timestamp impide un spawn inmediato de recuperación.
 - **Planeado:** selección y desbloqueo de `INFINITE` desde UI.
 - **Configuración provisional:** el Resource de prueba usa `02:00–00:00`, un
   único día repetible y sólo el enemigo básico. Sus tiempos y presupuesto no son
@@ -217,6 +224,8 @@ Fuentes:
   existe un enemigo bajo la mira.
 - **Implementado:** Area Shoot selecciona enemigos cuyo centro está dentro del
   área y consume una sola munición por volley.
+- **Implementado:** munición y cooldown restante se restauran; una selección
+  Area Shot pendiente se descarta y vuelve a evaluarse normalmente.
 - **Parcialmente implementado:** rechazo por munición, cooldown o recarga emite
   señal, pero no tiene presentación conectada.
 - **Desconocido (Q-GAME-006):** confirmar si deben bloquear solo ventanas por
@@ -238,6 +247,8 @@ Fuentes:
 - **Implementado:** desbloquear Auto Reload inicia recarga al llegar a cero.
 - **Implementado:** `ReloadManager` observa directamente `GameWeaponState`,
   `GameReloadStatsState` y `GameUpgradeState`.
+- **Implementado:** estado, progreso normal, penalización, final perfecto y lock
+  de recarga se conservan al guardar/cargar.
 - **Parcialmente implementado:** la recarga automática requiere una ReloadWindow
   válida y abierta.
 - **Desconocido (Q-GAME-007):** confirmar si Auto Reload debe depender de que la
@@ -256,6 +267,9 @@ Fuentes:
 - **Implementado:** si todos los puntos de contacto están cubiertos por otras
   ventanas, la reparación queda bloqueada.
 - **Implementado:** presenta Idle, Repairing, Blocked, Full y No Target.
+- **Implementado:** si Repair estaba en contacto válido, conserva el progreso
+  hasta el siguiente tick; el estado visible se deriva nuevamente de la
+  geometría restaurada.
 - **Desconocido (Q-GAME-008):** confirmar si cualquier ventana debe bloquear el
   contacto independientemente de su orden visual.
 
@@ -273,16 +287,62 @@ Fuentes:
 - **Parcialmente implementado:** ventanas y shortcuts no se reclampan porque los
   métodos de notificación esperados no existen.
 
-## 14. Fin de partida y funciones futuras
+## 14. Perfiles, guardado y carga
+
+Fuentes:
+
+- `Scripts/Persistence/ProfileService.gd`
+- `Scripts/Persistence/ProfileStore.gd`
+- `Scripts/Persistence/DesktopSaveCoordinator.gd`
+- `Data/Persistence/GameContentRegistry.tres`
+- `Scenes/MainMenu/MainMenu.tscn`
+- `Scripts/MainMenu/MainMenu.gd`
+- `Scripts/MainMenu/MainMenuWindow.gd`
+- `Scripts/Transitions/DesktopWindowRevealController.gd`
+
+- **Implementado:** perfiles con ID estable, nombre visible, fechas y una única
+  partida.
+- **Implementado:** nueva partida resetea estado y runtime, crea shortcuts
+  iniciales y arranca reloj/director.
+- **Implementado:** carga valida el archivo antes de cambiar a Desktop y
+  reconstruye estados, shortcuts, ventanas, enemigos y procesos sin compras,
+  costos, recompensas o animaciones de apertura.
+- **Implementado:** Guardar pausa temporalmente el árbol, conserva el estado de
+  pausa previo y captura un único instante lógico.
+- **Implementado:** si Save se pulsa desde el menú Inicio, el menú continúa
+  abierto y el árbol permanece pausado al terminar; esa pausa no se serializa.
+- **Implementado:** los errores son `PersistenceResult` con código y mensaje;
+  no cierran la aplicación.
+- **Implementado:** MainMenu presenta perfiles por nombre visible, conserva el
+  `profile_id` estable como metadata y muestra los mensajes de error de la API.
+- **Implementado:** MainMenu usa una resolución lógica fija de 2560×1440; las
+  mejoras de resolución de una partida no alteran el layout del menú al volver.
+- **Implementado:** Cargar sólo se habilita para un perfil seleccionado con save
+  válido; Nueva partida vuelve a validar, crea el perfil e inicia Desktop.
+- **Implementado:** Salir y el botón X comparten el cierre directo de la
+  aplicación.
+- **Implementado:** Borrar usuario confirma la operación y elimina mediante
+  `ProfileService` la carpeta completa del perfil inactivo seleccionado.
+- **Implementado:** LoginWindow usa una apertura/cierre local breve. Desktop no
+  queda cubierto por un overlay; después de `restore_finished`, las ventanas
+  restauradas se revelan por z-order sin repetir costos, RAM ni señales
+  funcionales de apertura.
+- **Implementado:** Shut Down de Desktop vuelve a MainMenu, normaliza la pausa y
+  no guarda automáticamente.
+- **Parcialmente implementado:** el aspecto del menú es provisional.
+- **Planeado:** múltiples slots, autosave, renombrado y migraciones.
+
+## 15. Fin de partida y funciones futuras
 
 - **Parcialmente implementado:** destrucción del sistema.
-- **Planeado:** guardado/carga.
+- **Implementado:** UI básica de perfiles, nueva partida y carga.
+- **Parcialmente implementado:** diseño visual definitivo del menú.
 - **Planeado:** Options.
 - **Planeado:** efecto runtime de RAM.
 - **Parcialmente implementado:** presentación de fase diaria, presupuesto y
   errores de disparo.
 
-## 15. Registro de preguntas de gameplay
+## 16. Registro de preguntas de gameplay
 
 - **Q-GAME-001:** ¿qué procesos debe ralentizar la RAM?
 - **Q-GAME-002:** ¿múltiples Miners deben apilar producción linealmente?

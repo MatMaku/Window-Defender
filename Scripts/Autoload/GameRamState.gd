@@ -89,6 +89,21 @@ func get_available_ram_ratio() -> float:
 	return float(get_available_ram()) / float(_max_ram)
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"max_ram": _max_ram
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	_max_ram = maxi(
+		1,
+		int(snapshot.get("max_ram", 1))
+	)
+	_used_ram = 0
+	_emit_ram_changed()
+
+
 func _emit_ram_changed() -> void:
 	ram_changed.emit(
 		_used_ram,

@@ -1,6 +1,9 @@
 extends Control
 class_name Taskbar
 
+signal save_requested
+signal return_to_main_menu_requested
+
 @export_category("Start Menu Animation")
 
 @export_range(0.01, 1.0, 0.01)
@@ -43,7 +46,16 @@ var menu_slide_distance: float = 10.0
 	as Button
 )
 
+@onready var save_button: Button = (
+	get_node_or_null(
+		"UiLayer/StartMenu/MenuMargin/MenuVBox/SaveButton"
+	)
+	as Button
+)
+
 var _is_start_menu_open: bool = false
+var _return_to_main_menu_in_progress: bool = false
+var _reopen_start_menu_on_return_failure: bool = false
 var _menu_rest_position: Vector2 = Vector2.ZERO
 var _menu_base_modulate: Color = Color.WHITE
 var _menu_tween: Tween
@@ -90,7 +102,12 @@ func _ready() -> void:
 		)
 		return
 
+	if save_button == null:
+		push_error("Taskbar could not find SaveButton.")
+		return
+
 	start_button.pressed.connect(_on_start_button_pressed)
+	save_button.pressed.connect(_on_save_button_pressed)
 	shutdown_button.pressed.connect(
 		_on_shutdown_button_pressed
 	)
@@ -160,6 +177,23 @@ func open_start_menu() -> void:
 
 func close_start_menu() -> void:
 	_set_start_menu_open(false)
+
+
+func complete_return_to_main_menu(
+	return_succeeded: bool
+) -> void:
+	if return_succeeded:
+		return
+
+	_return_to_main_menu_in_progress = false
+	start_button.disabled = false
+	save_button.disabled = false
+	shutdown_button.disabled = false
+
+	if _reopen_start_menu_on_return_failure:
+		open_start_menu()
+
+	_reopen_start_menu_on_return_failure = false
 
 
 func _set_start_menu_open(open: bool) -> void:
@@ -286,9 +320,24 @@ func _on_start_button_pressed() -> void:
 	toggle_start_menu()
 
 
+func _on_save_button_pressed() -> void:
+	save_requested.emit()
+
+
 func _on_shutdown_button_pressed() -> void:
-	# Future: request confirmation, then return to the main menu or quit.
-	get_tree().quit()
+	if _return_to_main_menu_in_progress:
+		return
+
+	_return_to_main_menu_in_progress = true
+	_reopen_start_menu_on_return_failure = (
+		_is_start_menu_open
+	)
+
+	_set_start_menu_open(false)
+	start_button.disabled = true
+	save_button.disabled = true
+	shutdown_button.disabled = true
+	return_to_main_menu_requested.emit()
 
 
 func _is_click_inside_start_interface(

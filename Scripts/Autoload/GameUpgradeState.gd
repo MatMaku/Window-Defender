@@ -173,6 +173,65 @@ func add_area_shot_max_targets(amount: int) -> bool:
 	)
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"purchased_upgrade_counts": (
+			_purchased_upgrade_counts.duplicate(true)
+		),
+		"auto_fire_unlocked": _auto_fire_unlocked,
+		"area_shot_unlocked": _area_shot_unlocked,
+		"auto_reload_unlocked": _auto_reload_unlocked,
+		"area_shot_max_targets": _area_shot_max_targets
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	var counts_variant: Variant = snapshot.get(
+		"purchased_upgrade_counts",
+		{}
+	)
+	_purchased_upgrade_counts.clear()
+
+	if counts_variant is Dictionary:
+		for key_variant: Variant in (
+			counts_variant as Dictionary
+		).keys():
+			var upgrade_id: String = str(key_variant)
+			if upgrade_id.is_empty():
+				continue
+
+			_purchased_upgrade_counts[upgrade_id] = maxi(
+				0,
+				int(
+					(counts_variant as Dictionary)[
+						key_variant
+					]
+				)
+			)
+
+	_auto_fire_unlocked = bool(
+		snapshot.get("auto_fire_unlocked", false)
+	)
+	_area_shot_unlocked = bool(
+		snapshot.get("area_shot_unlocked", false)
+	)
+	_auto_reload_unlocked = bool(
+		snapshot.get("auto_reload_unlocked", false)
+	)
+	_area_shot_max_targets = maxi(
+		0,
+		int(snapshot.get("area_shot_max_targets", 0))
+	)
+
+	if _area_shot_max_targets > 0:
+		_area_shot_unlocked = true
+
+	_emit_upgrade_purchase_counts_changed()
+	auto_reload_changed.emit(_auto_reload_unlocked)
+	auto_fire_changed.emit(_auto_fire_unlocked)
+	_emit_area_shot_changed()
+
+
 func _emit_upgrade_purchase_counts_changed() -> void:
 	upgrade_purchase_counts_changed.emit(
 		get_upgrade_purchase_counts_snapshot()

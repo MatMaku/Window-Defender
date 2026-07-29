@@ -1,0 +1,12 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Persistence/ProfileService.gd" id="1_service"]
+[ext_resource type="Resource" path="res://Data/Persistence/GameContentRegistry.tres" id="2_registry"]
+[ext_resource type="PackedScene" path="res://Scenes/Desktop/Desktop.tscn" id="3_desktop"]
+[ext_resource type="PackedScene" path="res://Scenes/MainMenu/MainMenu.tscn" id="4_main_menu"]
+
+[node name="ProfileService" type="Node"]
+script = ExtResource("1_service")
+content_registry = ExtResource("2_registry")
+desktop_scene = ExtResource("3_desktop")
+main_menu_scene = ExtResource("4_main_menu")

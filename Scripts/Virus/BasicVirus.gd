@@ -82,6 +82,50 @@ func _process_virus(delta: float) -> void:
 	_update_movement_and_attack(delta)
 
 
+func _create_runtime_stats_snapshot() -> Dictionary:
+	return {
+		"enemy_id": str(enemy_id),
+		"display_name": display_name,
+		"max_health": max_health,
+		"movement_speed": movement_speed,
+		"attack_damage": attack_damage,
+		"attack_interval_seconds": attack_interval_seconds,
+		"attack_arrival_distance": attack_arrival_distance,
+		"attack_overlap_distance": attack_overlap_distance,
+		"virus_data_reward": virus_data_reward
+	}
+
+
+func _create_behavior_save_snapshot() -> Dictionary:
+	return {
+		"attack_cooldown_remaining": (
+			_attack_cooldown_remaining
+		)
+	}
+
+
+func _restore_behavior_from_save_snapshot(
+	snapshot: Dictionary
+) -> void:
+	_attack_cooldown_remaining = clampf(
+		float(
+			snapshot.get(
+				"attack_cooldown_remaining",
+				0.0
+			)
+		),
+		0.0,
+		attack_interval_seconds
+	)
+
+	if _attack_tween != null and _attack_tween.is_running():
+		_attack_tween.kill()
+
+	var visual_node: Control = get_visual_node()
+	if visual_node != null:
+		visual_node.position = _visual_rest_position
+
+
 func _update_movement_and_attack(delta: float) -> void:
 	var target_rect: Rect2 = (
 		_system_manager.get_attack_target_global_rect()

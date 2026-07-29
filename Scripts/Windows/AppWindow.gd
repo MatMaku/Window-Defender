@@ -140,6 +140,107 @@ func is_opening() -> bool:
 	return _is_opening
 
 
+func cancel_drag_for_save() -> void:
+	_is_dragging = false
+	_drag_offset = Vector2.ZERO
+
+
+func create_save_snapshot() -> Dictionary:
+	return {}
+
+
+func restore_from_save_snapshot(_snapshot: Dictionary) -> void:
+	pass
+
+
+func prepare_after_restore() -> void:
+	if _open_tween != null and _open_tween.is_running():
+		_open_tween.kill()
+
+	_open_tween = null
+	_is_dragging = false
+	_is_opening = false
+	scale = Vector2.ONE
+	modulate = Color(
+		modulate.r,
+		modulate.g,
+		modulate.b,
+		1.0
+	)
+	opening_input_blocker.visible = false
+
+
+func prepare_for_restore_reveal() -> void:
+	if _open_tween != null and _open_tween.is_running():
+		_open_tween.kill()
+
+	_open_tween = null
+	_is_dragging = false
+	_is_opening = true
+	pivot_offset = size * 0.5
+	scale = Vector2.ONE
+	content_root.visible = false
+	opening_input_blocker.visible = true
+	visible = false
+
+
+func play_restore_reveal_animation(
+	total_duration: float = 0.1
+) -> void:
+	var safe_duration: float = maxf(0.03, total_duration)
+	var step_duration: float = safe_duration * 0.5
+	var title_scale: float = 0.08
+	if size.y > 0.0:
+		title_scale = clampf(
+			title_bar.size.y / size.y,
+			0.03,
+			0.25
+		)
+
+	pivot_offset = size * 0.5
+	scale = Vector2(0.02, title_scale)
+	content_root.visible = false
+	opening_input_blocker.visible = true
+	visible = true
+
+	_open_tween = create_tween()
+	_open_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_open_tween.tween_property(
+		self,
+		"scale:x",
+		1.0,
+		step_duration
+	).set_trans(
+		Tween.TRANS_QUAD
+	).set_ease(
+		Tween.EASE_OUT
+	)
+	await _open_tween.finished
+
+	if not is_inside_tree():
+		return
+
+	_open_tween = create_tween()
+	_open_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_open_tween.tween_property(
+		self,
+		"scale:y",
+		1.0,
+		step_duration
+	).set_trans(
+		Tween.TRANS_QUAD
+	).set_ease(
+		Tween.EASE_OUT
+	)
+	await _open_tween.finished
+
+	scale = Vector2.ONE
+	content_root.visible = true
+	opening_input_blocker.visible = false
+	_is_opening = false
+	_open_tween = null
+
+
 func _finish_open_animation() -> void:
 	scale = Vector2.ONE
 	modulate = _open_target_modulate

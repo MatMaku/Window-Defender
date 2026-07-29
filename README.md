@@ -9,7 +9,7 @@ decisiones de diseño que todavía deben confirmarse.
 
 ## Estado de la documentación
 
-Estado verificado el 2026-07-24.
+Estado verificado el 2026-07-28.
 
 Las etiquetas usadas en todos los documentos significan:
 
@@ -27,23 +27,30 @@ Las etiquetas usadas en todos los documentos significan:
 - **Implementado:** escritorio, accesos directos, ventanas, foco, RAM, taskbar,
   minería, economía, tienda, mejoras, integridad del sistema, enemigos, reloj
   ficticio, oleadas diarias, modo infinito, disparo, munición, recarga activa,
-  reparación, pausa desde el menú Inicio y apagado directo.
+  reparación, pausa desde el menú Inicio y retorno a MainMenu desde Shut Down.
+- **Implementado:** perfiles locales, guardado atómico, snapshot semántico y
+  restauración coordinada de una partida por perfil.
+- **Implementado:** menú principal funcional para crear y borrar perfiles,
+  iniciar una partida, cargar un save y salir. `Shut Down` vuelve a ese menú
+  sin guardar automáticamente.
 - **Parcialmente implementado:** fin de partida, feedback de algunos rechazos,
-  cambio de resolución con reacomodo, persistencia del progreso y presentación
-  del ciclo diario.
-- **Planeado:** guardado/carga, snapshots de enemigos, efectos runtime de presión
-  de RAM y acciones adicionales del menú Inicio tienen scaffolding visible.
+  cambio de resolución con reacomodo y presentación del ciclo diario.
+- **Planeado:** diseño visual definitivo del menú principal, efectos runtime de
+  presión de RAM y acciones adicionales del menú Inicio.
 - **Desconocido:** balance definitivo, condición de victoria, plataformas
   soportadas y varias reglas de interacción están pendientes de decisión.
 
 ## Requisitos observados
 
-- Godot 4.7, según `config/features` en `project.godot`.
+- Godot 4.8, según `config/features` en `project.godot`.
 - GDScript tipado.
 - Renderer Forward Plus y D3D12 configurado para Windows.
-- Escena principal: `Scenes/Desktop/Desktop.tscn`.
-- Único autoload: `Scenes/Autoload/GameState.tscn`, registrado como
+- Escena principal: `Scenes/MainMenu/MainMenu.tscn`.
+- Escena de gameplay: `Scenes/Desktop/Desktop.tscn`.
+- Autoload de estado jugable: `Scenes/Autoload/GameState.tscn`, registrado como
   `GameState`.
+- Autoload de perfiles e intención de sesión entre escenas:
+  `Scenes/Autoload/ProfileService.tscn`, registrado como `ProfileService`.
 - `GameState` es el contenedor estable de la sesión: carga `GameStartData`,
   resetea la run y expone referencias tipadas a estados especializados.
 - Managers y ventanas conservan solamente las referencias de estado de los
@@ -54,15 +61,16 @@ automatizadas.
 
 ## Abrir el proyecto
 
-Abrir `project.godot` desde Godot 4.7 y ejecutar la escena principal configurada.
-La auditoría que originó estos documentos fue de solo lectura y no incluyó una
-ejecución del juego.
+Abrir `project.godot` desde Godot 4.8 y ejecutar la escena principal configurada.
+Las validaciones automatizadas disponibles se ejecutan en modo headless; la
+disposición y las transiciones visuales deben comprobarse también en el editor o
+en una ejecución gráfica.
 
 ## Estructura
 
 ```text
 Apps/       Ventanas de aplicaciones y sus ProgramData/shortcuts.
-Data/       Clases Resource para estado inicial, programas, tienda, enemigos y waves.
+Data/       Resources para estado inicial, programas, tienda, enemigos, waves y registro persistente.
 Scenes/     Escenas base: desktop, autoload, taskbar, virus y ventanas.
 Scripts/    Lógica organizada por dominio.
 Shop/       Ofertas de aplicaciones y mejoras.
@@ -87,6 +95,10 @@ docs/       Documentación funcional y técnica.
 ## Puntos de entrada relevantes
 
 - `project.godot`
+- `Scenes/MainMenu/MainMenu.tscn`
+- `Scripts/MainMenu/MainMenu.gd`
+- `Scripts/MainMenu/MainMenuWindow.gd`
+- `Scripts/Transitions/DesktopWindowRevealController.gd`
 - `Scenes/Desktop/Desktop.tscn`
 - `Scripts/Desktop/Desktop.gd`
 - `Scenes/Autoload/GameState.tscn`
@@ -95,6 +107,10 @@ docs/       Documentación funcional y técnica.
   `Scripts/Autoload/`
 - `Scripts/Autoload/GameClockState.gd`
 - `Scripts/GameClock/GameClockManager.gd`
+- `Scenes/Autoload/ProfileService.tscn`
+- `Scripts/Persistence/ProfileService.gd`
+- `Scripts/Persistence/DesktopSaveCoordinator.gd`
+- `Data/Persistence/GameContentRegistry.tres`
 - `Stages/Daily/DailyWaveSequence.tres`
 - `Data/GameState/GameStart.tres`
 
@@ -103,11 +119,21 @@ docs/       Documentación funcional y técnica.
 - **Parcialmente implementado:** llegar a cero de integridad detiene el director
   de spawns, pero no inicia una pantalla de derrota ni un reinicio.
 - **Implementado:** el menú Inicio pausa el `SceneTree`, presenta el overlay de
-  pausa y permite cerrar la aplicación mediante Shut Down.
-- **Planeado:** Load Game, Save Game y Options permanecen visibles sin
-  comportamiento conectado.
-- **Parcialmente implementado:** reloj y progreso diario producen snapshots
-  primitivos restaurables en memoria, pero no existe persistencia a disco.
+  pausa y permite volver a MainMenu mediante Shut Down.
+- **Implementado:** Save Game guarda atómicamente en el perfil activo; sin
+  perfil devuelve `no_active_profile` y no escribe una ruta genérica.
+- **Implementado:** la carga existe exclusivamente en MainMenu; Taskbar no
+  contiene un botón Load Game.
+- **Implementado:** el menú principal enumera perfiles por su ID estable,
+  presenta errores de `PersistenceResult` y usa `ProfileService` para nueva
+  partida, carga y borrado confirmado.
+- **Implementado:** los perfiles permanecen en
+  `user://profiles/<profile_id>/`. Mover o reinstalar la carpeta del juego en la
+  misma computadora no los mueve ni elimina mientras se conserve la misma
+  configuración de `user://`; otra computadora requiere copiar manualmente la
+  carpeta de datos de usuario.
+- **Parcialmente implementado:** la estética del menú principal es provisional
+  y sus texturas, distribución y dimensiones están preparadas para edición.
 - **Parcialmente implementado:** la RAM ralentiza la animación de apertura; la API
   de ralentización runtime no tiene consumidores.
 - **Desconocido:** consultar los registros de preguntas de cada documento antes

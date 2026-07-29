@@ -70,6 +70,45 @@ func set_reload_failure_penalty_duration(new_duration: float) -> void:
 	_emit_reload_stats_changed()
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"normal_reload_duration": _normal_reload_duration,
+		"perfect_reload_finish_delay": (
+			_perfect_reload_finish_delay
+		),
+		"reload_failure_penalty_duration": (
+			_reload_failure_penalty_duration
+		)
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	_normal_reload_duration = maxf(
+		0.05,
+		float(snapshot.get("normal_reload_duration", 0.05))
+	)
+	_perfect_reload_finish_delay = maxf(
+		0.0,
+		float(
+			snapshot.get(
+				"perfect_reload_finish_delay",
+				0.0
+			)
+		)
+	)
+	_reload_failure_penalty_duration = maxf(
+		0.0,
+		float(
+			snapshot.get(
+				"reload_failure_penalty_duration",
+				0.0
+			)
+		)
+	)
+
+	_emit_reload_stats_changed()
+
+
 func _emit_reload_stats_changed() -> void:
 	reload_stats_changed.emit(
 		_normal_reload_duration,

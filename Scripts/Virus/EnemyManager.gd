@@ -185,6 +185,94 @@ func get_active_enemies() -> Array[DesktopVirus]:
 
 	return enemies
 
+
+func create_enemies_save_snapshot() -> Array[Dictionary]:
+	_prune_invalid_enemies()
+
+	var snapshot: Array[Dictionary] = []
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		if enemy.is_dead():
+			continue
+
+		snapshot.append(enemy.create_save_snapshot())
+
+	return snapshot
+
+
+func clear_enemies_for_restore() -> void:
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		enemy.free()
+
+	_active_enemies.clear()
+	_test_enemy_spawned = false
+
+
+func restore_enemies(
+	enemies_snapshot: Array,
+	content_registry: GameContentRegistry
+) -> PersistenceResult:
+	if content_registry == null:
+		return PersistenceResult.failure(
+			&"missing_content_registry",
+			"Cannot restore enemies without a content registry."
+		)
+
+	clear_enemies_for_restore()
+
+	for value: Variant in enemies_snapshot:
+		if not value is Dictionary:
+			return PersistenceResult.failure(
+				&"invalid_enemy_snapshot",
+				"An enemy snapshot is not an object."
+			)
+
+		var enemy_data: Dictionary = value as Dictionary
+		var archetype_id: StringName = StringName(
+			str(enemy_data.get("archetype_id", ""))
+		)
+		var archetype: EnemyArchetypeData = (
+			content_registry.get_enemy_archetype(
+				archetype_id
+			)
+		)
+		if archetype == null:
+			return PersistenceResult.failure(
+				&"unknown_enemy_archetype",
+				"Cannot restore unknown enemy '%s'."
+					% str(archetype_id)
+			)
+
+		var enemy: DesktopVirus = _instantiate_enemy(
+			archetype.enemy_scene
+		)
+		if enemy == null:
+			return PersistenceResult.failure(
+				&"enemy_restore_failed",
+				"Could not instantiate enemy '%s'."
+					% str(archetype_id)
+			)
+
+		var runtime_stats_variant: Variant = enemy_data.get(
+			"runtime_stats",
+			{}
+		)
+		var runtime_stats: EnemyRuntimeStats = (
+			EnemyRuntimeStats.from_save_snapshot(
+				runtime_stats_variant as Dictionary
+			)
+		)
+		enemy.prepare_for_restore(runtime_stats)
+		_register_restored_enemy(enemy)
+		enemy.restore_from_save_snapshot(enemy_data)
+
+	return PersistenceResult.ok()
+
 func has_enemy_at_global_position(
 	target_global_position: Vector2
 ) -> bool:
@@ -372,6 +460,22 @@ func _register_spawned_enemy(enemy: DesktopVirus) -> void:
 	_active_enemies.append(enemy)
 
 	enemy_spawned.emit(enemy)
+
+
+func _register_restored_enemy(enemy: DesktopVirus) -> void:
+	if enemy == null:
+		return
+
+	enemy.configure(
+		system_manager,
+		window_manager
+	)
+	playfield_layer.add_child(enemy)
+
+	if not enemy.died.is_connected(_on_enemy_died):
+		enemy.died.connect(_on_enemy_died)
+
+	_active_enemies.append(enemy)
 
 
 func _place_enemy_at_random_edge(enemy: DesktopVirus) -> void:

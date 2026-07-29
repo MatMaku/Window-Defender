@@ -174,6 +174,14 @@ func get_clock_snapshot() -> Dictionary:
 	}
 
 
+func create_save_snapshot() -> Dictionary:
+	return get_clock_snapshot()
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	restore_from_snapshot(snapshot)
+
+
 func restore_from_snapshot(snapshot: Dictionary) -> void:
 	var previous_display_minute: int = (
 		get_display_game_minute()

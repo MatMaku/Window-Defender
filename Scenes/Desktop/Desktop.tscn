@@ -24,7 +24,10 @@
 [ext_resource type="Script" uid="uid://cio6x2ti3037n" path="res://Scripts/Shop/UpgradeManager.gd" id="24_swus7"]
 [ext_resource type="Script" uid="uid://dvk48gcarpdf1" path="res://Scripts/Repair/RepairManager.gd" id="25_241qo"]
 [ext_resource type="Script" uid="uid://d1dx8lhbxepcm" path="res://Scripts/GameClock/GameClockManager.gd" id="30_clock_manager"]
-[ext_resource type="Resource" path="res://Stages/Daily/DailyWaveSequence.tres" id="31_wave_sequence"]
+[ext_resource type="Resource" uid="uid://k0aive8sdq65" path="res://Stages/Daily/DailyWaveSequence.tres" id="31_wave_sequence"]
+[ext_resource type="Script" path="res://Scripts/Persistence/DesktopSaveCoordinator.gd" id="32_save_coordinator"]
+[ext_resource type="Resource" path="res://Data/Persistence/GameContentRegistry.tres" id="33_content_registry"]
+[ext_resource type="Script" path="res://Scripts/Transitions/DesktopWindowRevealController.gd" id="35_transition_controller"]
 
 [node name="Desktop" type="Control" unique_id=583655013]
 layout_mode = 3
@@ -37,6 +40,7 @@ pivot_offset = Vector2(960, 540)
 script = ExtResource("1_77fwn")
 executable_scene = ExtResource("2_rj8ej")
 shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("8_cj3g8"), ExtResource("9_b33g3"), ExtResource("10_a4tqi")])
+initialization_is_coordinated = true
 
 [node name="Managers" type="Node" parent="." unique_id=1878957366]
 
@@ -97,11 +101,12 @@ script = ExtResource("23_2q1tr")
 desktop = NodePath("../..")
 window_manager = NodePath("../WindowManager")
 
-[node name="GameClockManager" type="Node" parent="Managers" node_paths=PackedStringArray("system_manager")]
+[node name="GameClockManager" type="Node" parent="Managers" unique_id=766753205 node_paths=PackedStringArray("system_manager")]
 unique_name_in_owner = true
 script = ExtResource("30_clock_manager")
 system_manager = NodePath("../SystemManager")
 game_minutes_per_real_second = 10.0
+autostart = false
 
 [node name="EnemyManager" type="Node" parent="Managers" unique_id=1970666892 node_paths=PackedStringArray("playfield_layer", "system_manager", "shooting_manager", "window_manager")]
 unique_name_in_owner = true
@@ -118,6 +123,7 @@ script = ExtResource("22_4qr77")
 enemy_manager = NodePath("../EnemyManager")
 system_manager = NodePath("../SystemManager")
 wave_sequence = ExtResource("31_wave_sequence")
+autostart = false
 
 [node name="UpgradeManager" type="Node" parent="Managers" unique_id=1678589272]
 unique_name_in_owner = true
@@ -190,3 +196,22 @@ mouse_filter = 2
 
 [node name="Taskbar" parent="StatusLayer" unique_id=339390842 instance=ExtResource("18_dmnow")]
 layout_mode = 1
+
+[node name="DesktopSaveCoordinator" type="Node" parent="." node_paths=PackedStringArray("desktop", "window_manager", "enemy_manager", "game_clock_manager", "enemy_spawn_director", "shooting_manager", "reload_manager", "repair_manager", "taskbar")]
+unique_name_in_owner = true
+script = ExtResource("32_save_coordinator")
+content_registry = ExtResource("33_content_registry")
+desktop = NodePath("..")
+window_manager = NodePath("../Managers/WindowManager")
+enemy_manager = NodePath("../Managers/EnemyManager")
+game_clock_manager = NodePath("../Managers/GameClockManager")
+enemy_spawn_director = NodePath("../Managers/EnemySpawnDirector")
+shooting_manager = NodePath("../Managers/ShootingManager")
+reload_manager = NodePath("../Managers/ReloadManager")
+repair_manager = NodePath("../Managers/RepairManager")
+taskbar = NodePath("../StatusLayer/Taskbar")
+
+[node name="DesktopWindowRevealController" type="Node" parent="." node_paths=PackedStringArray("save_coordinator", "window_manager")]
+script = ExtResource("35_transition_controller")
+save_coordinator = NodePath("../DesktopSaveCoordinator")
+window_manager = NodePath("../Managers/WindowManager")

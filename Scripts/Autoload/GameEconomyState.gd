@@ -134,3 +134,30 @@ func try_spend_resources(
 		virus_data_changed.emit(_virus_data)
 
 	return true
+
+
+func create_save_snapshot() -> Dictionary:
+	return {
+		"crypto": _crypto,
+		"virus_data": _virus_data,
+		"total_enemy_kills": _total_enemy_kills
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	_crypto = maxi(
+		0,
+		int(snapshot.get("crypto", 0))
+	)
+	_virus_data = maxi(
+		0,
+		int(snapshot.get("virus_data", 0))
+	)
+	_total_enemy_kills = maxi(
+		0,
+		int(snapshot.get("total_enemy_kills", 0))
+	)
+
+	crypto_changed.emit(_crypto)
+	virus_data_changed.emit(_virus_data)
+	enemy_kills_changed.emit(_total_enemy_kills)

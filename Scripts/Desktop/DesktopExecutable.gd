@@ -42,6 +42,13 @@ func force_position(new_position: Vector2) -> void:
 	moved.emit(position)
 
 
+func cancel_drag_for_save() -> void:
+	_is_pressed = false
+	_is_dragging = false
+	_press_global_position = Vector2.ZERO
+	_drag_offset = Vector2.ZERO
+
+
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		_handle_mouse_button(event)

@@ -30,23 +30,25 @@ Fuentes principales:
 
 ## 3. Loop actual
 
-1. `GameState` carga `Data/GameState/GameStart.tres` y reinicia sus estados
+1. `MainMenu.tscn` enumera perfiles mediante `ProfileService`.
+2. Nueva partida o carga prepara una intención de sesión y cambia a Desktop.
+3. `GameState` carga `Data/GameState/GameStart.tres` y reinicia sus estados
    especializados.
-2. `Desktop.tscn` crea managers, capas visuales, taskbar y accesos directos.
-3. El jugador abre `Miner.exe` para producir criptomonedas.
-4. `Shop.exe` permite comprar aplicaciones y mejoras.
-5. El reloj ficticio avanza y `EnemySpawnDirector` alterna descanso/actividad,
+4. `Desktop.tscn` crea managers, capas visuales, taskbar y accesos directos.
+5. El jugador abre `Miner.exe` para producir criptomonedas.
+6. `Shop.exe` permite comprar aplicaciones y mejoras.
+7. El reloj ficticio avanza y `EnemySpawnDirector` alterna descanso/actividad,
    consume presupuesto diario y genera virus.
-6. Los virus se desplazan hasta `System.exe` y atacan su integridad.
-7. `Shooting.exe` consume munición para dañarlos.
-8. Las muertes entregan datos de virus.
-9. Criptomonedas y datos financian mejoras.
-10. `Reload.exe`, `Ammo.exe` y `Repair.exe` amplían las opciones defensivas.
+8. Los virus se desplazan hasta `System.exe` y atacan su integridad.
+9. `Shooting.exe` consume munición para dañarlos.
+10. Las muertes entregan datos de virus.
+11. Criptomonedas y datos financian mejoras.
+12. `Reload.exe`, `Ammo.exe` y `Repair.exe` amplían las opciones defensivas.
 
 Estado del loop:
 
-- **Implementado:** pasos 1 a 9 tienen flujos conectados.
-- **Parcialmente implementado:** el paso 10 depende de comprar, abrir y posicionar
+- **Implementado:** pasos 1 a 11 tienen flujos conectados.
+- **Parcialmente implementado:** el paso 12 depende de comprar, abrir y posicionar
   aplicaciones; algunos estados de error no tienen feedback conectado.
 - **Parcialmente implementado:** la destrucción del sistema detiene nuevos
   spawns, pero no cierra la partida.
@@ -106,8 +108,11 @@ Fuentes:
 - **Implementado:** upgrades pueden costar criptomonedas y datos.
 - **Implementado:** los upgrades modifican arma, recarga, minería, RAM,
   resolución y automatizaciones.
-- **Parcialmente implementado:** no hay metaprogresión ni persistencia entre
-  ejecuciones.
+- **Implementado:** perfiles locales conservan una partida por perfil mediante
+  snapshot semántico versionado.
+- **Parcialmente implementado:** no hay metaprogresión, autosave, múltiples
+  slots ni renombrado de perfiles. El borrado confirmado desde MainMenu sí está
+  implementado.
 
 Fuentes:
 
@@ -162,15 +167,21 @@ La configuración activa es `Stages/Daily/DailyWaveSequence.tres`.
 Las opciones incompletas tienen scaffolding, pero su alcance no debe inferirse
 sin consulta:
 
-- **Planeado:** Save Game y Load Game, visibles en
-  `Scenes/Taskbar/Taskbar.tscn`.
+- **Implementado:** Save Game, visible en `Scenes/Taskbar/Taskbar.tscn`, guarda
+  la partida del perfil activo.
+- **Implementado:** la carga se presenta exclusivamente desde MainMenu; el menú
+  Inicio de Taskbar ya no contiene Load Game.
 - **Planeado:** Options, visible en la misma escena.
 - **Implementado:** abrir el menú Inicio pausa el `SceneTree`; Shut Down cierra
-  directamente la aplicación desde `Scripts/Taskbar/Taskbar.gd`.
-- **Planeado:** snapshots de enemigos en
-  `Scripts/Autoload/GameEnemySnapshotState.gd`.
-- **Parcialmente implementado:** `GameClockState` y `GameRunState` exponen
-  snapshots primitivos y restauración controlada, sin archivos de guardado.
+  el menú, normaliza la pausa y vuelve a MainMenu sin autosave mediante
+  `ProfileService.return_to_main_menu()`.
+- **Implementado:** `DesktopSaveCoordinator` captura estados, ventanas,
+  shortcuts, procesos y enemigos; `ProfileService` valida y persiste el archivo.
+- **Implementado:** `Scenes/MainMenu/MainMenu.tscn` enumera perfiles, valida
+  nombres, inicia nueva partida, carga saves, elimina perfiles con confirmación
+  y cierra la aplicación.
+- **Parcialmente implementado:** la presentación visual del menú es deliberadamente
+  básica y todavía no constituye el diseño definitivo.
 
 ## 10. Registro de preguntas de producto
 
@@ -181,6 +192,8 @@ Estas preguntas deben formularse cuando una tarea dependa de ellas:
 - **Q-PROD-003:** ¿cómo concluye el modo diario y qué relación tiene con la
   supervivencia infinita?
 - **Q-PROD-004:** ¿múltiples instancias de Miner son una estrategia definitiva?
-- **Q-PROD-005:** ¿qué estados debe preservar Save Game?
+- **Resuelto (Q-PROD-005):** Save Game preserva consecuencias productivas,
+  ventanas, shortcuts, enemigos y procesos temporales documentados en
+  `docs/DATA_MODEL.md`; normaliza feedback y animación puramente visual.
 - **Q-PROD-006:** ¿`Apps/Test` debe conservarse, integrarse o eliminarse?
 - **Q-PROD-007:** ¿cuáles son los controles y plataformas objetivo oficiales?

@@ -111,6 +111,30 @@ func complete_reload() -> void:
 	_weapon_state.refill_ammo()
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"cooldown_remaining": (
+			0.0
+			if cooldown_timer.is_stopped()
+			else cooldown_timer.time_left
+		)
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	cooldown_timer.stop()
+	_cancel_pending_area_shot()
+	set_reloading(false)
+
+	var cooldown_remaining: float = maxf(
+		0.0,
+		float(snapshot.get("cooldown_remaining", 0.0))
+	)
+	if cooldown_remaining > 0.0:
+		cooldown_timer.start(cooldown_remaining)
+		cooldown_started.emit(cooldown_remaining)
+
+
 # ================================================================
 # SETUP
 # ================================================================

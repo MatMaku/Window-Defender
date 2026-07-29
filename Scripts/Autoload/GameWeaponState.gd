@@ -110,6 +110,38 @@ func set_fire_cooldown(new_cooldown_seconds: float) -> void:
 	_emit_weapon_stats_changed()
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"shot_damage": _shot_damage,
+		"fire_cooldown_seconds": _fire_cooldown_seconds,
+		"max_ammo": _max_ammo,
+		"current_ammo": _current_ammo
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	_shot_damage = maxf(
+		0.01,
+		float(snapshot.get("shot_damage", 0.01))
+	)
+	_fire_cooldown_seconds = maxf(
+		0.05,
+		float(snapshot.get("fire_cooldown_seconds", 0.05))
+	)
+	_max_ammo = maxi(
+		1,
+		int(snapshot.get("max_ammo", 1))
+	)
+	_current_ammo = clampi(
+		int(snapshot.get("current_ammo", _max_ammo)),
+		0,
+		_max_ammo
+	)
+
+	_emit_ammo_changed()
+	_emit_weapon_stats_changed()
+
+
 func _emit_ammo_changed() -> void:
 	ammo_changed.emit(
 		_current_ammo,

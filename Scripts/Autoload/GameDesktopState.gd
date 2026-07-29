@@ -242,6 +242,38 @@ func clear_desktop_shortcuts() -> void:
 	_emit_desktop_shortcuts_changed()
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"desktop_resolution_tier": _desktop_resolution_tier,
+		"desktop_resolution": SaveDataCodec.vector2i_to_data(
+			_desktop_resolution
+		)
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	var restored_tier: int = int(
+		snapshot.get("desktop_resolution_tier", 0)
+	)
+	var restored_resolution: Vector2i = (
+		SaveDataCodec.data_to_vector2i(
+			snapshot.get("desktop_resolution"),
+			_desktop_resolution
+		)
+	)
+
+	_desktop_resolution_tier = clampi(
+		restored_tier,
+		0,
+		maxi(0, _desktop_resolution_tiers.size() - 1)
+	)
+	_desktop_resolution = Vector2i(
+		maxi(320, restored_resolution.x),
+		maxi(180, restored_resolution.y)
+	)
+	_emit_desktop_resolution_changed()
+
+
 func _emit_desktop_resolution_changed() -> void:
 	desktop_resolution_changed.emit(
 		_desktop_resolution,

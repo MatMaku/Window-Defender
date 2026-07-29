@@ -54,8 +54,9 @@ global.
 
 - **Implementado:** los consumidores activos consultan valores iniciales desde
   su estado cuando se crean.
-- **Desconocido (Q-SIG-001):** definir si el orden entre señales de distintos
-  estados durante reset o futura carga debe ser contractual.
+- **Implementado:** el orden global de restauración es contractual en
+  `DesktopSaveCoordinator`; dentro de cada estado, sus señales se emiten al
+  terminar de aplicar su propia sección.
 
 ## 4. Desktop y ventanas
 
@@ -80,6 +81,10 @@ Managers que consumen `window_opened/window_closed`:
 - `RepairManager`
 - `ShopManager`
 - `TaskbarManager`
+
+Durante restore, `WindowManager` emite `window_opened` exactamente una vez por
+ventana reconstruida para reutilizar esos bindings. No emite compras ni
+animaciones de apertura.
 
 ## 5. Shooting y recarga
 
@@ -145,11 +150,35 @@ Managers que consumen `window_opened/window_closed`:
 | `reorder_drag_started(button)` | `TaskbarAppButton` | `TaskbarManager` | Parcialmente implementado |
 | `reorder_drag_moved(button, position)` | `TaskbarAppButton` | `TaskbarManager` | Implementado |
 | `reorder_drag_ended(button, position)` | `TaskbarAppButton` | `TaskbarManager` | Implementado |
+| `save_requested()` | `Taskbar` | `DesktopSaveCoordinator` | Implementado |
+| `return_to_main_menu_requested()` | `Taskbar` | `DesktopSaveCoordinator` | Implementado |
 
 El handler de inicio de drag contiene `pass`; el movimiento y fin realizan el
 reordenamiento, por lo que el flujo funciona sin una acción de inicio adicional.
 
-## 9. Conexiones dinámicas
+Taskbar no contiene un control de carga. La carga pertenece exclusivamente al
+menú principal.
+
+## 9. Perfiles y persistencia
+
+| Emisor | Señal | Consumidor actual | Estado |
+|---|---|---|---|
+| `ProfileService` | `profiles_changed()` | Ninguno; MainMenu usa resultado síncrono | Punto de extensión |
+| `ProfileService` | `active_profile_changed(profile_id)` | Ninguno | Punto de extensión |
+| `ProfileService` | `session_requested(mode, profile_id)` | Ninguno | Punto de extensión |
+| `ProfileService` | `session_initialization_completed(result)` | Ninguno | Punto de extensión |
+| `ProfileService` | `save_completed(result)` | Futuro feedback | Punto de extensión |
+| `DesktopSaveCoordinator` | `save_finished(result)` | Ninguno | Punto de extensión |
+| `DesktopSaveCoordinator` | `restore_finished(result)` | `DesktopWindowRevealController` | Implementado |
+| `MainMenuWindow` | `close_requested()` | `MainMenu` | Implementado |
+
+`PersistenceResult` es el contrato síncrono principal del menú y mantiene la
+lógica de archivos fuera de UI. El coordinador consume una intención pendiente
+de `ProfileService` una sola vez. El revelado visual de Desktop espera
+`restore_finished`; no infiere por su cuenta cuándo terminó la restauración ni
+emite señales funcionales de apertura de ventana.
+
+## 10. Conexiones dinámicas
 
 - `WindowManager` conecta `focus_requested` y `close_requested` al instanciar.
 - `ShootingManager` conecta/desconecta Shooting y AmmoWindows según apertura.
@@ -162,6 +191,9 @@ reordenamiento, por lo que el flujo funciona sin una acción de inicio adicional
   al inicializarse.
 - `EnemySpawnDirector` conecta cambios de modo de `GameRunState` y consulta el
   `GameClockState` que resolvió al inicializarse.
+- `DesktopSaveCoordinator` conecta `Taskbar.save_requested` y
+  `Taskbar.return_to_main_menu_requested` después de que la escena completa está
+  lista.
 
 - **Implementado:** los bindings de ventana se limpian explícitamente en varios
   managers o desaparecen al liberar el emisor.
@@ -171,7 +203,7 @@ reordenamiento, por lo que el flujo funciona sin una acción de inicio adicional
   que puedan sobrevivir al emisor; en la composición actual los estados duran
   toda la sesión.
 
-## 10. Señales planeadas o sin consumidor
+## 11. Señales planeadas o sin consumidor
 
 No debe asumirse que una señal sin consumidor está obsoleta. Antes de eliminar o
 integrar cualquiera, consultar su propósito.
@@ -182,12 +214,14 @@ Grupos pendientes:
 - HUD de fase diaria, día y presupuesto.
 - Salud/drag/spawn de enemigos.
 - Eventos de reparación.
-- Persistencia de shortcuts, run y enemigos.
+- Feedback visual de éxito/error de perfiles, save y load.
 - Telemetría de upgrades y muertes.
 
-## 11. Registro de preguntas sobre señales
+## 12. Registro de preguntas sobre señales
 
-- **Q-SIG-001:** ¿el orden de señales durante reset/carga es contractual?
+- **Resuelto (Q-SIG-001):** restore ocurre con gameplay detenido; estados,
+  shortcuts, ventanas, enemigos y procesos se restauran en ese orden antes de
+  arrancar reloj/director y emitir finalización.
 - **Q-SIG-002:** ¿qué consumidores futuros tendrán las señales de arma/recarga?
 - **Q-SIG-003:** ¿fase diaria, día y presupuesto deben mostrarse en HUD?
 - **Q-SIG-004:** ¿las señales relay de SystemManager deben conservarse?

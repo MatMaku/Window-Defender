@@ -1,0 +1,395 @@
+[gd_scene format=3 uid="uid://bclgkgyoogvuu"]
+
+[ext_resource type="Script" uid="uid://b2q5huvu3lget" path="res://Scripts/MainMenu/MainMenu.gd" id="1_menu"]
+[ext_resource type="Script" uid="uid://e3xtji88gkxp" path="res://Scripts/MainMenu/MainMenuWindow.gd" id="2_window"]
+[ext_resource type="Texture2D" uid="uid://cmdvk34nimgj8" path="res://Sprites/Wallpaper.png" id="3_background"]
+[ext_resource type="Texture2D" uid="uid://bc68kx5mh7n5p" path="res://Sprites/Windows/Window_Base.png" id="5_window"]
+[ext_resource type="Texture2D" uid="uid://c4v4oxjwsduig" path="res://Sprites/Windows/Windows_Progress_Fill.png" id="6_title"]
+[ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="7_button"]
+[ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="8_button_pressed"]
+[ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="9_button_focus"]
+[ext_resource type="Texture2D" uid="uid://dhb1y41371a0d" path="res://Sprites/Initial Icon.png" id="10_56wdt"]
+[ext_resource type="Texture2D" uid="uid://57lclbru5xvk" path="res://Sprites/Windows/Windows_Inner_Frame_Inverted.png" id="10_inner"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="11_font"]
+[ext_resource type="Texture2D" uid="uid://d1dt0yoit33yr" path="res://Sprites/Windows/Windows_Button_Inactive.png" id="12_56wdt"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_window"]
+texture = ExtResource("5_window")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_title"]
+texture = ExtResource("6_title")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button"]
+texture = ExtResource("7_button")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_pressed"]
+texture = ExtResource("8_button_pressed")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_button_focus"]
+texture = ExtResource("9_button_focus")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_inner"]
+texture = ExtResource("10_inner")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_selected"]
+bg_color = Color(0, 0, 0.501961, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qsbd8"]
+texture = ExtResource("12_56wdt")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="MainMenu" type="Control" unique_id=450658858]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="TextureRect" parent="." unique_id=763803627]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_background")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="WindowLayer" type="Control" parent="." unique_id=971125928]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="LoginWindow" type="PanelContainer" parent="WindowLayer" unique_id=778926473]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(700, 680)
+layout_mode = 0
+offset_right = 700.0
+offset_bottom = 680.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_window")
+script = ExtResource("2_window")
+
+[node name="MainVBox" type="VBoxContainer" parent="WindowLayer/LoginWindow" unique_id=128523860]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleBar" type="PanelContainer" parent="WindowLayer/LoginWindow/MainVBox" unique_id=1648083482]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_title")
+
+[node name="TitleHBox" type="HBoxContainer" parent="WindowLayer/LoginWindow/MainVBox/TitleBar" unique_id=1142147174]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="WindowLayer/LoginWindow/MainVBox/TitleBar/TitleHBox" unique_id=1859333201]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+text = "Iniciar sesión en  Defender 98"
+vertical_alignment = 1
+
+[node name="CloseButton" type="Button" parent="WindowLayer/LoginWindow/MainVBox/TitleBar/TitleHBox" unique_id=2034031443]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 30)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_button")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_button_focus")
+theme_override_styles/focus = SubResource("StyleBoxTexture_button_focus")
+text = "X"
+
+[node name="ContentMargin" type="MarginContainer" parent="WindowLayer/LoginWindow/MainVBox" unique_id=473313676]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="ContentVBox" type="VBoxContainer" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin" unique_id=490869533]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HeaderImage" type="TextureRect" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox" unique_id=1057304677]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+offset_transform_enabled = true
+offset_transform_position = Vector2(-110, 0)
+texture = ExtResource("10_56wdt")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ExistingProfilesLabel" type="Label" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox" unique_id=43958631]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+text = "Usuarios existentes:"
+
+[node name="ProfileList" type="ItemList" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox" unique_id=1591543014]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 210)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_selected_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/panel = SubResource("StyleBoxTexture_inner")
+theme_override_styles/selected = SubResource("StyleBoxFlat_selected")
+theme_override_styles/selected_focus = SubResource("StyleBoxFlat_selected")
+allow_reselect = true
+
+[node name="NewProfileLabel" type="Label" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox" unique_id=1441096140]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+text = "Nombre de nuevo usuario:"
+
+[node name="ProfileNameInput" type="LineEdit" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox" unique_id=1310490838]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_uneditable_color = Color(0.25, 0.25, 0.25, 1)
+theme_override_colors/font_selected_color = Color(1, 1, 1, 1)
+theme_override_colors/font_placeholder_color = Color(0.35, 0.35, 0.35, 1)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
+theme_override_colors/selection_color = Color(0, 0, 0.501961, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_inner")
+placeholder_text = "Escribí un nombre"
+
+[node name="ErrorLabel" type="Label" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox" unique_id=1419611149]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+custom_maximum_size = Vector2(-1, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0, 0, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 17
+autowrap_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox" unique_id=525202627]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 2
+
+[node name="LoadButton" type="Button" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox/Buttons" unique_id=218061824]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_disabled_color = Color(0.35, 0.35, 0.35, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_button")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_button_focus")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_qsbd8")
+theme_override_styles/focus = SubResource("StyleBoxTexture_button_focus")
+disabled = true
+text = "Cargar"
+
+[node name="NewGameButton" type="Button" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox/Buttons" unique_id=1206403896]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_disabled_color = Color(0.35, 0.35, 0.35, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_button")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_button_focus")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_qsbd8")
+theme_override_styles/focus = SubResource("StyleBoxTexture_button_focus")
+disabled = true
+text = "Nueva partida"
+
+[node name="DeleteProfileButton" type="Button" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox/Buttons" unique_id=244665451]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_disabled_color = Color(0.35, 0.35, 0.35, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_button")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_button_focus")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_qsbd8")
+theme_override_styles/focus = SubResource("StyleBoxTexture_button_focus")
+disabled = true
+text = "Borrar usuario"
+
+[node name="ExitButton" type="Button" parent="WindowLayer/LoginWindow/MainVBox/ContentMargin/ContentVBox/Buttons" unique_id=476816738]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_disabled_color = Color(0.35, 0.35, 0.35, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_button")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_button_focus")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_qsbd8")
+theme_override_styles/focus = SubResource("StyleBoxTexture_button_focus")
+text = "Salir"
+
+[node name="AnimationInputBlocker" type="Control" parent="WindowLayer/LoginWindow" unique_id=1082557951]
+unique_name_in_owner = true
+visible = false
+z_index = 10
+layout_mode = 2
+focus_mode = 2
+
+[node name="DeleteConfirmationOverlay" type="Control" parent="WindowLayer" unique_id=969389915]
+unique_name_in_owner = true
+visible = false
+z_index = 20
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Shade" type="ColorRect" parent="WindowLayer/DeleteConfirmationOverlay" unique_id=61313736]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 0.45)
+
+[node name="DialogWindow" type="PanelContainer" parent="WindowLayer/DeleteConfirmationOverlay" unique_id=1455186609]
+custom_minimum_size = Vector2(540, 250)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = -125.0
+offset_right = 270.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_window")
+
+[node name="DialogVBox" type="VBoxContainer" parent="WindowLayer/DeleteConfirmationOverlay/DialogWindow" unique_id=1020502386]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="DialogTitleBar" type="PanelContainer" parent="WindowLayer/DeleteConfirmationOverlay/DialogWindow/DialogVBox" unique_id=184174709]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_title")
+
+[node name="DialogTitle" type="Label" parent="WindowLayer/DeleteConfirmationOverlay/DialogWindow/DialogVBox/DialogTitleBar" unique_id=146121794]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+text = "Borrar usuario"
+vertical_alignment = 1
+
+[node name="DialogMargin" type="MarginContainer" parent="WindowLayer/DeleteConfirmationOverlay/DialogWindow/DialogVBox" unique_id=695584273]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="DialogContent" type="VBoxContainer" parent="WindowLayer/DeleteConfirmationOverlay/DialogWindow/DialogVBox/DialogMargin" unique_id=762212437]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="DeleteConfirmationMessage" type="Label" parent="WindowLayer/DeleteConfirmationOverlay/DialogWindow/DialogVBox/DialogMargin/DialogContent" unique_id=427362386]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 19
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="DialogButtons" type="HBoxContainer" parent="WindowLayer/DeleteConfirmationOverlay/DialogWindow/DialogVBox/DialogMargin/DialogContent" unique_id=350138451]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 2
+
+[node name="ConfirmDeleteButton" type="Button" parent="WindowLayer/DeleteConfirmationOverlay/DialogWindow/DialogVBox/DialogMargin/DialogContent/DialogButtons" unique_id=1678559105]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_button")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_button_focus")
+theme_override_styles/focus = SubResource("StyleBoxTexture_button_focus")
+text = "Borrar"
+
+[node name="CancelDeleteButton" type="Button" parent="WindowLayer/DeleteConfirmationOverlay/DialogWindow/DialogVBox/DialogMargin/DialogContent/DialogButtons" unique_id=1965961960]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("11_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_button")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_button_focus")
+theme_override_styles/focus = SubResource("StyleBoxTexture_button_focus")
+text = "Cancelar"

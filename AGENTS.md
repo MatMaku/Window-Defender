@@ -25,8 +25,18 @@ waves driven by a fictional in-game clock.
 - Configure enemy progression through `WaveSequenceData`, `DailyWaveData`,
   `WaveEnemyEntry`, and `EnemyArchetypeData`; do not reintroduce elapsed-time
   progression parallel to the daily-wave system.
-- Keep `GameState` as the single session autoload and typed state container. It
-  must not expose domain property proxies, command wrappers, or signal relays.
+- Keep `GameState` as the single gameplay-state autoload and typed state
+  container. It must not expose domain property proxies, command wrappers, file
+  I/O, profile APIs, or signal relays.
+- Keep `ProfileService` limited to profile metadata, persistent file access and
+  pending new/load scene-transition intent. It must not own gameplay state.
+- Build saves from semantic, versioned snapshots. Never serialize Nodes,
+  Resources, PackedScenes, Callables, Signals or instance IDs.
+- Resolve persistent apps, upgrades and enemy archetypes through
+  `GameContentRegistry`; do not persist display names or array positions as
+  identity.
+- Coordinate capture and restore in `DesktopSaveCoordinator`; UI nodes and
+  gameplay entities must not read or write save files directly.
 - Resolve required specialized states once during consumer initialization and
   retain only those typed references. Managers and windows must not retain the
   complete `GameState` container.

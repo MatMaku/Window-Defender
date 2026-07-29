@@ -9,8 +9,11 @@ futuros cambios siguen estando en `AGENTS.md`.
 
 `project.godot` configura:
 
-- `Scenes/Desktop/Desktop.tscn` como `run/main_scene`.
-- `Scenes/Autoload/GameState.tscn` como único autoload, con nombre `GameState`.
+- `Scenes/MainMenu/MainMenu.tscn` como `run/main_scene`.
+- `Scenes/Autoload/GameState.tscn` como contenedor de estado jugable, con nombre
+  `GameState`.
+- `Scenes/Autoload/ProfileService.tscn` como servicio de perfiles, archivos e
+  intención pendiente de nueva partida/carga, con nombre `ProfileService`.
 
 Flujo aproximado:
 
@@ -19,19 +22,49 @@ GameState._ready()
   -> reset_run()
   -> estados de dominio restaurados desde GameStart.tres
 
+MainMenu.tscn
+  -> consulta perfiles mediante ProfileService
+  -> valida/crea/selecciona por profile_id estable
+  -> cierra localmente LoginWindow
+  -> solicita nueva partida o carga a ProfileService
+
 Desktop.tscn
   -> managers conectan dependencias y señales
-  -> GameClockManager inicia el reloj ficticio
-  -> Desktop._ready() crea shortcuts
-  -> SystemManager registra System.exe
-  -> EnemySpawnDirector inicia diferidamente el ciclo diario
+  -> DesktopSaveCoordinator detiene procesamiento
+  -> consume la intención pendiente de ProfileService
+  -> resetea una partida nueva o restaura un snapshot validado
+  -> crea/restaura shortcuts, ventanas y enemigos
+  -> restaura procesos temporales
+  -> inicia GameClockManager y EnemySpawnDirector
+  -> emite restore_finished
+  -> DesktopWindowRevealController mantiene la pausa
+  -> WindowManager revela ventanas restauradas de atrás hacia adelante
+  -> reanuda gameplay
 ```
 
 - **Implementado:** este flujo está conectado en escenas y scripts.
-- **Desconocido (Q-ARCH-001):** no hay contrato documentado para depender del
-  orden de `_ready()` más allá de la composición actual.
+- **Implementado:** `GameClockManager` y `EnemySpawnDirector` tienen
+  `autostart = false` en Desktop; sólo el coordinador los inicia cuando la
+  sesión es coherente.
+- **Resuelto (Q-ARCH-001):** `DesktopSaveCoordinator` está después de Taskbar y
+  managers, pausa el árbol al entrar y ejecuta la inicialización diferida. El
+  controlador visual se conecta antes de esa llamada diferida y espera
+  `restore_finished`.
 
-## 3. Escena principal
+## 3. Escenas principales
+
+`Scenes/MainMenu/MainMenu.tscn` contiene fondo, una ventana de acceso compacta y
+una confirmación modal de borrado. No instancia Desktop, Taskbar, shortcuts,
+managers ni aplicaciones. `MainMenuWindow` implementa arrastre, clamp al
+viewport, solicitud de cierre y una animación local breve de apertura/cierre;
+no hereda de `AppWindow` ni participa en RAM o `WindowManager`.
+Al entrar, `MainMenu.gd` restablece una resolución lógica fija de 2560×1440 sin
+mutar `GameDesktopState`; Desktop vuelve a aplicar la resolución propia de la
+partida mediante `DisplayManager`.
+
+La lista muestra `display_name`, pero conserva `profile_id` como metadata de cada
+ítem. `MainMenu.gd` limita su responsabilidad a estado de controles, llamadas a
+la API pública de `ProfileService` y presentación de `PersistenceResult`.
 
 `Scenes/Desktop/Desktop.tscn` contiene cuatro capas:
 
@@ -58,6 +91,10 @@ El nodo `Managers` contiene:
 - `UpgradeManager`
 - `RepairManager`
 
+`DesktopSaveCoordinator` es un hijo directo de Desktop. Se mantiene fuera de
+`Managers` para que su `_ready()` ocurra después de Taskbar y pueda cerrar el
+ciclo de inicialización/restore.
+
 - **Implementado:** las referencias críticas están exportadas y asignadas en la
   escena.
 - **Implementado:** muchos managers incluyen resolución relativa como fallback.
@@ -66,9 +103,9 @@ El nodo `Managers` contiene:
 
 ## 4. Estado compartido
 
-`Scripts/Autoload/GameState.gd` (`RuntimeGameState`) es el contenedor estable de
-la sesión. `Scenes/Autoload/GameState.tscn` sigue siendo el único autoload y
-compone once nodos especializados.
+`Scripts/Autoload/GameState.gd` (`RuntimeGameState`) es el contenedor estable del
+estado jugable. `Scenes/Autoload/GameState.tscn` compone once nodos
+especializados; no conoce perfiles ni archivos.
 
 | Componente | Estado propietario |
 |---|---|
@@ -128,16 +165,33 @@ arquitectónica actual.
 | `ShopManager` | Ventanas Shop activas |
 | `SystemManager` | Referencias al shortcut y ventana System |
 | `MinerWindow` | Timer de minería por instancia |
+| `ProfileService` | Perfil activo e intención pendiente de nueva/carga |
+| `DesktopSaveCoordinator` | Captura coherente y secuencia de restauración |
 
 - **Implementado:** el estado compartido y el transitorio están separados en la
   mayoría de los sistemas.
 - **Implementado:** el director no mantiene un reloj, presupuesto ni timer
   temporal paralelo; consulta `GameClockState` y muta `GameRunState`.
+- **Implementado:** `ProfileService` sobrevive a cambios de escena, pero no
+  conserva estado jugable; el snapshot pendiente se consume una sola vez al
+  crear Desktop.
 
 ## 6. Dependencias principales
 
 ```text
 GameState -> estados especializados
+
+MainMenu -> ProfileService -> ProfileStore -> user://profiles/
+                         `-> GameContentRegistry
+
+MainMenu -> MainMenuWindow
+DesktopWindowRevealController -> DesktopSaveCoordinator.restore_finished
+                              -> WindowManager -> AppWindow
+
+DesktopSaveCoordinator -> estados especializados
+                       -> Desktop / WindowManager / EnemyManager
+                       -> ShootingManager / ReloadManager / RepairManager
+                       -> ProfileService
 
 Desktop -> GameDesktopState
 DesktopExecutable -> WindowManager -> RamManager -> GameRamState
@@ -192,6 +246,11 @@ y costo de RAM. `WindowManager.open_program()`:
 7. inicia la animación y emite `window_opened`.
 
 - **Implementado:** la RAM se libera al cerrar y durante `_exit_tree()`.
+- **Implementado:** `restore_windows()` reconstruye por `program_id`, reserva
+  RAM sin ejecutar compras, restaura posición y z-order, y emite
+  `window_opened` una vez para los bindings existentes. Luego prepara las
+  ventanas ocultas para un revelado visual que no emite señales de apertura ni
+  vuelve a reservar RAM.
 - **Implementado:** los errores de RAM usan `SystemErrorWindow` sin costo.
 - **Parcialmente implementado:** taskbar enfoca ventanas, pero no minimiza.
 - **Desconocido (Q-ARCH-002):** confirmar si minimizar debe formar parte del
@@ -210,53 +269,118 @@ y costo de RAM. `WindowManager.open_program()`:
 
 ## 9. Persistencia
 
-- **Implementado:** `GameDesktopState`, `GameUpgradeState`, `GameClockState`,
-  `GameRunState` y `GameEnemySnapshotState` producen snapshots parciales en
-  memoria.
-- **Planeado:** `GameEnemySnapshotState` reserva un Array para enemigos.
-- **Implementado:** reloj y progreso diario aceptan restauración controlada
-  desde snapshots primitivos.
-- **Parcialmente implementado:** no existe serializador, archivo de guardado,
-  versionado ni restauración coordinada.
-- **Riesgo:** el autostart actual reinicia progreso por defecto; una futura carga
-  deberá restaurar estados y arrancar el director con `reset_progress = false`.
+- **Implementado:** `ProfileStore` administra
+  `user://profiles/<profile_id>/profile.json` y `savegame.json`, ambos con
+  `schema_version = 1`.
+- **Implementado:** `project.godot` usa `application/config/name =
+  "Window Defender"` y no configura un directorio de usuario personalizado.
+  Los perfiles permanecen fuera de `res://`; sobreviven a mover la carpeta del
+  proyecto en la misma computadora, pero otra PC requiere copiar manualmente el
+  directorio de datos de usuario. Exportar/importar perfiles sigue planeado.
+- **Implementado:** las escrituras usan `.tmp`, preservan el archivo previo como
+  `.bak`, reemplazan el principal, realizan rollback si falla el reemplazo y
+  recuperan un backup dejado por una interrupción.
+- **Implementado:** `PersistenceResult` devuelve `success`, `code`, `message` y
+  datos duplicados para la UI.
+- **Implementado:** `GameContentRegistry` valida unicidad y resuelve programas,
+  upgrades y arquetipos por IDs estables.
+- **Implementado:** cada estado especializado produce/restaura su sección;
+  ventanas, procesos y enemigos usan contratos semánticos propios.
+- **Implementado:** la RAM usada no se duplica: se restaura el máximo y las
+  ventanas reconstruyen el uso al reservar sus costos actuales.
+- **Implementado:** la captura preserva el estado previo de pausa y no serializa
+  el menú Inicio. Una partida cargada siempre es reanudable.
+- **Implementado:** la restauración valida todo el snapshot antes de mutar y
+  mantiene reloj/director detenidos hasta el final. Un fallo runtime limpia la
+  restauración parcial y deja un estado inicial detenido.
+- **Implementado:** MainMenu muestra perfiles y errores, y ejecuta nueva partida
+  o carga sin acceder directamente a archivos.
+- **Implementado:** MainMenu puede borrar un perfil inactivo; `ProfileStore`
+  valida el ID, confina la ruta a `user://profiles/` y elimina la carpeta
+  completa, incluidos temporales y backups.
+- **Implementado:** la carga se inicia exclusivamente desde MainMenu; Taskbar no
+  contiene un control de carga.
+- **Planeado:** migraciones entre versiones. Actualmente una versión
+  incompatible se rechaza.
 
-## 10. Escalabilidad y riesgos
+API pública consumida por MainMenu:
+
+- `get_profiles()`
+- `validate_new_profile_name(name)`
+- `create_profile(name)`
+- `delete_profile(profile_id)`
+- `get_profiles_directory_path()`
+- `select_profile(profile_id)`
+- `profile_has_save(profile_id)`
+- `start_new_game(profile_id)`
+- `load_profile_game(profile_id)`
+- `return_to_main_menu()`
+
+Todas las operaciones devuelven `PersistenceResult`; la consulta de ruta devuelve
+la ruta globalizada de `user://profiles`. `return_to_main_menu()` está conectado
+a Shut Down de Taskbar y no guarda automáticamente.
+
+## 10. Transición de escenas
+
+La transición no usa un overlay global. `MainMenuWindow` se abre y cierra con dos
+pasos locales: expansión/contracción horizontal y vertical alrededor de su
+posición actual. `ProfileService` conserva la decisión de sesión y el destino;
+no conoce Tween ni detalles visuales.
+
+En Desktop, `DesktopWindowRevealController` escucha
+`DesktopSaveCoordinator.restore_finished`, pausa antes del siguiente frame y
+solicita a `WindowManager` revelar las ventanas restauradas de menor a mayor
+z-order. `AppWindow.play_restore_reveal_animation()` es exclusivamente visual:
+no emite `opening_started`/`opening_finished`, no ejecuta setup funcional y no
+reserva RAM. El input de GUI queda deshabilitado durante ese tramo; los enemigos
+restaurados aparecen directamente. El gameplay se reanuda después de terminar
+el revelado breve.
+
+## 11. Escalabilidad y riesgos
 
 - `GameState` sigue siendo el punto global de localización inicial, aunque ya no
   participa en la lógica interna de los consumidores.
 - `UpgradeManager` necesita siete estados porque aplica efectos de varios
   dominios; es coordinación explícita, pero sigue siendo un punto de alto
   acoplamiento que debe vigilarse al agregar nuevos efectos.
-- El reset de estados persistentes no reconstruye ventanas, enemigos ni otros
-  objetos runtime; ese alcance permanece fuera de este refactor.
+- La restauración de una versión incompatible se rechaza; todavía no hay
+  migraciones.
 - `EnemyManager` separa enemigos en O(n²) por frame; los Resources diarios deben
   mantener límites activos razonables.
 - Bloqueo de disparos y reparación recorre ventanas y no usa el helper de ventanas
   superiores.
-- IDs y requisitos se conectan manualmente con `StringName`.
-- Resources no tienen una validación global de unicidad o consistencia.
+- IDs y requisitos se conectan manualmente con `StringName`; el registro valida
+  los IDs persistentes, pero no toda la coherencia editorial de ofertas/waves.
 - Métodos de layout son invocados opcionalmente por nombre desde
   `DisplayManager`.
 - No hay pruebas automatizadas que documenten contratos de escenas o Resources.
 
-## 11. Funciones parciales o planeadas
+## 12. Funciones parciales o planeadas
 
 - **Parcialmente implementado:** reacomodo tras cambiar resolución.
 - **Planeado:** ralentización runtime por RAM.
-- **Planeado:** guardado/carga y snapshots de enemigos.
+- **Implementado:** perfiles, guardado/carga, snapshots de enemigos y
+  restauración coordinada.
 - **Parcialmente implementado:** game over.
-- **Implementado:** pausa del `SceneTree` y apagado directo desde el menú Inicio,
-  coordinados por `Scripts/Taskbar/Taskbar.gd`.
-- **Planeado:** acciones Load Game, Save Game y Options del menú Inicio.
+- **Implementado:** pausa del `SceneTree` y retorno a MainMenu desde el menú
+  Inicio, coordinados por Taskbar, `DesktopSaveCoordinator` y `ProfileService`.
+- **Implementado:** Save Game del menú Inicio.
+- **Implementado:** Load Game existe únicamente en MainMenu.
+- **Implementado:** menú principal funcional, borrado de perfiles y transiciones
+  locales de ventana entre MainMenu y Desktop.
+- **Parcialmente implementado:** diseño visual definitivo del menú principal.
+- **Planeado:** Options.
 
-## 12. Registro de preguntas arquitectónicas
+## 13. Registro de preguntas arquitectónicas
 
-- **Q-ARCH-001:** ¿qué orden de inicialización debe considerarse contractual?
+- **Resuelto (Q-ARCH-001):** el coordinador se ejecuta después de Taskbar y
+  managers; reloj/director arrancan al finalizar nueva partida o restore.
 - **Q-ARCH-002:** ¿la taskbar debe minimizar/restaurar además de enfocar?
 - **Q-ARCH-003:** ¿Miner y Virus deben separar lógica de sus nodos de UI?
 - **Resuelto (Q-ARCH-004):** `GameState` no conserva API de fachada; sólo
   localización tipada, carga inicial y reset de estados.
-- **Q-ARCH-005:** ¿qué manager coordinará guardado, carga y restauración?
+- **Resuelto (Q-ARCH-005):** `DesktopSaveCoordinator` coordina el snapshot
+  jugable; `ProfileService` y `ProfileStore` administran sesión de perfil y
+  archivos.
 - **Q-ARCH-006:** ¿se desea determinismo o persistencia del RNG de las oleadas?
 - **Q-ARCH-007:** ¿qué referencias de escena deben considerarse API estable?

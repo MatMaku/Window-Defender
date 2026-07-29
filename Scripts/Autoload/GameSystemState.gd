@@ -123,6 +123,35 @@ func is_destroyed() -> bool:
 	return _system_destroyed
 
 
+func create_save_snapshot() -> Dictionary:
+	return {
+		"max_system_integrity": _max_system_integrity,
+		"current_system_integrity": _current_system_integrity
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	_max_system_integrity = maxf(
+		1.0,
+		float(snapshot.get("max_system_integrity", 1.0))
+	)
+	_current_system_integrity = clampf(
+		float(
+			snapshot.get(
+				"current_system_integrity",
+				_max_system_integrity
+			)
+		),
+		0.0,
+		_max_system_integrity
+	)
+	_system_destroyed = _current_system_integrity <= 0.0
+
+	_emit_system_integrity_changed()
+	if _system_destroyed:
+		system_destroyed.emit()
+
+
 func _emit_system_integrity_changed() -> void:
 	system_integrity_changed.emit(
 		_current_system_integrity,

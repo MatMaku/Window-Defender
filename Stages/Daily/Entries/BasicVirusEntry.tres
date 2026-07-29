@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WaveEnemyEntry" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WaveEnemyEntry" format=3 uid="uid://csib86krxphbp"]
 
 [ext_resource type="Script" uid="uid://0wil4xt52iv4" path="res://Data/Waves/WaveEnemyEntry.gd" id="1_entry"]
 [ext_resource type="Resource" path="res://Stages/Daily/Archetypes/BasicVirus.tres" id="2_archetype"]
@@ -6,11 +6,3 @@
 [resource]
 script = ExtResource("1_entry")
 archetype = ExtResource("2_archetype")
-weight = 1.0
-spawn_cost_override = 0.0
-max_alive = 0
-health_multiplier = 1.0
-speed_multiplier = 1.0
-damage_multiplier = 1.0
-attack_interval_multiplier = 1.0
-reward_multiplier = 1.0

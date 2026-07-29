@@ -18,6 +18,7 @@ identidad observadas. Las rutas `.tres` son parte de la configuración jugable.
 | `WaveEnemyEntry` | `Data/Waves/WaveEnemyEntry.gd` | Peso, coste, límite y multiplicadores | Implementado |
 | `DailyWaveData` | `Data/Waves/DailyWaveData.gd` | Presupuesto y reglas de un día | Implementado |
 | `WaveSequenceData` | `Data/Waves/WaveSequenceData.gd` | Horario común y secuencia de días | Implementado |
+| `GameContentRegistry` | `Data/Persistence/GameContentRegistry.gd` | Registro de IDs persistentes | Implementado |
 
 ## 3. GameStartData
 
@@ -129,7 +130,10 @@ Resources activos en `Apps/Shop/ShopWindow.tscn`:
 - **Implementado:** algunos upgrades requieren programa u otro upgrade.
 - **Parcialmente implementado:** `AREA_SHOT_TARGETS_ADD` no tiene una oferta
   configurada; Area Shot fuerza al menos un objetivo.
-- **Riesgo:** no existe validación central de IDs, arrays o efectos `NONE`.
+- **Implementado:** `GameContentRegistry.tres` valida unicidad de los
+  `offer_id` persistidos.
+- **Riesgo:** no existe validación central de coherencia entre arrays, niveles y
+  efectos `NONE`.
 
 ## 7. Arquetipos y stats de enemigos
 
@@ -216,10 +220,13 @@ resetea y expone como referencias tipadas.
 - **Implementado:** reloj y progreso diario también usan backing fields privados.
 - **Implementado:** no hay escritores directos confirmados sobre esos backing
   fields; managers y ventanas usan comandos del propietario.
-- **Parcialmente implementado:** snapshots de enemigos conservan su modelo sin
-  esquema.
+- **Implementado:** los estados productivos exponen `create_save_snapshot()` y
+  `restore_from_save_snapshot()` con valores serializables y clamps.
+- **Parcialmente implementado:** `GameEnemySnapshotState` conserva su Array
+  histórico, pero el snapshot productivo de enemigos pertenece a
+  `EnemyManager` y a cada `DesktopVirus`.
 
-Snapshots disponibles en memoria:
+Snapshots auxiliares disponibles en memoria:
 
 - `GameDesktopState.get_desktop_shortcuts_snapshot()` devuelve `Dictionary`.
 - `GameUpgradeState.get_upgrade_purchase_counts_snapshot()` devuelve
@@ -229,16 +236,116 @@ Snapshots disponibles en memoria:
   presupuesto, timestamp y estado de agotamiento.
 - `GameEnemySnapshotState.get_enemy_snapshots()` devuelve `Array` sin esquema.
 
-- **Implementado:** los snapshots de reloj y run contienen únicamente números y
-  booleanos; no guardan nodos ni Resources.
+- **Implementado:** todos los estados productivos tienen una sección semántica
+  en el snapshot completo.
 - **Implementado:** copias profundas evitan exponer directamente shortcuts,
   contadores de upgrades y snapshots de enemigos.
-- **Parcialmente implementado:** no existe snapshot completo de partida.
-- **Planeado:** estado de enemigos y run preparan una futura restauración.
-- **Desconocido (Q-DATA-006):** definir esquema y versionado de archivos de
-  guardado.
+- **Implementado:** `DesktopSaveCoordinator.create_save_snapshot()` compone el
+  snapshot completo sin Nodes, Resources, PackedScenes, Callables ni IDs de
+  instancia.
 
-## 10. Validaciones existentes
+## 10. Perfiles y formato persistente
+
+Rutas:
+
+```text
+user://profiles/<profile_id>/profile.json
+user://profiles/<profile_id>/savegame.json
+```
+
+`project.godot` no define `use_custom_user_dir` ni `custom_user_dir_name`, por lo
+que Godot deriva la carpeta de datos del nombre de aplicación `Window Defender`.
+Los archivos permanecen en la misma computadora aunque se mueva o reinstale la
+carpeta del juego con esa configuración. No se transfieren automáticamente a
+otra PC: actualmente es necesario copiar manualmente la carpeta de datos de
+usuario. Exportación, importación y sincronización siguen fuera de alcance.
+
+`profile_id` es un valor hexadecimal aleatorio de 128 bits y no deriva del
+nombre visible. `profile.json` conserva:
+
+- `schema_version = 1`;
+- `profile_id`;
+- `display_name`;
+- `created_at`;
+- `last_activity`;
+- `has_save`.
+
+`savegame.json` conserva:
+
+```text
+schema_version
+saved_at
+profile_id
+game
+  schema_version
+  states
+  desktop.shortcuts
+  desktop.windows
+  enemies
+  processes
+```
+
+Ownership del snapshot:
+
+| Sección | Propietario |
+|---|---|
+| `states.system` | `GameSystemState` |
+| `states.weapon` | `GameWeaponState` |
+| `states.reload_stats` | `GameReloadStatsState` |
+| `states.miner` | `GameMinerState` |
+| `states.economy` | `GameEconomyState` |
+| `states.ram` | `GameRamState` (sólo máximo) |
+| `states.desktop` | `GameDesktopState` (resolución/tier) |
+| `states.upgrades` | `GameUpgradeState` |
+| `states.clock` | `GameClockState` |
+| `states.run` | `GameRunState` |
+| `desktop.shortcuts` | `Desktop` |
+| `desktop.windows` | `WindowManager` + `AppWindow` |
+| `enemies` | `EnemyManager` + `DesktopVirus`/`BasicVirus` |
+| `processes` | Shooting, Reload y Repair managers |
+
+Los IDs persistentes registrados en
+`Data/Persistence/GameContentRegistry.tres` son:
+
+- `ProgramData.program_id` para apps, shortcuts y ventanas;
+- `ShopUpgradeOfferData.offer_id` para contadores de mejoras;
+- `EnemyArchetypeData.enemy_id` para enemigos.
+
+No se persisten índices de Resources, nombres visibles como identidad ni
+referencias a escenas.
+
+Estado productivo conservado:
+
+- integridad, arma, munición, economía, minería, upgrades y resolución;
+- reloj ficticio, modo/fase/día, presupuesto y timestamp de spawn;
+- shortcuts, posiciones de ventanas y z-order;
+- minería por ventana, cooldown, máquina de recarga y tick de reparación;
+- arquetipo, posición, vida, stats runtime y cooldown de ataque de cada enemigo.
+
+Estado normalizado:
+
+- menú Inicio/pausa, foco temporal y drag activo;
+- animaciones/tweens, flashes, hover y frame de animación;
+- Area Shot pendiente se cancela y vuelve a evaluarse normalmente;
+- ventanas se restauran funcionalmente sin costo de compra y luego se revelan
+  mediante una animación local que no emite señales funcionales de apertura;
+- un Miner capturado antes de iniciar su proceso restaura inactivo.
+- llegada de un enemigo al sistema se deriva nuevamente de posición y distancias
+  runtime; no se guarda un flag duplicado.
+
+- **Implementado:** esquema de perfil, save y game en versión 1.
+- **Implementado:** escritura atómica con temporal, backup, rollback y
+  recuperación del backup tras una interrupción.
+- **Implementado:** MainMenu elimina perfiles inactivos por `profile_id`.
+  `ProfileStore` acepta únicamente 32 caracteres hexadecimales, comprueba que la
+  carpeta sea hija directa de `user://profiles/`, la renombra antes de borrar y
+  elimina todo su contenido, incluidos `.tmp` y `.bak`.
+- **Parcialmente implementado:** no hay migraciones de schema; versiones
+  desconocidas se rechazan.
+- **Planeado:** múltiples slots, autosave, renombrado, recuperación de perfiles
+  borrados, cifrado, exportación/importación y nube.
+
+## 11. Validaciones existentes
 
 - Mínimos y clamps en estados de sistema, arma, RAM, minería y reload.
 - Consultas read-only y comandos explícitos para los dominios migrados.
@@ -248,17 +355,23 @@ Snapshots disponibles en memoria:
 - Límites de índice para costos y efectos.
 - Chequeo de existencia de todas las rutas explícitas `res://` durante la
   auditoría.
+- Unicidad de IDs persistentes mediante `GameContentRegistry`.
+- Validación de estructura, tipos, IDs, RAM, instancias únicas y valores básicos
+  antes de restaurar.
+- Validación de nombres de perfil vacíos, largos, duplicados sin distinguir
+  mayúsculas y caracteres de control.
+- Validación estricta y confinamiento de rutas antes de eliminar una carpeta de
+  perfil; un perfil activo no puede borrarse.
 
-## 11. Validaciones faltantes
+## 12. Validaciones faltantes
 
-- Unicidad de `program_id`, `offer_id` y `enemy_id`.
 - Coherencia entre cantidad de niveles, costos y valores de efecto.
 - Rechazo transaccional de upgrades sin efecto válido.
 - Validación editorial automatizada de secuencias, días y entradas.
-- Versionado/migración de snapshots.
+- Migraciones de versiones antiguas de snapshots.
 - Validación automatizada de dependencias de escenas y Resources.
 
-## 12. Registro de preguntas de datos
+## 13. Registro de preguntas de datos
 
 - **Q-DATA-001:** ¿los recursos iniciales son de desarrollo o definitivos?
 - **Q-DATA-002:** ¿qué convención de mayúsculas deben usar los programas?
@@ -268,6 +381,7 @@ Snapshots disponibles en memoria:
   duplican entradas para ponderar.
 - **Obsoleto (Q-DATA-005):** el valor atípico de amenaza desapareció junto con el
   modelo anterior.
-- **Q-DATA-006:** ¿cuál será el esquema/versionado de guardado?
+- **Resuelto (Q-DATA-006):** perfil, save y snapshot jugable usan schema 1; una
+  versión distinta se rechaza hasta implementar migraciones.
 - **Q-DATA-007:** ¿deben conservarse los shortcut Resources no referenciados?
 - **Q-DATA-008:** ¿Area Shot tendrá upgrades de cantidad de objetivos?

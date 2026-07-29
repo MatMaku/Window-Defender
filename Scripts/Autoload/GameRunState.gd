@@ -194,6 +194,14 @@ func get_run_progress_snapshot() -> Dictionary:
 	}
 
 
+func create_save_snapshot() -> Dictionary:
+	return get_run_progress_snapshot()
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	restore_from_snapshot(snapshot)
+
+
 func restore_from_snapshot(snapshot: Dictionary) -> void:
 	_spawn_mode = _sanitize_spawn_mode(
 		int(

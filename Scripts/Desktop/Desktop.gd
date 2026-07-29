@@ -8,6 +8,7 @@ signal executable_spawned(
 
 @export var executable_scene: PackedScene
 @export var shortcuts: Array[DesktopShortcutData] = []
+@export var initialization_is_coordinated: bool = false
 
 @export_category("Shortcut Placement")
 
@@ -31,6 +32,11 @@ func _ready() -> void:
 		push_error("Desktop requires GameDesktopState.")
 		return
 
+	if not initialization_is_coordinated:
+		spawn_initial_shortcuts()
+
+
+func spawn_initial_shortcuts() -> void:
 	_spawn_shortcuts()
 
 
@@ -58,8 +64,8 @@ func has_program_shortcut(
 	return get_executable_by_program_id(program_id) != null
 
 
-func get_existing_program_ids() -> Array:
-	var ids: Array = []
+func get_existing_program_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
 
 	for key in _executables_by_program_id.keys():
 		ids.append(key)
@@ -85,9 +91,104 @@ func add_program_shortcut(
 	shortcut.program_data = program_data
 	shortcut.start_position = _find_free_shortcut_position()
 
-	shortcuts.append(shortcut)
-
 	return _spawn_shortcut(shortcut)
+
+
+func create_shortcuts_save_snapshot() -> Array[Dictionary]:
+	var snapshot: Array[Dictionary] = []
+
+	for key: Variant in _executables_by_program_id.keys():
+		var executable: DesktopExecutable = (
+			_executables_by_program_id[key]
+			as DesktopExecutable
+		)
+		if not is_instance_valid(executable):
+			continue
+
+		executable.cancel_drag_for_save()
+		var program_id: StringName = executable.get_program_id()
+		if program_id == StringName():
+			continue
+
+		_desktop_state.update_desktop_shortcut_position(
+			program_id,
+			executable.position
+		)
+		snapshot.append({
+			"program_id": str(program_id),
+			"position": SaveDataCodec.vector2_to_data(
+				executable.position
+			)
+		})
+
+	return snapshot
+
+
+func clear_shortcuts_for_restore() -> void:
+	for child: Node in icon_layer.get_children():
+		var executable: DesktopExecutable = (
+			child as DesktopExecutable
+		)
+		if executable == null:
+			continue
+
+		executable.free()
+
+	_executables_by_program_id.clear()
+	_desktop_state.clear_desktop_shortcuts()
+
+
+func restore_shortcuts(
+	shortcuts_snapshot: Array,
+	content_registry: GameContentRegistry
+) -> PersistenceResult:
+	if content_registry == null:
+		return PersistenceResult.failure(
+			&"missing_content_registry",
+			"Cannot restore shortcuts without a content registry."
+		)
+
+	clear_shortcuts_for_restore()
+
+	for value: Variant in shortcuts_snapshot:
+		if not value is Dictionary:
+			return PersistenceResult.failure(
+				&"invalid_shortcut_snapshot",
+				"A shortcut snapshot is not an object."
+			)
+
+		var shortcut_data: Dictionary = value as Dictionary
+		var program_id: StringName = StringName(
+			str(shortcut_data.get("program_id", ""))
+		)
+		var program: ProgramData = (
+			content_registry.get_program(program_id)
+		)
+		if program == null:
+			return PersistenceResult.failure(
+				&"unknown_program",
+				"Cannot restore unknown program '%s'."
+					% str(program_id)
+			)
+
+		var shortcut: DesktopShortcutData = (
+			DesktopShortcutData.new()
+		)
+		shortcut.program_data = program
+		shortcut.start_position = (
+			SaveDataCodec.data_to_vector2(
+				shortcut_data.get("position")
+			)
+		)
+
+		if _spawn_shortcut(shortcut) == null:
+			return PersistenceResult.failure(
+				&"shortcut_restore_failed",
+				"Could not restore shortcut '%s'."
+					% str(program_id)
+			)
+
+	return PersistenceResult.ok()
 
 
 func _spawn_shortcuts() -> void:

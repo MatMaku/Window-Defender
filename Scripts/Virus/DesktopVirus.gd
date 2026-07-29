@@ -44,6 +44,7 @@ var _current_health: float = 0.0
 
 var _is_dragging: bool = false
 var _is_dead: bool = false
+var _restore_prepared: bool = false
 
 var _drag_offset: Vector2 = Vector2.ZERO
 
@@ -82,6 +83,13 @@ func apply_runtime_stats(
 		_reset_health_to_max()
 
 
+func prepare_for_restore(
+	runtime_stats: EnemyRuntimeStats
+) -> void:
+	_restore_prepared = true
+	apply_runtime_stats(runtime_stats)
+
+
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
@@ -90,7 +98,10 @@ func _ready() -> void:
 		as Control
 	)
 
-	_reset_health_to_max()
+	if _restore_prepared:
+		_current_health = max_health
+	else:
+		_reset_health_to_max()
 
 
 func _process(delta: float) -> void:
@@ -198,6 +209,86 @@ func apply_external_push(
 		return
 
 	global_position += global_push_delta
+
+
+func create_save_snapshot() -> Dictionary:
+	_set_dragging(false)
+
+	return {
+		"archetype_id": str(enemy_id),
+		"position": SaveDataCodec.vector2_to_data(position),
+		"current_health": _current_health,
+		"runtime_stats": (
+			_create_runtime_stats_snapshot()
+		),
+		"behavior_state": (
+			_create_behavior_save_snapshot()
+		)
+	}
+
+
+func restore_from_save_snapshot(snapshot: Dictionary) -> void:
+	var stats_variant: Variant = snapshot.get(
+		"runtime_stats",
+		{}
+	)
+	if stats_variant is Dictionary and not _restore_prepared:
+		var runtime_stats: EnemyRuntimeStats = (
+			EnemyRuntimeStats.from_save_snapshot(
+				stats_variant as Dictionary
+			)
+		)
+		apply_runtime_stats(runtime_stats)
+
+	position = SaveDataCodec.data_to_vector2(
+		snapshot.get("position"),
+		position
+	)
+	_current_health = clampf(
+		float(snapshot.get("current_health", max_health)),
+		0.01,
+		max_health
+	)
+	_is_dead = false
+	_restore_prepared = false
+	_set_dragging(false)
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	modulate = Color.WHITE
+
+	var behavior_variant: Variant = snapshot.get(
+		"behavior_state",
+		{}
+	)
+	if behavior_variant is Dictionary:
+		_restore_behavior_from_save_snapshot(
+			behavior_variant as Dictionary
+		)
+
+	health_changed.emit(_current_health, max_health)
+
+
+func _create_runtime_stats_snapshot() -> Dictionary:
+	return {
+		"enemy_id": str(enemy_id),
+		"display_name": display_name,
+		"max_health": max_health,
+		"movement_speed": 0.0,
+		"attack_damage": 0.0,
+		"attack_interval_seconds": 1.0,
+		"attack_arrival_distance": 0.0,
+		"attack_overlap_distance": 0.0,
+		"virus_data_reward": virus_data_reward
+	}
+
+
+func _create_behavior_save_snapshot() -> Dictionary:
+	return {}
+
+
+func _restore_behavior_from_save_snapshot(
+	_snapshot: Dictionary
+) -> void:
+	pass
 
 
 func _process_virus(_delta: float) -> void:
