@@ -82,18 +82,22 @@ func _process_virus(delta: float) -> void:
 	_update_movement_and_attack(delta)
 
 
-func _create_runtime_stats_snapshot() -> Dictionary:
-	return {
-		"enemy_id": str(enemy_id),
-		"display_name": display_name,
-		"max_health": max_health,
-		"movement_speed": movement_speed,
-		"attack_damage": attack_damage,
-		"attack_interval_seconds": attack_interval_seconds,
-		"attack_arrival_distance": attack_arrival_distance,
-		"attack_overlap_distance": attack_overlap_distance,
-		"virus_data_reward": virus_data_reward
-	}
+func _create_runtime_stats() -> EnemyRuntimeStats:
+	var runtime_stats: EnemyRuntimeStats = (
+		super._create_runtime_stats()
+	)
+	runtime_stats.movement_speed = movement_speed
+	runtime_stats.attack_damage = attack_damage
+	runtime_stats.attack_interval_seconds = (
+		attack_interval_seconds
+	)
+	runtime_stats.attack_arrival_distance = (
+		attack_arrival_distance
+	)
+	runtime_stats.attack_overlap_distance = (
+		attack_overlap_distance
+	)
+	return runtime_stats
 
 
 func _create_behavior_save_snapshot() -> Dictionary:
@@ -151,9 +155,22 @@ func _update_movement_and_attack(delta: float) -> void:
 		_attack_system(delta)
 		return
 
+	var movement_target: Vector2 = (
+		get_navigation_movement_target(
+			attack_anchor
+		)
+	)
+	var distance_to_movement_target: float = (
+		current_center.distance_to(
+			movement_target
+		)
+	)
+	if distance_to_movement_target <= 0.001:
+		return
+
 	_move_towards(
-		attack_anchor,
-		distance_to_target,
+		movement_target,
+		distance_to_movement_target,
 		delta
 	)
 

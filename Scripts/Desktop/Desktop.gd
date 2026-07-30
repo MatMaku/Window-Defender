@@ -73,6 +73,26 @@ func get_existing_program_ids() -> Array[StringName]:
 	return ids
 
 
+func has_shortcut_intersecting_global_rect(
+	global_rect: Rect2
+) -> bool:
+	for key: Variant in _executables_by_program_id.keys():
+		var executable: DesktopExecutable = (
+			_executables_by_program_id[key]
+			as DesktopExecutable
+		)
+		if not is_instance_valid(executable):
+			continue
+
+		if global_rect.intersects(
+			executable.get_global_rect(),
+			false
+		):
+			return true
+
+	return false
+
+
 func add_program_shortcut(
 	program_data: ProgramData
 ) -> DesktopExecutable:
@@ -242,6 +262,7 @@ func _spawn_shortcut(
 		)
 		return null
 
+	executable.configure_window_manager(window_manager)
 	icon_layer.add_child(executable)
 
 	executable.program_data = shortcut.program_data

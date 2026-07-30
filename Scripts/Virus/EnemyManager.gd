@@ -8,6 +8,7 @@ signal enemy_removed(enemy: DesktopVirus)
 @export var system_manager: SystemManager
 @export var shooting_manager: ShootingManager
 @export var window_manager: WindowManager
+@export var navigation_manager: Node
 
 @export_category("Enemy Scenes")
 
@@ -60,6 +61,7 @@ func _ready() -> void:
 	system_manager.system_target_registered.connect(
 		_on_system_target_registered
 	)
+	_connect_navigation_obstacle_changes()
 
 	call_deferred("_try_spawn_initial_enemy")
 
@@ -96,7 +98,9 @@ func spawn_enemy_from_random_edge(
 		virus_data_reward_per_kill
 	)
 
-	_register_spawned_enemy(enemy)
+	if not _register_spawned_enemy(enemy):
+		return null
+
 	_place_enemy_at_random_edge(enemy)
 
 	return enemy
@@ -138,7 +142,9 @@ func spawn_enemy_from_wave_entry(
 
 	enemy.apply_runtime_stats(runtime_stats)
 
-	_register_spawned_enemy(enemy)
+	if not _register_spawned_enemy(enemy):
+		return null
+
 	_place_enemy_at_random_edge(enemy)
 
 	return enemy
@@ -268,7 +274,14 @@ func restore_enemies(
 			)
 		)
 		enemy.prepare_for_restore(runtime_stats)
-		_register_restored_enemy(enemy)
+
+		if not _attach_enemy(enemy):
+			return PersistenceResult.failure(
+				&"enemy_restore_failed",
+				"Could not attach enemy '%s'."
+					% str(archetype_id)
+			)
+
 		enemy.restore_from_save_snapshot(enemy_data)
 
 	return PersistenceResult.ok()
@@ -387,6 +400,11 @@ func _resolve_references() -> void:
 			as WindowManager
 		)
 
+	if navigation_manager == null:
+		navigation_manager = get_node_or_null(
+			"../FirewallNavigationManager"
+		)
+
 
 func _validate_dependencies() -> bool:
 	if _economy_state == null:
@@ -417,6 +435,12 @@ func _validate_dependencies() -> bool:
 		)
 		return false
 
+	if navigation_manager == null:
+		push_error(
+			"EnemyManager requires FirewallNavigationManager."
+		)
+		return false
+
 	if basic_virus_scene == null and spawn_test_enemy_on_ready:
 		push_error(
 			"EnemyManager requires a BasicVirus scene for test spawn."
@@ -424,6 +448,41 @@ func _validate_dependencies() -> bool:
 		return false
 
 	return true
+
+
+func _connect_navigation_obstacle_changes() -> void:
+	if navigation_manager == null:
+		return
+
+	if not navigation_manager.has_signal(
+		"firewall_obstacles_changed"
+	):
+		return
+
+	var obstacle_changed_callable: Callable = Callable(
+		self,
+		"_on_navigation_obstacles_changed"
+	)
+	if navigation_manager.is_connected(
+		"firewall_obstacles_changed",
+		obstacle_changed_callable
+	):
+		return
+
+	navigation_manager.connect(
+		"firewall_obstacles_changed",
+		obstacle_changed_callable
+	)
+
+
+func _on_navigation_obstacles_changed() -> void:
+	_prune_invalid_enemies()
+
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		enemy.invalidate_navigation_path()
 
 
 func _instantiate_enemy(
@@ -443,39 +502,35 @@ func _instantiate_enemy(
 	return enemy
 
 
-func _register_spawned_enemy(enemy: DesktopVirus) -> void:
-	if enemy == null:
-		return
-
-	enemy.configure(
-		system_manager,
-		window_manager
-	)
-
-	playfield_layer.add_child(enemy)
-
-	if not enemy.died.is_connected(_on_enemy_died):
-		enemy.died.connect(_on_enemy_died)
-
-	_active_enemies.append(enemy)
+func _register_spawned_enemy(enemy: DesktopVirus) -> bool:
+	if not _attach_enemy(enemy):
+		return false
 
 	enemy_spawned.emit(enemy)
+	return true
 
 
-func _register_restored_enemy(enemy: DesktopVirus) -> void:
+func _attach_enemy(enemy: DesktopVirus) -> bool:
 	if enemy == null:
-		return
+		return false
+
+	if enemy.get_parent() != null or _active_enemies.has(enemy):
+		push_error("Cannot attach an enemy more than once.")
+		return false
 
 	enemy.configure(
 		system_manager,
-		window_manager
+		window_manager,
+		navigation_manager
 	)
+
 	playfield_layer.add_child(enemy)
 
 	if not enemy.died.is_connected(_on_enemy_died):
 		enemy.died.connect(_on_enemy_died)
 
 	_active_enemies.append(enemy)
+	return true
 
 
 func _place_enemy_at_random_edge(enemy: DesktopVirus) -> void:

@@ -22,6 +22,7 @@ var _is_dragging: bool = false
 
 var _press_global_position: Vector2 = Vector2.ZERO
 var _drag_offset: Vector2 = Vector2.ZERO
+var _window_manager: WindowManager
 
 
 func _ready() -> void:
@@ -40,6 +41,12 @@ func force_position(new_position: Vector2) -> void:
 	position = new_position
 
 	moved.emit(position)
+
+
+func configure_window_manager(
+	window_manager: WindowManager
+) -> void:
+	_window_manager = window_manager
 
 
 func cancel_drag_for_save() -> void:
@@ -123,6 +130,16 @@ func _handle_mouse_motion(
 
 		_is_dragging = true
 
+	if (
+		is_instance_valid(_window_manager)
+		and _window_manager.is_global_point_covered_by_window(
+			mouse_global_position
+		)
+	):
+		_finish_drag(true)
+		accept_event()
+		return
+
 	global_position = _get_clamped_global_position(
 		mouse_global_position + _drag_offset
 	)
@@ -138,6 +155,16 @@ func _request_open() -> void:
 		return
 
 	open_requested.emit(program_data)
+
+
+func _finish_drag(emit_moved: bool) -> void:
+	if emit_moved and _is_dragging:
+		moved.emit(position)
+
+	_is_pressed = false
+	_is_dragging = false
+	_press_global_position = Vector2.ZERO
+	_drag_offset = Vector2.ZERO
 
 
 func _refresh_visuals() -> void:

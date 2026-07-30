@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GameContentRegistry" load_steps=24 format=3]
+[gd_resource type="Resource" script_class="GameContentRegistry" load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://Data/Persistence/GameContentRegistry.gd" id="1_registry"]
 [ext_resource type="Script" path="res://Data/Programs/ProgramData.gd" id="program_type"]
@@ -23,9 +23,10 @@
 [ext_resource type="Resource" path="res://Shop/Upgrades/RAM.tres" id="18_ram"]
 [ext_resource type="Resource" path="res://Shop/Upgrades/Reload.tres" id="19_reload_upgrade"]
 [ext_resource type="Resource" path="res://Shop/Upgrades/Resolution.tres" id="20_resolution"]
+[ext_resource type="Resource" path="res://Apps/Firewall/FirewallProgram.tres" id="21_firewall"]
 
 [resource]
 script = ExtResource("1_registry")
-programs = Array[ExtResource("program_type")]([ExtResource("2_system"), ExtResource("3_miner"), ExtResource("4_shop"), ExtResource("5_ammo"), ExtResource("6_reload"), ExtResource("7_repair"), ExtResource("8_shooting")])
+programs = Array[ExtResource("program_type")]([ExtResource("2_system"), ExtResource("3_miner"), ExtResource("4_shop"), ExtResource("5_ammo"), ExtResource("6_reload"), ExtResource("7_repair"), ExtResource("8_shooting"), ExtResource("21_firewall")])
 enemy_archetypes = Array[ExtResource("enemy_type")]([ExtResource("9_basic_virus")])
 upgrades = Array[ExtResource("upgrade_type")]([ExtResource("10_ammo_upgrade"), ExtResource("11_area_shoot"), ExtResource("12_auto_reload"), ExtResource("13_auto_shoot"), ExtResource("14_cooldown"), ExtResource("15_damage"), ExtResource("16_miner_tick"), ExtResource("17_miner_time"), ExtResource("18_ram"), ExtResource("19_reload_upgrade"), ExtResource("20_resolution")])

@@ -72,6 +72,10 @@ global.
 | `window_opened(window, data)` | `WindowManager` | Managers especializados | Bind | Implementado |
 | `window_closed(window)` | `WindowManager` | Managers especializados | Unbind | Implementado |
 | `window_focused(window)` | `WindowManager` | `TaskbarManager` | Botón activo | Implementado |
+| `firewall_established(window)` | `FirewallNavigationManager` | Ninguno | Extensión tras registro atómico | Implementado |
+| `firewall_unestablished(window)` | `FirewallNavigationManager` | Ninguno | Extensión tras desregistro | Implementado |
+| `firewall_obstacles_changed()` | `FirewallNavigationManager` | `EnemyManager` | Invalidar todos los paths antes del rebuild | Implementado |
+| `navigation_rebuilt(revision)` | `FirewallNavigationManager` | Ninguno directo | Publicar la revisión después de que `NavigationServer2D` sincroniza el mapa | Implementado |
 
 Managers que consumen `window_opened/window_closed`:
 
@@ -81,6 +85,7 @@ Managers que consumen `window_opened/window_closed`:
 - `RepairManager`
 - `ShopManager`
 - `TaskbarManager`
+- `FirewallNavigationManager`
 
 Durante restore, `WindowManager` emite `window_opened` exactamente una vez por
 ventana reconstruida para reutilizar esos bindings. No emite compras ni
@@ -187,6 +192,10 @@ emite señales funcionales de apertura de ventana.
 - `ShopWindow` conecta dinámicamente cada fila creada.
 - `TaskbarManager` crea botones y conecta foco/reordenamiento.
 - `EnemyManager` conecta `died` para cada enemigo generado.
+- `FirewallNavigationManager` conecta apertura/cierre de ventanas, vincula sólo
+  las instancias Firewall y publica una revisión después de la sincronización
+  física de cada rebuild. `EnemyManager` escucha el cambio agregado para
+  invalidar rutas; los enemigos no se conectan a cada Firewall.
 - `TaskbarSystemTray` conecta el tiempo y el día del `GameClockState` que resolvió
   al inicializarse.
 - `EnemySpawnDirector` conecta cambios de modo de `GameRunState` y consulta el

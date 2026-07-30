@@ -9,7 +9,7 @@ decisiones de diseño que todavía deben confirmarse.
 
 ## Estado de la documentación
 
-Estado verificado el 2026-07-28.
+Estado verificado el 2026-07-29.
 
 Las etiquetas usadas en todos los documentos significan:
 
@@ -33,6 +33,10 @@ Las etiquetas usadas en todos los documentos significan:
 - **Implementado:** menú principal funcional para crear y borrar perfiles,
   iniciar una partida, cargar un save y salir. `Shut Down` vuelve a ese menú
   sin guardar automáticamente.
+- **Implementado:** `Firewall.exe` se compra en Shop, admite múltiples
+  instancias con RAM independiente y puede establecer paredes dinámicas que
+  obligan a los virus a rodearlas sin permitir bloquear todas las rutas a
+  `System.exe`.
 - **Parcialmente implementado:** fin de partida, feedback de algunos rechazos,
   cambio de resolución con reacomodo y presentación del ciclo diario.
 - **Planeado:** diseño visual definitivo del menú principal, efectos runtime de
@@ -111,6 +115,9 @@ docs/       Documentación funcional y técnica.
 - `Scripts/Persistence/ProfileService.gd`
 - `Scripts/Persistence/DesktopSaveCoordinator.gd`
 - `Data/Persistence/GameContentRegistry.tres`
+- `Scripts/Firewall/FirewallWindow.gd`
+- `Scripts/Firewall/FirewallNavigationManager.gd`
+- `Apps/Firewall/FirewallWindow.tscn`
 - `Stages/Daily/DailyWaveSequence.tres`
 - `Data/GameState/GameStart.tres`
 

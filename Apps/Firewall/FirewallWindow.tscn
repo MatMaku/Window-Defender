@@ -1,0 +1,123 @@
+[gd_scene format=3 uid="uid://dk8d1s415ctep"]
+
+[ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://dtwov53fkeme0" path="res://Scripts/Firewall/FirewallWindow.gd" id="2_script"]
+[ext_resource type="Texture2D" uid="uid://br81tgeyi3hq" path="res://Sprites/Firewall/BrickWall.png" id="3_wall"]
+[ext_resource type="FontFile" uid="uid://coh1q433hthle" path="res://Fonts/W95F.otf" id="4_font"]
+[ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="5_button"]
+[ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="6_pressed"]
+[ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="7_focus"]
+
+[sub_resource type="StyleBoxTexture" id="StyleButton"]
+texture = ExtResource("5_button")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StylePressed"]
+texture = ExtResource("6_pressed")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleFocus"]
+texture = ExtResource("7_focus")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="FirewallWindow" unique_id=1261919005 instance=ExtResource("1_base")]
+custom_minimum_size = Vector2(460, 190)
+custom_maximum_size = Vector2(460, 190)
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 460.0
+offset_bottom = 190.0
+script = ExtResource("2_script")
+horizontal_size = Vector2(460, 190)
+vertical_size = Vector2(220, 430)
+mobile_wall_alpha = 0.5
+unestablish_drag_threshold = 4.0
+status_message_duration = 2.5
+
+[node name="FirewallContent" type="VBoxContainer" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=258456970]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="WallArea" type="Control" parent="MainVBox/ContentRoot/FirewallContent" index="0" unique_id=2118808271]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
+
+[node name="WallTexture" type="TextureRect" parent="MainVBox/ContentRoot/FirewallContent/WallArea" index="0" unique_id=1017901348]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_wall")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="StatusLabel" type="Label" parent="MainVBox/ContentRoot/FirewallContent/WallArea" index="1" unique_id=504178215]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="MainVBox/ContentRoot/FirewallContent" index="1" unique_id=699289020]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RotateButton" type="Button" parent="MainVBox/ContentRoot/FirewallContent/ButtonRow" index="0" unique_id=890785845]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/pressed = SubResource("StylePressed")
+theme_override_styles/hover = SubResource("StyleFocus")
+theme_override_styles/hover_pressed = SubResource("StylePressed")
+text = "Rotar"
+
+[node name="EstablishButton" type="Button" parent="MainVBox/ContentRoot/FirewallContent/ButtonRow" index="1" unique_id=1000687852]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleButton")
+theme_override_styles/pressed = SubResource("StylePressed")
+theme_override_styles/hover = SubResource("StyleFocus")
+theme_override_styles/hover_pressed = SubResource("StylePressed")
+text = "Establecer"
+
+[node name="StatusTimer" type="Timer" parent="." index="2" unique_id=357792214]
+unique_name_in_owner = true
+wait_time = 2.5
+one_shot = true

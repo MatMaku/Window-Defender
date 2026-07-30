@@ -10,6 +10,7 @@ signal restore_finished(result: PersistenceResult)
 @export var desktop: Desktop
 @export var window_manager: WindowManager
 @export var enemy_manager: EnemyManager
+@export var firewall_navigation_manager: Node
 @export var game_clock_manager: GameClockManager
 @export var enemy_spawn_director: EnemySpawnDirector
 @export var shooting_manager: ShootingManager
@@ -115,6 +116,7 @@ func restore_save_snapshot(
 		return validation_result
 
 	_stop_gameplay_processing()
+	firewall_navigation_manager.call("begin_restore")
 	_clear_runtime_for_restore()
 	GameState.reset_run()
 
@@ -155,6 +157,19 @@ func restore_save_snapshot(
 	)
 	if not enemy_result.success:
 		return _handle_restore_failure(enemy_result)
+
+	var navigation_ready: bool = bool(
+		await firewall_navigation_manager.call(
+			"finish_restore"
+		)
+	)
+	if not navigation_ready:
+		return _handle_restore_failure(
+			PersistenceResult.failure(
+				&"firewall_navigation_restore_failed",
+				"Could not rebuild Firewall navigation."
+			)
+		)
 
 	var processes: Dictionary = snapshot.get(
 		"processes",
@@ -215,8 +230,11 @@ func _initialize_session(was_paused: bool) -> void:
 
 	var initialization_result: PersistenceResult
 	if mode == ProfileSessionService.SessionMode.LOAD_GAME:
-		initialization_result = restore_save_snapshot(
-			request.get("game_snapshot", {}) as Dictionary
+		initialization_result = await restore_save_snapshot(
+			request.get(
+				"game_snapshot",
+				{}
+			) as Dictionary
 		)
 	else:
 		initialization_result = _initialize_new_game()
@@ -230,6 +248,7 @@ func _initialize_session(was_paused: bool) -> void:
 func _initialize_new_game() -> PersistenceResult:
 	_stop_gameplay_processing()
 	_clear_runtime_for_restore()
+	firewall_navigation_manager.call("cancel_restore")
 	GameState.reset_run()
 
 	desktop.spawn_initial_shortcuts()
@@ -354,6 +373,7 @@ func _handle_restore_failure(
 ) -> PersistenceResult:
 	_stop_gameplay_processing()
 	_clear_runtime_for_restore()
+	firewall_navigation_manager.call("cancel_restore")
 	GameState.reset_run()
 	desktop.spawn_initial_shortcuts()
 	return error_result
@@ -402,6 +422,11 @@ func _validate_dependencies() -> PersistenceResult:
 
 	if enemy_manager == null:
 		return _missing_dependency("EnemyManager")
+
+	if firewall_navigation_manager == null:
+		return _missing_dependency(
+			"FirewallNavigationManager"
+		)
 
 	if game_clock_manager == null:
 		return _missing_dependency("GameClockManager")

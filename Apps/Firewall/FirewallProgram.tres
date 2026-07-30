@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ProgramData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Data/Programs/ProgramData.gd" id="1_program"]
+[ext_resource type="Texture2D" uid="uid://bo7pdw8onlisa" path="res://Sprites/Icons/FirewallIcon.png" id="2_icon"]
+[ext_resource type="PackedScene" path="res://Apps/Firewall/FirewallWindow.tscn" id="3_window"]
+
+[resource]
+script = ExtResource("1_program")
+program_id = &"Firewall"
+display_name = "Firewall.exe"
+icon = ExtResource("2_icon")
+window_scene = ExtResource("3_window")
+allow_multiple_instances = true
+default_window_size = Vector2(460, 190)
+ram_cost = 32

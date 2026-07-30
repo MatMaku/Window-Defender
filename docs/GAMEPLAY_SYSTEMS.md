@@ -17,6 +17,9 @@ Fuentes:
 - **Implementado:** doble clic solicita abrir el `ProgramData` asociado.
 - **Implementado:** los shortcuts pueden arrastrarse y quedan limitados al
   `IconLayer`.
+- **Implementado:** el drag de un shortcut se corta cuando el cursor entra sobre
+  una `AppWindow` visible. El shortcut conserva la última posición que alcanzó,
+  sin proyectarse artificialmente hacia otro borde.
 - **Implementado:** posiciones se registran mediante comandos de
   `GameDesktopState`; `Desktop` conserva esa referencia tipada.
 - **Implementado:** programas comprados se agregan en la primera posición libre.
@@ -66,6 +69,8 @@ Fuentes:
 - **Implementado:** una apertura sin RAM disponible muestra error.
 - **Implementado:** menor RAM disponible aumenta la duración de apertura.
 - **Implementado:** cerrar una ventana devuelve la RAM asignada.
+- **Implementado:** cada instancia de Firewall reserva 32 RAM durante toda su
+  vida; establecerla o rotarla no cambia ese costo.
 - **Planeado:** `get_runtime_speed_multiplier()` calcula una penalización de
   velocidad, pero no tiene consumidores.
 - **Desconocido (Q-GAME-001):** definir qué procesos deben ralentizarse por
@@ -161,6 +166,54 @@ Fuentes:
   definitiva.
 - **Desconocido (Q-GAME-004):** confirmar si dañar todos los enemigos superpuestos
   es intencional.
+
+### 8.1 Firewall y movimiento con rutas
+
+Fuentes:
+
+- `Scripts/Firewall/FirewallWindow.gd`
+- `Scripts/Firewall/FirewallNavigationManager.gd`
+- `Scripts/Virus/DesktopVirus.gd`
+- `Scripts/Virus/BasicVirus.gd`
+
+- **Implementado:** un Firewall móvil es una ventana normal para enemigos; su
+  imagen es semitransparente y puede alternar dimensiones horizontal/vertical.
+- **Implementado:** Establecer usa el rectángulo global completo como pared,
+  oculta los botones, vuelve opaca la imagen y sitúa la ventana debajo de las
+  ventanas normales, pero encima del Desktop.
+- **Implementado:** se rechaza establecer si existe intersección parcial con un
+  virus, shortcut u otro Firewall establecido. Tocar bordes entre paredes sí es
+  válido.
+- **Implementado:** se rechaza una pared que elimine la ruta desde cualquier
+  muestra relevante del perímetro de spawn hasta `System.exe`.
+- **Implementado:** los virus usan paths de `NavigationServer2D` y sólo
+  recalculan cuando cambia la revisión del mapa o se mueve su destino; las
+  ventanas normales no desvían enemigos.
+- **Implementado:** un cambio de Firewall mantiene las consultas de navegación
+  pendientes hasta la sincronización del siguiente frame de física. La revisión
+  se publica recién entonces, evitando que spawn o restore cacheen el mapa
+  anterior.
+- **Implementado:** al cambiar los obstáculos, todos los virus descartan
+  inmediatamente su path y permanecen detenidos hasta poder consultar la nueva
+  revisión. La carga tampoco reanuda gameplay hasta que esa revisión existe.
+- **Implementado:** el manager conserva los rectángulos exactos asociados al
+  mapa sincronizado y rechaza paths o tramos de movimiento que crucen esas
+  paredes; una ruta inválida detiene al virus en lugar de habilitar movimiento
+  directo.
+- **Implementado:** el bake conserva un margen configurable adicional alrededor
+  de las paredes y el seguimiento admite una tolerancia de waypoint configurable
+  para reducir roces y oscilaciones en esquinas.
+- **Implementado:** al finalizar el drag de un virus, si su centro quedó fuera
+  del área navegable por rozar una pared, se recupera una sola vez al punto
+  navegable más cercano. La separación entre virus también se proyecta sobre el
+  mapa y conserva el path mientras su siguiente tramo siga siendo válido, para
+  evitar empujes contra paredes y recálculos continuos en las esquinas.
+- **Implementado:** un clic o movimiento menor al umbral conserva la pared. Al
+  superar el umbral desde la barra de título se desregistra antes de mover el
+  primer píxel y el drag continúa sin salto.
+- **Implementado:** móvil o establecido, Firewall conserva `blocks_shots` y
+  provoca la liberación del drag de un virus igual que cualquier `AppWindow`.
+  Los virus no lo atacan ni puede recibir daño.
 
 ## 9. Reloj de partida, ciclos diarios y spawn
 

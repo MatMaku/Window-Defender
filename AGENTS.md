@@ -35,6 +35,13 @@ waves driven by a fictional in-game clock.
 - Resolve persistent apps, upgrades and enemy archetypes through
   `GameContentRegistry`; do not persist display names or array positions as
   identity.
+- Treat `FirewallNavigationManager` as the single runtime registry and
+  navigation owner for established Firewall windows. Mobile Firewalls and
+  ordinary `AppWindow` instances must not become navigation obstacles.
+- Keep Firewall navigation revisions pending until `NavigationServer2D` has
+  synchronized the rebuilt map. Invalidate every enemy path on obstacle changes,
+  keep the synchronized obstacle snapshot aligned with that revision, and do not
+  resume a restored session while navigation is pending.
 - Coordinate capture and restore in `DesktopSaveCoordinator`; UI nodes and
   gameplay entities must not read or write save files directly.
 - Resolve required specialized states once during consumer initialization and

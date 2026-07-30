@@ -33,12 +33,18 @@ var virus_data_reward: int = 1
 @export var drag_enabled: bool = true
 @export var release_drag_over_windows: bool = true
 
+@export_category("Navigation")
+
+@export_range(1.0, 32.0, 0.5)
+var waypoint_reach_distance: float = 8.0
+
 @export_category("Visual")
 
 @export var visual_node_path: NodePath = ^"VirusTexture"
 
 var _system_manager: SystemManager
 var _window_manager: WindowManager
+var _navigation_manager: Node
 
 var _current_health: float = 0.0
 
@@ -51,13 +57,24 @@ var _drag_offset: Vector2 = Vector2.ZERO
 var _visual_node: Control
 var _hit_tween: Tween
 
+var _navigation_path: PackedVector2Array = (
+	PackedVector2Array()
+)
+var _navigation_path_index: int = 0
+var _navigation_revision: int = -1
+var _navigation_target: Vector2 = Vector2.INF
+var _navigation_recovery_pending: bool = false
+
 
 func configure(
 	system_manager: SystemManager,
-	window_manager: WindowManager
+	window_manager: WindowManager,
+	navigation_manager: Node = null
 ) -> void:
 	_system_manager = system_manager
 	_window_manager = window_manager
+	_navigation_manager = navigation_manager
+	invalidate_navigation_path()
 
 
 func apply_runtime_stats(
@@ -110,6 +127,9 @@ func _process(delta: float) -> void:
 
 	if _is_dragging:
 		_update_dragging()
+		return
+
+	if not _try_recover_navigation_position():
 		return
 
 	_process_virus(delta)
@@ -208,7 +228,132 @@ func apply_external_push(
 	if not can_receive_separation_push():
 		return
 
-	global_position += global_push_delta
+	var has_firewalls: bool = _has_established_firewalls()
+	if not has_firewalls:
+		global_position += global_push_delta
+		return
+
+	if _is_navigation_update_pending():
+		return
+
+	var current_center: Vector2 = get_center_global_position()
+	var desired_center: Vector2 = (
+		current_center + global_push_delta
+	)
+	var valid_center: Vector2 = (
+		_get_closest_navigation_point(
+			desired_center
+		)
+	)
+	if not _is_navigation_segment_clear(
+		current_center,
+		valid_center
+	):
+		return
+
+	var applied_push: Vector2 = (
+		valid_center - current_center
+	)
+	if applied_push.length_squared() <= 0.0001:
+		return
+
+	global_position += applied_push
+
+	if not _is_cached_navigation_path_reachable():
+		invalidate_navigation_path()
+
+
+func get_navigation_movement_target(
+	target_global_position: Vector2
+) -> Vector2:
+	if _navigation_manager == null:
+		return target_global_position
+
+	if not _has_established_firewalls():
+		invalidate_navigation_path()
+		return target_global_position
+
+	if bool(
+		_navigation_manager.call(
+			"is_navigation_update_pending"
+		)
+	):
+		return get_center_global_position()
+
+	var current_revision: int = (
+		int(
+			_navigation_manager.call(
+				"get_navigation_revision"
+			)
+		)
+	)
+	var target_changed: bool = (
+		_navigation_target == Vector2.INF
+		or _navigation_target.distance_to(
+			target_global_position
+		) > 8.0
+	)
+	if (
+		_navigation_path.is_empty()
+		or _navigation_revision != current_revision
+		or target_changed
+	):
+		_navigation_path = (
+			_navigation_manager.call(
+				"get_navigation_path",
+				get_center_global_position(),
+				target_global_position
+			) as PackedVector2Array
+		)
+		_navigation_path_index = 0
+		_navigation_revision = current_revision
+		_navigation_target = target_global_position
+
+	if _navigation_path.is_empty():
+		return get_center_global_position()
+
+	var current_center: Vector2 = get_center_global_position()
+	while (
+		_navigation_path_index
+		< _navigation_path.size()
+		and current_center.distance_to(
+			_navigation_path[_navigation_path_index]
+		) <= waypoint_reach_distance
+	):
+		var following_index: int = (
+			_navigation_path_index + 1
+		)
+		if (
+			following_index < _navigation_path.size()
+			and not _is_navigation_segment_clear(
+				current_center,
+				_navigation_path[following_index]
+			)
+		):
+			break
+		_navigation_path_index += 1
+
+	if _navigation_path_index >= _navigation_path.size():
+		if _is_navigation_segment_clear(
+			current_center,
+			target_global_position
+		):
+			return target_global_position
+
+		invalidate_navigation_path()
+		return current_center
+
+	var next_waypoint: Vector2 = (
+		_navigation_path[_navigation_path_index]
+	)
+	if not _is_navigation_segment_clear(
+		current_center,
+		next_waypoint
+	):
+		invalidate_navigation_path()
+		return current_center
+
+	return next_waypoint
 
 
 func create_save_snapshot() -> Dictionary:
@@ -268,17 +413,21 @@ func restore_from_save_snapshot(snapshot: Dictionary) -> void:
 
 
 func _create_runtime_stats_snapshot() -> Dictionary:
-	return {
-		"enemy_id": str(enemy_id),
-		"display_name": display_name,
-		"max_health": max_health,
-		"movement_speed": 0.0,
-		"attack_damage": 0.0,
-		"attack_interval_seconds": 1.0,
-		"attack_arrival_distance": 0.0,
-		"attack_overlap_distance": 0.0,
-		"virus_data_reward": virus_data_reward
-	}
+	return _create_runtime_stats().create_save_snapshot()
+
+
+func _create_runtime_stats() -> EnemyRuntimeStats:
+	var runtime_stats: EnemyRuntimeStats = EnemyRuntimeStats.new()
+	runtime_stats.enemy_id = enemy_id
+	runtime_stats.display_name = display_name
+	runtime_stats.max_health = max_health
+	runtime_stats.movement_speed = 0.0
+	runtime_stats.attack_damage = 0.0
+	runtime_stats.attack_interval_seconds = 1.0
+	runtime_stats.attack_arrival_distance = 0.0
+	runtime_stats.attack_overlap_distance = 0.0
+	runtime_stats.virus_data_reward = virus_data_reward
+	return runtime_stats
 
 
 func _create_behavior_save_snapshot() -> Dictionary:
@@ -368,10 +517,134 @@ func _set_dragging(active: bool) -> void:
 		return
 
 	_is_dragging = active
+	invalidate_navigation_path()
+
+	if active:
+		_navigation_recovery_pending = false
+	else:
+		_navigation_recovery_pending = (
+			_has_established_firewalls()
+		)
+		_try_recover_navigation_position()
 
 	dragging_changed.emit(
 		self,
 		_is_dragging
+	)
+
+
+func invalidate_navigation_path() -> void:
+	_navigation_path = PackedVector2Array()
+	_navigation_path_index = 0
+	_navigation_revision = -1
+	_navigation_target = Vector2.INF
+
+
+func _has_established_firewalls() -> bool:
+	return (
+		_navigation_manager != null
+		and bool(
+			_navigation_manager.call(
+				"has_established_firewalls"
+			)
+		)
+	)
+
+
+func _try_recover_navigation_position() -> bool:
+	if not _navigation_recovery_pending:
+		return true
+
+	if not _has_established_firewalls():
+		_navigation_recovery_pending = false
+		return true
+
+	if _is_navigation_update_pending():
+		return false
+
+	var current_center: Vector2 = get_center_global_position()
+	var valid_center: Vector2 = (
+		_get_closest_navigation_point(
+			current_center
+		)
+	)
+	var recovery_delta: Vector2 = (
+		valid_center - current_center
+	)
+	if recovery_delta.length_squared() > 0.0001:
+		global_position += recovery_delta
+
+	_navigation_recovery_pending = false
+	invalidate_navigation_path()
+	return true
+
+
+func _is_navigation_update_pending() -> bool:
+	if _navigation_manager == null:
+		return false
+
+	if not _navigation_manager.has_method(
+		"is_navigation_update_pending"
+	):
+		return false
+
+	return bool(
+		_navigation_manager.call(
+			"is_navigation_update_pending"
+		)
+	)
+
+
+func _get_closest_navigation_point(
+	global_point: Vector2
+) -> Vector2:
+	if _navigation_manager == null:
+		return global_point
+
+	if not _navigation_manager.has_method(
+		"get_closest_navigation_point"
+	):
+		return global_point
+
+	return (
+		_navigation_manager.call(
+			"get_closest_navigation_point",
+			global_point
+		) as Vector2
+	)
+
+
+func _is_cached_navigation_path_reachable() -> bool:
+	if _navigation_path.is_empty():
+		return true
+
+	if _navigation_path_index >= _navigation_path.size():
+		return true
+
+	return _is_navigation_segment_clear(
+		get_center_global_position(),
+		_navigation_path[_navigation_path_index]
+	)
+
+
+func _is_navigation_segment_clear(
+	from_global_position: Vector2,
+	to_global_position: Vector2
+) -> bool:
+	if _navigation_manager == null:
+		return true
+
+	if not _navigation_manager.has_method(
+		"is_navigation_segment_clear"
+	):
+		return true
+
+	return bool(
+		_navigation_manager.call(
+			"is_navigation_segment_clear",
+			from_global_position,
+			to_global_position
+		)
 	)
 
 

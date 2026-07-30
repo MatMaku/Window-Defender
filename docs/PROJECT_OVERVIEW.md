@@ -44,6 +44,8 @@ Fuentes principales:
 10. Las muertes entregan datos de virus.
 11. Criptomonedas y datos financian mejoras.
 12. `Reload.exe`, `Ammo.exe` y `Repair.exe` amplían las opciones defensivas.
+13. `Firewall.exe` permite gastar RAM en paredes reubicables que desvían a los
+    virus sin cerrar todas las entradas hacia `System.exe`.
 
 Estado del loop:
 
@@ -91,6 +93,7 @@ Accesos directos iniciales definidos en `Scenes/Desktop/Desktop.tscn`:
 | Ammo | Tienda | Visualiza munición actual/máxima | Implementado |
 | Reload | Tienda | Recarga normal, activa y automática | Implementado |
 | Repair | Tienda | Cura por contacto con System | Implementado |
+| Firewall | Tienda | Pared multiinstancia y navegación dinámica | Implementado |
 | Test | No integrado | Ventana de prueba | Desconocido |
 
 Fuentes:

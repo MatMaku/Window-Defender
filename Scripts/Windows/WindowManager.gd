@@ -15,6 +15,7 @@ signal window_focused(window: AppWindow)
 @export var system_error_window_scene: PackedScene
 
 var _z_index_counter: int = 100
+var _desktop_band_z_index_counter: int = 0
 
 var _single_instance_windows: Dictionary = {}
 var _error_window: SystemErrorWindow
@@ -153,6 +154,7 @@ func clear_windows_for_restore() -> void:
 	_windows_pending_restore_reveal.clear()
 	_error_window = null
 	_z_index_counter = 100
+	_desktop_band_z_index_counter = 0
 
 
 func restore_windows(
@@ -303,6 +305,28 @@ func focus_window(window: AppWindow) -> void:
 		)
 
 	window_focused.emit(window)
+
+
+func place_window_in_desktop_band(
+	window: AppWindow
+) -> void:
+	if window == null:
+		return
+
+	_desktop_band_z_index_counter = mini(
+		_desktop_band_z_index_counter + 1,
+		99
+	)
+	window.z_index = _desktop_band_z_index_counter
+
+	if window.get_parent() == window_layer:
+		window_layer.move_child(window, 0)
+
+
+func restore_window_to_normal_band(
+	window: AppWindow
+) -> void:
+	focus_window(window)
 
 
 func close_window(window: AppWindow) -> void:
@@ -521,10 +545,6 @@ func _restore_program_window(
 	window_layer.add_child(window)
 	window.allocated_ram = ram_cost
 	window.setup(program_data)
-	window.position = SaveDataCodec.data_to_vector2(
-		window_data.get("position"),
-		_get_centered_position(window)
-	)
 
 	window.focus_requested.connect(focus_window)
 	window.close_requested.connect(close_window)
@@ -550,6 +570,10 @@ func _restore_program_window(
 		).duplicate(true)
 
 	window.restore_from_save_snapshot(app_state)
+	window.position = SaveDataCodec.data_to_vector2(
+		window_data.get("position"),
+		_get_centered_position(window)
+	)
 	window.prepare_after_restore()
 	window.prepare_for_restore_reveal()
 	_windows_pending_restore_reveal.append(window)

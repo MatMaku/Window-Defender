@@ -62,6 +62,7 @@ Programas actuales:
 | Ammo | 6 | No | Tienda |
 | Reload | 12 | No | Tienda |
 | Repair | 20 | No | Tienda |
+| Firewall | 32 | Sí | Tienda |
 | test | 20 | Sí | No integrado |
 
 Fuentes: `Apps/*/*Program.tres`.
@@ -72,7 +73,7 @@ Shortcuts iniciales activos:
 - `Apps/Miner/MinerShortcut.tres`
 - `Apps/Shop/ShopShortcut.tres`
 
-Los shortcuts de Shooting, Ammo, Reload, Repair y Test existen, pero no están
+Los shortcuts de Shooting, Ammo, Reload, Repair, Firewall y Test existen, pero no están
 referenciados por `Desktop.tscn`; las compras crean `DesktopShortcutData` en
 runtime a partir del `ProgramData`.
 
@@ -88,6 +89,7 @@ runtime a partir del `ProgramData`.
 | Reload | 15 crypto |
 | Shooting | 20 crypto |
 | Repair | 45 crypto |
+| Firewall | 250 crypto (provisional) |
 
 Fuentes: `Shop/Apps/*.tres`.
 
@@ -319,6 +321,9 @@ Estado productivo conservado:
 - integridad, arma, munición, economía, minería, upgrades y resolución;
 - reloj ficticio, modo/fase/día, presupuesto y timestamp de spawn;
 - shortcuts, posiciones de ventanas y z-order;
+- cada instancia de Firewall guarda `orientation` (`horizontal` o `vertical`) e
+  `is_established` dentro de `app_state`; el mapa y los RIDs de navegación se
+  derivan y no se persisten;
 - minería por ventana, cooldown, máquina de recarga y tick de reparación;
 - arquetipo, posición, vida, stats runtime y cooldown de ataque de cada enemigo.
 

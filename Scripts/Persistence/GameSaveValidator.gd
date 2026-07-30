@@ -319,6 +319,29 @@ static func _validate_desktop(
 					"desktop.windows.app_state.elapsed_since_tick"
 				)
 
+		if program_id == &"Firewall":
+			if app_state.has("orientation"):
+				var orientation: String = str(
+					app_state.get("orientation", "")
+				)
+				if orientation not in [
+					"horizontal",
+					"vertical"
+				]:
+					return _invalid_field(
+						"desktop.windows.app_state.orientation"
+					)
+
+			if (
+				app_state.has("is_established")
+				and typeof(
+					app_state.get("is_established")
+				) != TYPE_BOOL
+			):
+				return _invalid_field(
+					"desktop.windows.app_state.is_established"
+				)
+
 		required_ram += maxi(0, program.ram_cost)
 		if not program.allow_multiple_instances:
 			var program_key: String = str(program_id)

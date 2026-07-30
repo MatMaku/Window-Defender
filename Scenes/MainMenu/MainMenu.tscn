@@ -178,6 +178,7 @@ theme_override_colors/font_selected_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("11_font")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/panel = SubResource("StyleBoxTexture_inner")
+theme_override_styles/hovered = SubResource("StyleBoxFlat_selected")
 theme_override_styles/selected = SubResource("StyleBoxFlat_selected")
 theme_override_styles/selected_focus = SubResource("StyleBoxFlat_selected")
 allow_reselect = true

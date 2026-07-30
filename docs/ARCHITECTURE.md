@@ -205,6 +205,12 @@ EnemySpawnDirector -> GameClockState
                                    -> DesktopVirus/BasicVirus
                                    -> SystemManager -> GameSystemState
 
+FirewallWindow -> FirewallNavigationManager -> NavigationServer2D
+                                      |-> Desktop / EnemyManager / SystemManager
+                                      `-> WindowManager
+
+DesktopVirus -> FirewallNavigationManager
+
 ShootingWindow -> ShootingManager -> EnemyManager
                          |-> GameWeaponState
                          `-> GameUpgradeState
@@ -252,6 +258,14 @@ y costo de RAM. `WindowManager.open_program()`:
   ventanas ocultas para un revelado visual que no emite señales de apertura ni
   vuelve a reservar RAM.
 - **Implementado:** los errores de RAM usan `SystemErrorWindow` sin costo.
+- **Implementado:** `Firewall` reutiliza `allow_multiple_instances`; cada
+  instancia se registra y reserva RAM por el mismo flujo que las demás apps.
+  `WindowManager` mantiene una banda inferior localizada para Firewalls
+  establecidos, sin alterar el orden relativo de las ventanas normales.
+- **Implementado:** `DesktopExecutable` conserva una referencia explícita a
+  `WindowManager` y finaliza el drag al entrar el cursor sobre una ventana
+  visible. `Desktop` sólo persiste la última posición alcanzada; no existe una
+  segunda ruta de proyección al soltar.
 - **Parcialmente implementado:** taskbar enfoca ventanas, pero no minimiza.
 - **Desconocido (Q-ARCH-002):** confirmar si minimizar debe formar parte del
   ciclo de vida de ventanas.
@@ -266,6 +280,43 @@ y costo de RAM. `WindowManager.open_program()`:
   movimiento, ataque, arrastre y feedback visual en nodos `Control`.
 - **Desconocido (Q-ARCH-003):** confirmar si esos sistemas deben migrar a
   controladores/modelos separados o si la composición actual es deliberada.
+
+### 8.1 Firewall y navegación
+
+`Scripts/Firewall/FirewallNavigationManager.gd` vive dentro de
+`Scenes/Desktop/Desktop.tscn`; no es autoload. Es la única colección runtime de
+Firewall establecidos y construye un `NavigationPolygon` procedural para
+`EnemyNavigationRegion` mediante `NavigationMeshSourceGeometryData2D` y
+`NavigationServer2D`.
+
+El contorno transitable es el rectángulo global de `PlayfieldLayer`, que ya
+excluye la Taskbar. Sólo el rectángulo completo de cada Firewall establecido se
+agrega como obstrucción; las ventanas normales y los Firewall móviles no forman
+parte del mapa. `DesktopVirus` conserva el path y la revisión de navegación;
+`BasicVirus` consume únicamente el siguiente waypoint.
+
+Antes de establecer, el manager valida de forma atómica intersecciones con
+enemigos, shortcuts y otras paredes, hornea un `NavigationPolygon` con el
+candidato y comprueba directamente la conectividad de sus polígonos desde el
+perímetro de spawn hasta el destino real de `System.exe`. Los cambios aceptados
+agrupan un único rebuild diferido del mapa vivo. El manager conserva el rebuild
+como pendiente hasta el siguiente frame de física, cuando `NavigationServer2D`
+ya sincronizó la región; sólo entonces incrementa la revisión que observan los
+enemigos y reemplaza el snapshot de rectángulos asociado a esa revisión.
+`EnemyManager` invalida explícitamente todas las rutas al recibir
+`firewall_obstacles_changed`; mientras el rebuild está pendiente, los virus se
+detienen en vez de consultar o cachear el mapa anterior. Cada path y segmento
+seguido se contrasta con el snapshot sincronizado para fallar cerrado ante una
+ruta inválida. Un resize de `PlayfieldLayer` agenda el rebuild después del
+relayout de ventanas para que el mapa y las paredes ya ajustadas usen la nueva
+resolución lógica.
+
+El `NavigationPolygon` usa el mayor radio soportado y un margen de obstáculo
+configurable. `DesktopVirus` mantiene una tolerancia configurable para consumir
+waypoints sin oscilar sobre una esquina exacta. Al terminar un drag, el propio
+virus proyecta su centro al punto navegable más cercano si quedó dentro del
+margen excluido. Los empujes de separación se restringen al mismo mapa y sólo
+descartan el path cacheado cuando el próximo tramo deja de ser transitable.
 
 ## 9. Persistencia
 
@@ -286,6 +337,11 @@ y costo de RAM. `WindowManager.open_program()`:
   upgrades y arquetipos por IDs estables.
 - **Implementado:** cada estado especializado produce/restaura su sección;
   ventanas, procesos y enemigos usan contratos semánticos propios.
+- **Implementado:** cada `FirewallWindow` persiste orientación y estado
+  establecido dentro de `app_state`. El registro y el mapa de navegación no se
+  serializan: `FirewallNavigationManager` los reconstruye en bloque desde las
+  ventanas restauradas y `DesktopSaveCoordinator` espera la revisión
+  sincronizada antes de completar la carga o reanudar gameplay.
 - **Implementado:** la RAM usada no se duplica: se restaura el máximo y las
   ventanas reconstruyen el uso al reservar sus costos actuales.
 - **Implementado:** la captura preserva el estado previo de pausa y no serializa
@@ -347,6 +403,10 @@ el revelado breve.
   migraciones.
 - `EnemyManager` separa enemigos en O(n²) por frame; los Resources diarios deben
   mantener límites activos razonables.
+- El bake de navegación de Firewall ocurre sólo ante cambios de obstáculos,
+  pero su costo crece con la cantidad de paredes. La validación de cierre de
+  rutas muestrea el perímetro de spawn con separación configurable y usa el
+  mayor radio de enemigo soportado como criterio conservador.
 - Bloqueo de disparos y reparación recorre ventanas y no usa el helper de ventanas
   superiores.
 - IDs y requisitos se conectan manualmente con `StringName`; el registro valida
