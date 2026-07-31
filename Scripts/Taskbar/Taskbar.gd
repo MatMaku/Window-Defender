@@ -39,6 +39,18 @@ var menu_slide_distance: float = 10.0
 	as Control
 )
 
+@onready var save_notification_host: Control = (
+	get_node_or_null("UiLayer/SaveNotificationHost")
+	as Control
+)
+
+@onready var save_notification: SystemErrorWindow = (
+	get_node_or_null(
+		"UiLayer/SaveNotificationHost/SaveNotificationWindow"
+	)
+	as SystemErrorWindow
+)
+
 @onready var shutdown_button: Button = (
 	get_node_or_null(
 		"UiLayer/StartMenu/MenuMargin/MenuVBox/ShutDownButton"
@@ -96,6 +108,18 @@ func _ready() -> void:
 		)
 		return
 
+	if save_notification_host == null:
+		push_error(
+			"Taskbar could not find UiLayer/SaveNotificationHost."
+		)
+		return
+
+	if save_notification == null:
+		push_error(
+			"Taskbar could not find SaveNotificationWindow."
+		)
+		return
+
 	if shutdown_button == null:
 		push_error(
 			"Taskbar could not find ShutDownButton."
@@ -111,11 +135,15 @@ func _ready() -> void:
 	shutdown_button.pressed.connect(
 		_on_shutdown_button_pressed
 	)
+	save_notification.close_requested.connect(
+		_on_save_notification_close_requested
+	)
 	start_menu.resized.connect(_update_start_menu_pivot)
 
 	resized.connect(_on_taskbar_resized)
 
 	_set_start_menu_open(false)
+	save_notification_host.visible = false
 	call_deferred("_cache_start_menu_rest_state")
 
 
@@ -177,6 +205,24 @@ func open_start_menu() -> void:
 
 func close_start_menu() -> void:
 	_set_start_menu_open(false)
+
+
+func show_save_success_feedback() -> void:
+	save_notification.present_message(
+		"Windows 98",
+		"Partida guardada exitosamente."
+	)
+	save_notification_host.visible = true
+	_center_save_notification()
+
+
+func present_save_result(
+	result: PersistenceResult
+) -> void:
+	if not result.success:
+		return
+
+	show_save_success_feedback()
 
 
 func complete_return_to_main_menu(
@@ -324,6 +370,12 @@ func _on_save_button_pressed() -> void:
 	save_requested.emit()
 
 
+func _on_save_notification_close_requested(
+	_window: AppWindow
+) -> void:
+	save_notification_host.visible = false
+
+
 func _on_shutdown_button_pressed() -> void:
 	if _return_to_main_menu_in_progress:
 		return
@@ -349,6 +401,14 @@ func _is_click_inside_start_interface(
 	if start_menu.get_global_rect().has_point(global_position):
 		return true
 
+	if (
+		save_notification_host.visible
+		and save_notification.get_global_rect().has_point(
+			global_position
+		)
+	):
+		return true
+
 	return false
 
 
@@ -367,10 +427,20 @@ func _update_start_menu_pivot() -> void:
 
 
 func _on_taskbar_resized() -> void:
+	if save_notification_host.visible:
+		_center_save_notification()
+
 	if _is_start_menu_open:
 		return
 
 	call_deferred("_cache_start_menu_rest_state")
+
+
+func _center_save_notification() -> void:
+	save_notification.position = (
+		(save_notification_host.size - save_notification.size)
+		* 0.5
+	)
 
 
 func _finish_close_start_menu() -> void:

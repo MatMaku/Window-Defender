@@ -171,7 +171,8 @@ Las opciones incompletas tienen scaffolding, pero su alcance no debe inferirse
 sin consulta:
 
 - **Implementado:** Save Game, visible en `Scenes/Taskbar/Taskbar.tscn`, guarda
-  la partida del perfil activo.
+  la partida del perfil activo y muestra una confirmación de cierre manual al
+  completarse.
 - **Implementado:** la carga se presenta exclusivamente desde MainMenu; el menú
   Inicio de Taskbar ya no contiene Load Game.
 - **Planeado:** Options, visible en la misma escena.
@@ -180,6 +181,9 @@ sin consulta:
   `ProfileService.return_to_main_menu()`.
 - **Implementado:** `DesktopSaveCoordinator` captura estados, ventanas,
   shortcuts, procesos y enemigos; `ProfileService` valida y persiste el archivo.
+- **Implementado:** una partida nueva persiste automáticamente su snapshot
+  inicial antes de arrancar reloj y director, por lo que el perfil es cargable
+  aun si el jugador vuelve al menú sin usar Save Game.
 - **Implementado:** `Scenes/MainMenu/MainMenu.tscn` enumera perfiles, valida
   nombres, inicia nueva partida, carga saves, elimina perfiles con confirmación
   y cierra la aplicación.

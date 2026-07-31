@@ -29,7 +29,8 @@ Las etiquetas usadas en todos los documentos significan:
   ficticio, oleadas diarias, modo infinito, disparo, munición, recarga activa,
   reparación, pausa desde el menú Inicio y retorno a MainMenu desde Shut Down.
 - **Implementado:** perfiles locales, guardado atómico, snapshot semántico y
-  restauración coordinada de una partida por perfil.
+  restauración coordinada de una partida por perfil. Crear una partida genera
+  inmediatamente un save inicial cargable antes de que avance el gameplay.
 - **Implementado:** menú principal funcional para crear y borrar perfiles,
   iniciar una partida, cargar un save y salir. `Shut Down` vuelve a ese menú
   sin guardar automáticamente.
@@ -127,8 +128,9 @@ docs/       Documentación funcional y técnica.
   de spawns, pero no inicia una pantalla de derrota ni un reinicio.
 - **Implementado:** el menú Inicio pausa el `SceneTree`, presenta el overlay de
   pausa y permite volver a MainMenu mediante Shut Down.
-- **Implementado:** Save Game guarda atómicamente en el perfil activo; sin
-  perfil devuelve `no_active_profile` y no escribe una ruta genérica.
+- **Implementado:** Save Game guarda atómicamente en el perfil activo y muestra
+  una ventana compacta de confirmación que se cierra con OK o X; sin perfil
+  devuelve `no_active_profile` y no escribe una ruta genérica.
 - **Implementado:** la carga existe exclusivamente en MainMenu; Taskbar no
   contiene un botón Load Game.
 - **Implementado:** el menú principal enumera perfiles por su ID estable,

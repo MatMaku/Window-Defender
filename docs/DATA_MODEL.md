@@ -347,6 +347,9 @@ Estado normalizado:
   elimina todo su contenido, incluidos `.tmp` y `.bak`.
 - **Parcialmente implementado:** no hay migraciones de schema; versiones
   desconocidas se rechazan.
+- **Implementado:** crear una partida persiste inmediatamente un
+  `savegame.json` con el snapshot semántico de tiempo cero; utiliza el mismo
+  schema y escritura atómica que Save Game.
 - **Planeado:** múltiples slots, autosave, renombrado, recuperación de perfiles
   borrados, cifrado, exportación/importación y nube.
 

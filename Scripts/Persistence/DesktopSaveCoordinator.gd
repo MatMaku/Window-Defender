@@ -53,6 +53,10 @@ func create_save_snapshot() -> PersistenceResult:
 			"The Desktop session is not ready to save."
 		)
 
+	return _create_save_snapshot()
+
+
+func _create_save_snapshot() -> PersistenceResult:
 	var dependency_result: PersistenceResult = (
 		_validate_dependencies()
 	)
@@ -208,6 +212,13 @@ func _initialize_session(was_paused: bool) -> void:
 	):
 		taskbar.save_requested.connect(_on_save_requested)
 
+	if not save_finished.is_connected(
+		taskbar.present_save_result
+	):
+		save_finished.connect(
+			taskbar.present_save_result
+		)
+
 	if not taskbar.return_to_main_menu_requested.is_connected(
 		_on_return_to_main_menu_requested
 	):
@@ -255,6 +266,18 @@ func _initialize_new_game() -> PersistenceResult:
 	_run_state.set_spawn_mode(
 		enemy_spawn_director.initial_spawn_mode
 	)
+
+	var initial_snapshot_result: PersistenceResult = (
+		_create_save_snapshot()
+	)
+	var initial_save_result: PersistenceResult = (
+		_persist_snapshot_result(
+			initial_snapshot_result
+		)
+	)
+	if not initial_save_result.success:
+		return initial_save_result
+
 	game_clock_manager.start_clock()
 	enemy_spawn_director.start_director(false)
 	return PersistenceResult.ok()
@@ -268,25 +291,31 @@ func _on_save_requested() -> void:
 	var snapshot_result: PersistenceResult = (
 		create_save_snapshot()
 	)
-	var result: PersistenceResult = snapshot_result
-
-	if snapshot_result.success:
-		result = ProfileService.save_active_game(
-			snapshot_result.get_data_copy() as Dictionary
-		)
+	var result: PersistenceResult = (
+		_persist_snapshot_result(snapshot_result)
+	)
 
 	tree.paused = was_paused
 	save_finished.emit(result)
 
-	if result.success:
-		print("Save completed for the active profile.")
-	else:
+	if not result.success:
 		push_warning(
 			"Save failed [%s]: %s" % [
 				str(result.code),
 				result.message
 			]
 		)
+
+
+func _persist_snapshot_result(
+	snapshot_result: PersistenceResult
+) -> PersistenceResult:
+	if not snapshot_result.success:
+		return snapshot_result
+
+	return ProfileService.save_active_game(
+		snapshot_result.get_data_copy() as Dictionary
+	)
 
 
 func _on_return_to_main_menu_requested() -> void:

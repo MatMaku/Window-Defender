@@ -25,10 +25,10 @@
 [ext_resource type="Script" uid="uid://dvk48gcarpdf1" path="res://Scripts/Repair/RepairManager.gd" id="25_241qo"]
 [ext_resource type="Script" uid="uid://d1dx8lhbxepcm" path="res://Scripts/GameClock/GameClockManager.gd" id="30_clock_manager"]
 [ext_resource type="Resource" uid="uid://k0aive8sdq65" path="res://Stages/Daily/DailyWaveSequence.tres" id="31_wave_sequence"]
-[ext_resource type="Script" path="res://Scripts/Persistence/DesktopSaveCoordinator.gd" id="32_save_coordinator"]
+[ext_resource type="Script" uid="uid://dcuc7r41oqajq" path="res://Scripts/Persistence/DesktopSaveCoordinator.gd" id="32_save_coordinator"]
 [ext_resource type="Resource" path="res://Data/Persistence/GameContentRegistry.tres" id="33_content_registry"]
-[ext_resource type="Script" path="res://Scripts/Transitions/DesktopWindowRevealController.gd" id="35_transition_controller"]
-[ext_resource type="Script" path="res://Scripts/Firewall/FirewallNavigationManager.gd" id="36_firewall_navigation"]
+[ext_resource type="Script" uid="uid://bkxitglcy8ur1" path="res://Scripts/Transitions/DesktopWindowRevealController.gd" id="35_transition_controller"]
+[ext_resource type="Script" uid="uid://cjilep531ee60" path="res://Scripts/Firewall/FirewallNavigationManager.gd" id="36_firewall_navigation"]
 
 [node name="Desktop" type="Control" unique_id=583655013]
 layout_mode = 3
@@ -109,7 +109,7 @@ system_manager = NodePath("../SystemManager")
 game_minutes_per_real_second = 10.0
 autostart = false
 
-[node name="FirewallNavigationManager" type="Node" parent="Managers" node_paths=PackedStringArray("navigation_region", "desktop", "playfield_layer", "window_manager", "enemy_manager", "system_manager")]
+[node name="FirewallNavigationManager" type="Node" parent="Managers" unique_id=356005464 node_paths=PackedStringArray("navigation_region", "desktop", "playfield_layer", "window_manager", "enemy_manager", "system_manager")]
 unique_name_in_owner = true
 script = ExtResource("36_firewall_navigation")
 navigation_region = NodePath("../../EnemyNavigationRegion")
@@ -183,8 +183,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="EnemyNavigationRegion" type="NavigationRegion2D" parent="."]
-enabled = true
+[node name="EnemyNavigationRegion" type="NavigationRegion2D" parent="." unique_id=405438773]
 use_edge_connections = false
 
 [node name="WindowLayer" type="Control" parent="." unique_id=820827125]
@@ -213,7 +212,7 @@ mouse_filter = 2
 [node name="Taskbar" parent="StatusLayer" unique_id=339390842 instance=ExtResource("18_dmnow")]
 layout_mode = 1
 
-[node name="DesktopSaveCoordinator" type="Node" parent="." node_paths=PackedStringArray("desktop", "window_manager", "enemy_manager", "firewall_navigation_manager", "game_clock_manager", "enemy_spawn_director", "shooting_manager", "reload_manager", "repair_manager", "taskbar")]
+[node name="DesktopSaveCoordinator" type="Node" parent="." unique_id=1962447729 node_paths=PackedStringArray("desktop", "window_manager", "enemy_manager", "firewall_navigation_manager", "game_clock_manager", "enemy_spawn_director", "shooting_manager", "reload_manager", "repair_manager", "taskbar")]
 unique_name_in_owner = true
 script = ExtResource("32_save_coordinator")
 content_registry = ExtResource("33_content_registry")
@@ -228,7 +227,7 @@ reload_manager = NodePath("../Managers/ReloadManager")
 repair_manager = NodePath("../Managers/RepairManager")
 taskbar = NodePath("../StatusLayer/Taskbar")
 
-[node name="DesktopWindowRevealController" type="Node" parent="." node_paths=PackedStringArray("save_coordinator", "window_manager")]
+[node name="DesktopWindowRevealController" type="Node" parent="." unique_id=718626757 node_paths=PackedStringArray("save_coordinator", "window_manager")]
 script = ExtResource("35_transition_controller")
 save_coordinator = NodePath("../DesktopSaveCoordinator")
 window_manager = NodePath("../Managers/WindowManager")

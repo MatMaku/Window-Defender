@@ -15,6 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://bohb8ne4253au" path="res://Sprites/Icons/Save Icon.png" id="11_qngra"]
 [ext_resource type="Texture2D" uid="uid://ba34vbefshkn7" path="res://Sprites/Icons/Options Icon.png" id="13_q1a8q"]
 [ext_resource type="Texture2D" uid="uid://wgegfxrsl16u" path="res://Sprites/Icons/ShutDown Icon.png" id="14_tdnhc"]
+[ext_resource type="PackedScene" path="res://Scenes/Windows/SaveSuccessWindow.tscn" id="15_save_success"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_maugy"]
 texture = ExtResource("1_xeqsl")
@@ -149,6 +150,19 @@ theme_override_font_sizes/font_size = 64
 text = "PAUSA"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="SaveNotificationHost" type="Control" parent="UiLayer"]
+visible = false
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SaveNotificationWindow" parent="UiLayer/SaveNotificationHost" instance=ExtResource("15_save_success")]
 
 [node name="TaskbarBar" type="Panel" parent="UiLayer" unique_id=475935327]
 unique_name_in_owner = true

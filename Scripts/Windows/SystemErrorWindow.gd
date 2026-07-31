@@ -15,8 +15,15 @@ func present_error(
 	error_title: String,
 	error_message: String
 ) -> void:
-	title_label.text = error_title
-	error_message_label.text = error_message
+	present_message(error_title, error_message)
+
+
+func present_message(
+	message_title: String,
+	message: String
+) -> void:
+	title_label.text = message_title
+	error_message_label.text = message
 
 
 func _on_ok_button_pressed() -> void:

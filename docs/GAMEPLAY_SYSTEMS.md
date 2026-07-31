@@ -356,12 +356,17 @@ Fuentes:
 - **Implementado:** perfiles con ID estable, nombre visible, fechas y una única
   partida.
 - **Implementado:** nueva partida resetea estado y runtime, crea shortcuts
-  iniciales y arranca reloj/director.
+  iniciales, guarda automáticamente el instante cero y recién después arranca
+  reloj/director.
 - **Implementado:** carga valida el archivo antes de cambiar a Desktop y
   reconstruye estados, shortcuts, ventanas, enemigos y procesos sin compras,
   costos, recompensas o animaciones de apertura.
 - **Implementado:** Guardar pausa temporalmente el árbol, conserva el estado de
   pausa previo y captura un único instante lógico.
+- **Implementado:** un guardado manual exitoso muestra una ventana compacta
+  titulada `Windows 98`, con el mismo marco que los errores del sistema. Vive
+  sobre el filtro de pausa, no consume RAM, no forma parte del snapshot y
+  permanece abierta hasta cerrarla mediante OK o X.
 - **Implementado:** si Save se pulsa desde el menú Inicio, el menú continúa
   abierto y el árbol permanece pausado al terminar; esa pausa no se serializa.
 - **Implementado:** los errores son `PersistenceResult` con código y mensaje;

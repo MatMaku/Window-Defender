@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bo7pdw8onlisa"
-path="res://.godot/imported/FirewallIcon.png-5717cee898301cfc818052b1fd09c832.ctex"
+uid="uid://dyifie4u5vkxb"
+path="res://.godot/imported/Firewall Icon.png-bd27cd1cf56c734843613889c54b1275.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Sprites/Icons/FirewallIcon.png"
-dest_files=["res://.godot/imported/FirewallIcon.png-5717cee898301cfc818052b1fd09c832.ctex"]
+source_file="res://Sprites/Icons/Firewall Icon.png"
+dest_files=["res://.godot/imported/Firewall Icon.png-bd27cd1cf56c734843613889c54b1275.ctex"]
 
 [params]
 

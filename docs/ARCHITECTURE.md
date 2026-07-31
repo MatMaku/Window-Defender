@@ -35,6 +35,7 @@ Desktop.tscn
   -> resetea una partida nueva o restaura un snapshot validado
   -> crea/restaura shortcuts, ventanas y enemigos
   -> restaura procesos temporales
+  -> si es nueva, persiste el snapshot inicial en tiempo cero
   -> inicia GameClockManager y EnemySpawnDirector
   -> emite restore_finished
   -> DesktopWindowRevealController mantiene la pausa
@@ -346,6 +347,15 @@ descartan el path cacheado cuando el próximo tramo deja de ser transitable.
   ventanas reconstruyen el uso al reservar sus costos actuales.
 - **Implementado:** la captura preserva el estado previo de pausa y no serializa
   el menú Inicio. Una partida cargada siempre es reanudable.
+- **Implementado:** la inicialización de una partida nueva usa la misma captura
+  semántica y ruta de `ProfileService` que el guardado manual, pero la ejecuta
+  antes de arrancar reloj y director. No constituye autosave periódico ni se
+  ejecuta al volver a MainMenu.
+- **Implementado:** `Taskbar` consume `save_finished` y presenta
+  `Scenes/Windows/SaveSuccessWindow.tscn`, una variante compacta de
+  `SystemErrorWindow` alojada dentro del `CanvasLayer` de Taskbar. No se
+  registra como aplicación, no reserva RAM y se cierra explícitamente mediante
+  OK o X.
 - **Implementado:** la restauración valida todo el snapshot antes de mutar y
   mantiene reloj/director detenidos hasta el final. Un fallo runtime limpia la
   restauración parcial y deja un estado inicial detenido.

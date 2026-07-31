@@ -173,7 +173,7 @@ menú principal.
 | `ProfileService` | `session_requested(mode, profile_id)` | Ninguno | Punto de extensión |
 | `ProfileService` | `session_initialization_completed(result)` | Ninguno | Punto de extensión |
 | `ProfileService` | `save_completed(result)` | Futuro feedback | Punto de extensión |
-| `DesktopSaveCoordinator` | `save_finished(result)` | Ninguno | Punto de extensión |
+| `DesktopSaveCoordinator` | `save_finished(result)` | `Taskbar.present_save_result()` | Implementado; muestra feedback sólo si fue exitoso |
 | `DesktopSaveCoordinator` | `restore_finished(result)` | `DesktopWindowRevealController` | Implementado |
 | `MainMenuWindow` | `close_requested()` | `MainMenu` | Implementado |
 
