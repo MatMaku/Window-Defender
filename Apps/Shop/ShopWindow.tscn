@@ -26,6 +26,7 @@
 [ext_resource type="Resource" uid="uid://cdxtebcfrqdqi" path="res://Shop/Upgrades/AutoShoot.tres" id="17_r42c3"]
 [ext_resource type="Resource" uid="uid://dmxi4sb148os4" path="res://Shop/Upgrades/AreaShoot.tres" id="18_7uw6s"]
 [ext_resource type="Resource" path="res://Shop/Apps/Firewall.tres" id="19_firewall"]
+[ext_resource type="Resource" path="res://Shop/Apps/Turret.tres" id="20_turret"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y01op"]
 texture = ExtResource("8_mmps8")
@@ -63,7 +64,7 @@ anchor_bottom = 0.347
 offset_right = 332.47986
 offset_bottom = 167.0
 script = ExtResource("2_q1p86")
-app_offers = Array[ExtResource("3_db2gu")]([ExtResource("4_ijuus"), ExtResource("5_qxgmn"), ExtResource("6_jjmci"), ExtResource("7_gfy1l"), ExtResource("19_firewall")])
+app_offers = Array[ExtResource("3_db2gu")]([ExtResource("4_ijuus"), ExtResource("5_qxgmn"), ExtResource("6_jjmci"), ExtResource("7_gfy1l"), ExtResource("19_firewall"), ExtResource("20_turret")])
 upgrade_offers = Array[ExtResource("5_lodkv")]([ExtResource("9_6yepn"), ExtResource("8_1aln8"), ExtResource("10_6ma4d"), ExtResource("11_bnxf7"), ExtResource("12_knrlb"), ExtResource("13_knrlb"), ExtResource("14_qu8np"), ExtResource("15_wqne4"), ExtResource("16_52y2s"), ExtResource("17_r42c3"), ExtResource("18_7uw6s")])
 offer_row_scene = ExtResource("6_13w5j")
 hide_scrollbars = true

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ShopAppOfferData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Data/Shop/ShopAppOfferData.gd" id="1_offer"]
+[ext_resource type="Resource" path="res://Apps/Turret/TurretProgram.tres" id="2_program"]
+
+[resource]
+script = ExtResource("1_offer")
+offer_id = &"Turret"
+program_data = ExtResource("2_program")
+price = 200

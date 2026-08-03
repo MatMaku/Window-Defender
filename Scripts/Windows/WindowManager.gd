@@ -12,6 +12,7 @@ signal window_focused(window: AppWindow)
 
 @export var window_layer: Control
 @export var ram_manager: RamManager
+@export var enemy_manager: EnemyManager
 @export var system_error_window_scene: PackedScene
 
 var _z_index_counter: int = 100
@@ -441,6 +442,56 @@ func is_shot_blocked_at_global_point(
 	)
 
 
+func get_shot_blocking_window_on_global_segment(
+	from_global_position: Vector2,
+	to_global_position: Vector2,
+	ignored_window: AppWindow = null
+) -> AppWindow:
+	if window_layer == null:
+		return null
+
+	for index: int in range(
+		window_layer.get_child_count() - 1,
+		-1,
+		-1
+	):
+		var child: Node = window_layer.get_child(index)
+		var window: AppWindow = child as AppWindow
+
+		if window == null or window == ignored_window:
+			continue
+
+		if not window.is_visible_in_tree():
+			continue
+
+		if not window.blocks_shots:
+			continue
+
+		if _global_segment_intersects_window(
+			from_global_position,
+			to_global_position,
+			window
+		):
+			return window
+
+	return null
+
+
+func is_shot_path_blocked(
+	from_global_position: Vector2,
+	to_global_position: Vector2,
+	ignored_window: AppWindow = null
+) -> bool:
+	return (
+		get_shot_blocking_window_on_global_segment(
+			from_global_position,
+			to_global_position,
+			ignored_window
+		)
+		!= null
+	)
+
+
 func _resolve_references() -> void:
 	if window_layer == null:
 		window_layer = (
@@ -454,6 +505,12 @@ func _resolve_references() -> void:
 			as RamManager
 		)
 
+	if enemy_manager == null:
+		enemy_manager = (
+			get_node_or_null("../EnemyManager")
+			as EnemyManager
+		)
+
 
 func _validate_dependencies() -> void:
 	if window_layer == null:
@@ -464,6 +521,12 @@ func _validate_dependencies() -> void:
 	if ram_manager == null:
 		push_error(
 			"WindowManager could not find RamManager."
+		)
+
+	if enemy_manager == null:
+		push_warning(
+			"WindowManager has no EnemyManager; enemy-aware "
+			+ "applications will remain inactive."
 		)
 
 
@@ -511,7 +574,79 @@ func _instantiate_app_window(
 		)
 		return null
 
+	window.configure_runtime_services(
+		self,
+		enemy_manager
+	)
+
 	return window
+
+
+func _global_segment_intersects_window(
+	from_global_position: Vector2,
+	to_global_position: Vector2,
+	window: AppWindow
+) -> bool:
+	if window == null:
+		return false
+
+	var window_rect: Rect2 = window.get_global_rect()
+	if window_rect.has_point(from_global_position):
+		return true
+
+	if window_rect.has_point(to_global_position):
+		return true
+
+	var top_left: Vector2 = window_rect.position
+	var top_right: Vector2 = Vector2(
+		window_rect.end.x,
+		window_rect.position.y
+	)
+	var bottom_right: Vector2 = window_rect.end
+	var bottom_left: Vector2 = Vector2(
+		window_rect.position.x,
+		window_rect.end.y
+	)
+	return (
+		_segments_intersect(
+			from_global_position,
+			to_global_position,
+			top_left,
+			top_right
+		)
+		or _segments_intersect(
+			from_global_position,
+			to_global_position,
+			top_right,
+			bottom_right
+		)
+		or _segments_intersect(
+			from_global_position,
+			to_global_position,
+			bottom_right,
+			bottom_left
+		)
+		or _segments_intersect(
+			from_global_position,
+			to_global_position,
+			bottom_left,
+			top_left
+		)
+	)
+
+
+func _segments_intersect(
+	first_start: Vector2,
+	first_end: Vector2,
+	second_start: Vector2,
+	second_end: Vector2
+) -> bool:
+	return Geometry2D.segment_intersects_segment(
+		first_start,
+		first_end,
+		second_start,
+		second_end
+	) != null
 
 
 func _restore_program_window(

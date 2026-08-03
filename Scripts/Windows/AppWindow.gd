@@ -72,6 +72,13 @@ func setup(program_data: ProgramData) -> void:
 		size = program_data.default_window_size
 
 
+func configure_runtime_services(
+	_window_manager: WindowManager,
+	_enemy_manager: EnemyManager
+) -> void:
+	pass
+
+
 func play_open_animation(
 	duration_multiplier: float = 1.0
 ) -> void:
@@ -138,6 +145,10 @@ func play_open_animation(
 
 func is_opening() -> bool:
 	return _is_opening
+
+
+func is_being_dragged() -> bool:
+	return _is_dragging
 
 
 func cancel_drag_for_save() -> void:

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://dxnrdw7cil2hk"]
+
+[ext_resource type="Texture2D" uid="uid://d4b0hf0a3u0ea" path="res://Sprites/Icons/Turret Icon.png" id="1_h0gd3"]
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="2_program"]
+[ext_resource type="PackedScene" uid="uid://yfvi8vcpbq2l" path="res://Apps/Turret/TurretWindow.tscn" id="3_window"]
+
+[resource]
+script = ExtResource("2_program")
+program_id = &"Turret"
+display_name = "turret.exe"
+icon = ExtResource("1_h0gd3")
+window_scene = ExtResource("3_window")
+allow_multiple_instances = true
+default_window_size = Vector2(175, 165)
+ram_cost = 24

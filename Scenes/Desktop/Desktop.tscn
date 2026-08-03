@@ -37,7 +37,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(960, 540)
+pivot_offset = Vector2(1280, 720)
 script = ExtResource("1_77fwn")
 executable_scene = ExtResource("2_rj8ej")
 shortcuts = Array[ExtResource("3_x17rd")]([ExtResource("8_cj3g8"), ExtResource("9_b33g3"), ExtResource("10_a4tqi")])
@@ -45,11 +45,12 @@ initialization_is_coordinated = true
 
 [node name="Managers" type="Node" parent="." unique_id=1878957366]
 
-[node name="WindowManager" type="Node" parent="Managers" unique_id=948347316 node_paths=PackedStringArray("window_layer", "ram_manager")]
+[node name="WindowManager" type="Node" parent="Managers" unique_id=948347316 node_paths=PackedStringArray("window_layer", "ram_manager", "enemy_manager")]
 unique_name_in_owner = true
 script = ExtResource("2_k5q52")
 window_layer = NodePath("../../WindowLayer")
 ram_manager = NodePath("../RamManager")
+enemy_manager = NodePath("../EnemyManager")
 system_error_window_scene = ExtResource("10_b46w2")
 
 [node name="SystemManager" type="Node" parent="Managers" unique_id=766561543 node_paths=PackedStringArray("desktop", "window_manager")]

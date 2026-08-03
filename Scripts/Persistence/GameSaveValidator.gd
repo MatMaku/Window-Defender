@@ -342,6 +342,22 @@ static func _validate_desktop(
 					"desktop.windows.app_state.is_established"
 				)
 
+		if program_id == &"Turret":
+			if app_state.has("cooldown_remaining"):
+				if not SaveDataCodec.is_number(
+					app_state.get("cooldown_remaining")
+				):
+					return _invalid_field(
+						"desktop.windows.app_state.cooldown_remaining"
+					)
+
+				if float(
+					app_state.get("cooldown_remaining", -1.0)
+				) < 0.0:
+					return _invalid_field(
+						"desktop.windows.app_state.cooldown_remaining"
+					)
+
 		required_ram += maxi(0, program.ram_cost)
 		if not program.allow_multiple_instances:
 			var program_key: String = str(program_id)

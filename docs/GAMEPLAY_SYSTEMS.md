@@ -71,6 +71,8 @@ Fuentes:
 - **Implementado:** cerrar una ventana devuelve la RAM asignada.
 - **Implementado:** cada instancia de Firewall reserva 32 RAM durante toda su
   vida; establecerla o rotarla no cambia ese costo.
+- **Implementado:** cada instancia de Turret reserva 24 RAM durante toda su vida;
+  cerrar una torreta no afecta el shortcut ni las demás instancias.
 - **Planeado:** `get_runtime_speed_multiplier()` calcula una penalización de
   velocidad, pero no tiene consumidores.
 - **Desconocido (Q-GAME-001):** definir qué procesos deben ralentizarse por
@@ -214,6 +216,53 @@ Fuentes:
 - **Implementado:** móvil o establecido, Firewall conserva `blocks_shots` y
   provoca la liberación del drag de un virus igual que cualquier `AppWindow`.
   Los virus no lo atacan ni puede recibir daño.
+
+### 8.2 turret.exe
+
+Fuentes:
+
+- `Apps/Turret/TurretProgram.tres`
+- `Apps/Turret/TurretWindow.tscn`
+- `Scripts/Turret/TurretWindow.gd`
+- `Scripts/Turret/TurretShotTracer.gd`
+- `Scripts/Windows/WindowManager.gd`
+- `Scripts/Virus/EnemyManager.gd`
+
+- **Implementado:** la torreta es la propia ventana; comprarla crea un shortcut
+  estable y cada apertura crea una defensa independiente. Cerrar una instancia
+  elimina esa defensa y libera únicamente sus 24 RAM.
+- **Implementado:** conserva el virus válido actual durante el cooldown y sólo
+  busca el más cercano cuando pierde target. El target debe seguir registrado,
+  vivo, dentro del rango de 150 píxeles medido desde `AimOrigin` y visible desde
+  `MuzzlePoint`.
+- **Implementado:** `AimOrigin` coincide con el centro fijo de la textura. La
+  torreta rota suavemente alrededor de ese punto incluso durante el cooldown,
+  mientras `MuzzlePoint` gira con el cañón y conserva el origen visual del
+  proyectil. La orientación base se deriva del vector entre ambos marcadores y
+  admite un offset angular adicional editable desde la escena.
+- **Implementado:** al terminar el cooldown, el disparo espera hasta que la
+  dirección real del cañón esté alineada con el enemigo dentro de la tolerancia
+  angular configurable; el tiempo empleado en apuntar no reinicia el cooldown.
+- **Implementado:** `WindowManager` comprueba el segmento completo entre boca e
+  impacto. Cualquier `AppWindow` visible con `blocks_shots`, incluidas Firewall
+  y otras Turret, bloquea; la propia ventana emisora se ignora.
+- **Implementado:** el daño 2 se aplica inmediatamente mediante
+  `DesktopVirus.receive_damage()`. No consume munición ni comparte cooldown,
+  Auto Fire o Area Shot con Shooting.
+- **Implementado:** cada disparo crea un tracer visual independiente en
+  `WindowLayer`; su extremo inicial avanza hasta el impacto fijo y el nodo se
+  autodestruye. Ventanas con mayor z-order lo cubren normalmente.
+- **Implementado:** el recoil mueve sólo `RecoilContainer`, cancela el tween
+  anterior y siempre vuelve a su posición base; no altera la ventana,
+  `MuzzlePoint` ni la posición persistida.
+- **Implementado:** durante drag y animación de apertura se suspenden targeting,
+  rotación, disparo y avance del cooldown. Al soltar se busca un target nuevo.
+- **Implementado:** cada instancia persiste sólo `cooldown_remaining`; target,
+  ángulo, tracer, recoil y drag se normalizan al cargar.
+- **Configuración provisional:** precio 200, RAM 24, daño 2, rango 150 y cooldown
+  1,25 segundos son valores editables y no constituyen balance definitivo.
+- **Planeado:** upgrades específicos de daño, rango, cooldown, rotación, RAM y
+  feedback visual. No existen todavía variantes ni prioridades configurables.
 
 ## 9. Reloj de partida, ciclos diarios y spawn
 

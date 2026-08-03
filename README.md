@@ -38,6 +38,9 @@ Las etiquetas usadas en todos los documentos significan:
   instancias con RAM independiente y puede establecer paredes dinámicas que
   obligan a los virus a rodearlas sin permitir bloquear todas las rutas a
   `System.exe`.
+- **Implementado:** `turret.exe` se compra una vez y permite abrir múltiples
+  ventanas-torreta con RAM independiente. Cada instancia adquiere un virus
+  visible, lo sigue durante su cooldown y dispara sin atravesar ventanas.
 - **Parcialmente implementado:** fin de partida, feedback de algunos rechazos,
   cambio de resolución con reacomodo y presentación del ciclo diario.
 - **Planeado:** diseño visual definitivo del menú principal, efectos runtime de
@@ -119,6 +122,8 @@ docs/       Documentación funcional y técnica.
 - `Scripts/Firewall/FirewallWindow.gd`
 - `Scripts/Firewall/FirewallNavigationManager.gd`
 - `Apps/Firewall/FirewallWindow.tscn`
+- `Scripts/Turret/TurretWindow.gd`
+- `Apps/Turret/TurretWindow.tscn`
 - `Stages/Daily/DailyWaveSequence.tres`
 - `Data/GameState/GameStart.tres`
 

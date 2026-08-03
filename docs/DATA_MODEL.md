@@ -63,6 +63,7 @@ Programas actuales:
 | Reload | 12 | No | Tienda |
 | Repair | 20 | No | Tienda |
 | Firewall | 32 | Sí | Tienda |
+| Turret | 24 | Sí | Tienda |
 | test | 20 | Sí | No integrado |
 
 Fuentes: `Apps/*/*Program.tres`.
@@ -73,9 +74,9 @@ Shortcuts iniciales activos:
 - `Apps/Miner/MinerShortcut.tres`
 - `Apps/Shop/ShopShortcut.tres`
 
-Los shortcuts de Shooting, Ammo, Reload, Repair, Firewall y Test existen, pero no están
-referenciados por `Desktop.tscn`; las compras crean `DesktopShortcutData` en
-runtime a partir del `ProgramData`.
+Los shortcuts de Shooting, Ammo, Reload, Repair, Firewall, Turret y Test existen,
+pero no están referenciados por `Desktop.tscn`; las compras crean
+`DesktopShortcutData` en runtime a partir del `ProgramData`.
 
 - **Implementado:** IDs se usan como claves de ventana, shortcut y requisitos.
 - **Desconocido (Q-DATA-002):** definir convención canónica de mayúsculas para
@@ -90,6 +91,7 @@ runtime a partir del `ProgramData`.
 | Shooting | 20 crypto |
 | Repair | 45 crypto |
 | Firewall | 250 crypto (provisional) |
+| Turret | 200 crypto (provisional) |
 
 Fuentes: `Shop/Apps/*.tres`.
 
@@ -324,6 +326,9 @@ Estado productivo conservado:
 - cada instancia de Firewall guarda `orientation` (`horizontal` o `vertical`) e
   `is_established` dentro de `app_state`; el mapa y los RIDs de navegación se
   derivan y no se persisten;
+- cada instancia de Turret guarda únicamente `cooldown_remaining` dentro de
+  `app_state`; el campo es opcional para compatibilidad y se limita al cooldown
+  configurado al restaurar;
 - minería por ventana, cooldown, máquina de recarga y tick de reparación;
 - arquetipo, posición, vida, stats runtime y cooldown de ataque de cada enemigo.
 
@@ -332,6 +337,8 @@ Estado normalizado:
 - menú Inicio/pausa, foco temporal y drag activo;
 - animaciones/tweens, flashes, hover y frame de animación;
 - Area Shot pendiente se cancela y vuelve a evaluarse normalmente;
+- target, orientación visual, tracer, recoil y drag de Turret se descartan; cada
+  instancia restaurada vuelve a buscar un enemigo cuando Desktop reanuda;
 - ventanas se restauran funcionalmente sin costo de compra y luego se revelan
   mediante una animación local que no emite señales funcionales de apertura;
 - un Miner capturado antes de iniciar su proceso restaura inactivo.

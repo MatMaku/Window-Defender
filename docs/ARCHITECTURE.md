@@ -166,6 +166,7 @@ arquitectónica actual.
 | `ShopManager` | Ventanas Shop activas |
 | `SystemManager` | Referencias al shortcut y ventana System |
 | `MinerWindow` | Timer de minería por instancia |
+| `TurretWindow` | Target, orientación, cooldown y recoil por instancia |
 | `ProfileService` | Perfil activo e intención pendiente de nueva/carga |
 | `DesktopSaveCoordinator` | Captura coherente y secuencia de restauración |
 
@@ -211,6 +212,10 @@ FirewallWindow -> FirewallNavigationManager -> NavigationServer2D
                                       `-> WindowManager
 
 DesktopVirus -> FirewallNavigationManager
+
+TurretWindow -> EnemyManager
+             -> WindowManager -> consulta de línea de visión
+             -> TurretShotTracer
 
 ShootingWindow -> ShootingManager -> EnemyManager
                          |-> GameWeaponState
@@ -263,6 +268,13 @@ y costo de RAM. `WindowManager.open_program()`:
   instancia se registra y reserva RAM por el mismo flujo que las demás apps.
   `WindowManager` mantiene una banda inferior localizada para Firewalls
   establecidos, sin alterar el orden relativo de las ventanas normales.
+- **Implementado:** `Turret` reutiliza el mismo flujo multiinstancia. La fábrica
+  de ventanas le entrega referencias explícitas a `WindowManager` y
+  `EnemyManager`; no existe un `TurretManager`, autoload ni búsqueda global.
+- **Implementado:** `WindowManager` conserva tanto la consulta de bloqueo en un
+  punto usada por Shooting como la consulta de intersección de un segmento
+  usada por Turret. Ambas respetan `blocks_shots` y permiten ignorar la ventana
+  emisora.
 - **Implementado:** `DesktopExecutable` conserva una referencia explícita a
   `WindowManager` y finaliza el drag al entrar el cursor sobre una ventana
   visible. `Desktop` sólo persiste la última posición alcanzada; no existe una
@@ -275,6 +287,9 @@ y costo de RAM. `WindowManager.open_program()`:
 
 - **Implementado:** Shooting, Reload, Repair, Shop y System separan mayormente
   managers de ventanas de presentación.
+- **Implementado:** la primera versión de Turret mantiene su lógica local por
+  instancia porque la propia ventana es la entidad defensiva. Consulta registros
+  propietarios (`EnemyManager`/`WindowManager`) y no replica sus colecciones.
 - **Parcialmente implementado:** `MinerWindow` contiene el timer y muta economía
   directamente.
 - **Parcialmente implementado:** `DesktopVirus` y `BasicVirus` combinan estado,

@@ -46,10 +46,12 @@ Fuentes principales:
 12. `Reload.exe`, `Ammo.exe` y `Repair.exe` amplían las opciones defensivas.
 13. `Firewall.exe` permite gastar RAM en paredes reubicables que desvían a los
     virus sin cerrar todas las entradas hacia `System.exe`.
+14. `turret.exe` permite gastar RAM por cada ventana abierta para mantener una
+    defensa automática con rango y línea de visión propios.
 
 Estado del loop:
 
-- **Implementado:** pasos 1 a 11 tienen flujos conectados.
+- **Implementado:** pasos 1 a 11 y 13 a 14 tienen flujos conectados.
 - **Parcialmente implementado:** el paso 12 depende de comprar, abrir y posicionar
   aplicaciones; algunos estados de error no tienen feedback conectado.
 - **Parcialmente implementado:** la destrucción del sistema detiene nuevos
@@ -94,6 +96,7 @@ Accesos directos iniciales definidos en `Scenes/Desktop/Desktop.tscn`:
 | Reload | Tienda | Recarga normal, activa y automática | Implementado |
 | Repair | Tienda | Cura por contacto con System | Implementado |
 | Firewall | Tienda | Pared multiinstancia y navegación dinámica | Implementado |
+| Turret | Tienda | Ventana-torreta automática multiinstancia | Implementado |
 | Test | No integrado | Ventana de prueba | Desconocido |
 
 Fuentes:

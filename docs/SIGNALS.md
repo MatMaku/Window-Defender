@@ -91,6 +91,12 @@ Durante restore, `WindowManager` emite `window_opened` exactamente una vez por
 ventana reconstruida para reutilizar esos bindings. No emite compras ni
 animaciones de apertura.
 
+`TurretWindow` no agrega señales públicas ni depende de los relays de Shooting.
+`WindowManager` le inyecta `EnemyManager` y la referencia a sí mismo al
+instanciarla; la torreta consulta enemigos registrados, línea de visión y aplica
+daño mediante llamadas tipadas directas. El tracer y el recoil son feedback local
+sin eventos de gameplay.
+
 ## 5. Shooting y recarga
 
 | Señal | Emisor | Consumidor | Estado |
@@ -186,6 +192,8 @@ emite señales funcionales de apertura de ventana.
 ## 10. Conexiones dinámicas
 
 - `WindowManager` conecta `focus_requested` y `close_requested` al instanciar.
+- `WindowManager` entrega sus servicios runtime a cada `AppWindow`; solamente
+  `TurretWindow` consume actualmente `EnemyManager` mediante ese contrato.
 - `ShootingManager` conecta/desconecta Shooting y AmmoWindows según apertura.
 - `ReloadManager` conecta ReloadWindow al descubrirla.
 - `ShopManager` registra cada ShopWindow y sus solicitudes.

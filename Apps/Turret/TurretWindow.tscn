@@ -1,0 +1,82 @@
+[gd_scene format=3 uid="uid://yfvi8vcpbq2l"]
+
+[ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_base"]
+[ext_resource type="Texture2D" uid="uid://dbh1pn4nwcnxs" path="res://Sprites/Windows/Window_Base_Hollow.png" id="2_dro2j"]
+[ext_resource type="Script" uid="uid://bfoam3hy1k77n" path="res://Scripts/Turret/TurretWindow.gd" id="2_script"]
+[ext_resource type="PackedScene" path="res://Apps/Turret/TurretShotTracer.tscn" id="4_tracer"]
+[ext_resource type="Texture2D" uid="uid://bw6n4s8ljxi78" path="res://Sprites/Torreta.png" id="4_vwp5w"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_iwu7j"]
+texture = ExtResource("2_dro2j")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="TurretWindow" unique_id=1240826002 instance=ExtResource("1_base")]
+custom_minimum_size = Vector2(175, 165)
+custom_maximum_size = Vector2(190, 165)
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 175.0
+offset_bottom = 165.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_iwu7j")
+script = ExtResource("2_script")
+attack_damage = 2.0
+attack_range = 150.0
+fire_cooldown_seconds = 1.25
+rotation_speed_radians = 12.0
+aim_tolerance_degrees = 2.0
+sprite_angle_offset_degrees = 0.0
+tracer_scene = ExtResource("4_tracer")
+tracer_duration_seconds = 0.2
+recoil_distance = 6.0
+recoil_out_duration = 0.04
+recoil_return_duration = 0.09
+
+[node name="TitleLabel" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="1" unique_id=278973000]
+text = "Turret.exe"
+
+[node name="TurretContent" type="CenterContainer" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=542514674]
+layout_mode = 2
+
+[node name="TurretPivot" type="Control" parent="MainVBox/ContentRoot/TurretContent" index="0" unique_id=1368677214]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(104, 104)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="RecoilContainer" type="Control" parent="MainVBox/ContentRoot/TurretContent/TurretPivot" index="0" unique_id=1802888559]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TurretTexture" type="TextureRect" parent="MainVBox/ContentRoot/TurretContent/TurretPivot/RecoilContainer" index="0" unique_id=388961094]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_vwp5w")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AimOrigin" type="Marker2D" parent="MainVBox/ContentRoot/TurretContent/TurretPivot" index="1" unique_id=1770116864]
+unique_name_in_owner = true
+position = Vector2(52, 52)
+
+[node name="MuzzlePoint" type="Marker2D" parent="MainVBox/ContentRoot/TurretContent/TurretPivot" index="2" unique_id=488000839]
+unique_name_in_owner = true
+position = Vector2(52, 2)
