@@ -19,6 +19,7 @@ identidad observadas. Las rutas `.tres` son parte de la configuración jugable.
 | `DailyWaveData` | `Data/Waves/DailyWaveData.gd` | Presupuesto y reglas de un día | Implementado |
 | `WaveSequenceData` | `Data/Waves/WaveSequenceData.gd` | Horario común y secuencia de días | Implementado |
 | `GameContentRegistry` | `Data/Persistence/GameContentRegistry.gd` | Registro de IDs persistentes | Implementado |
+| `OverclockConfigData` | `Data/Overclock/OverclockConfigData.gd` | Tiempos, multiplicador e instrucciones | Implementado |
 
 ## 3. GameStartData
 
@@ -64,6 +65,7 @@ Programas actuales:
 | Repair | 20 | No | Tienda |
 | Firewall | 32 | Sí | Tienda |
 | Turret | 24 | Sí | Tienda |
+| Overclock | 16 | No | Tienda |
 | test | 20 | Sí | No integrado |
 
 Fuentes: `Apps/*/*Program.tres`.
@@ -92,6 +94,7 @@ pero no están referenciados por `Desktop.tscn`; las compras crean
 | Repair | 45 crypto |
 | Firewall | 250 crypto (provisional) |
 | Turret | 200 crypto (provisional) |
+| Overclock | 300 crypto (provisional) |
 
 Fuentes: `Shop/Apps/*.tres`.
 
@@ -214,6 +217,7 @@ resetea y expone como referencias tipadas.
 | Tiempos de recarga | `GameReloadStatsState` | setters con clamps |
 | Producción minera | `GameMinerState` | comandos de cantidad e intervalo |
 | Crypto, datos y muertes | `GameEconomyState` | comandos transaccionales de economía |
+| Fase, timers, instrucción y multiplicador temporal | `GameOverclockState` | comandos de intento y avance desde `OverclockManager` |
 | RAM máxima y usada | `GameRamState` | reserva, liberación y cambio de máximo |
 | Resolución y shortcuts | `GameDesktopState` | comandos de desktop |
 | Compras y automatizaciones | `GameUpgradeState` | comandos de upgrades |
@@ -298,6 +302,7 @@ Ownership del snapshot:
 | `states.reload_stats` | `GameReloadStatsState` |
 | `states.miner` | `GameMinerState` |
 | `states.economy` | `GameEconomyState` |
+| `states.overclock` | `GameOverclockState` (opcional para saves anteriores) |
 | `states.ram` | `GameRamState` (sólo máximo) |
 | `states.desktop` | `GameDesktopState` (resolución/tier) |
 | `states.upgrades` | `GameUpgradeState` |
@@ -329,6 +334,8 @@ Estado productivo conservado:
 - cada instancia de Turret guarda únicamente `cooldown_remaining` dentro de
   `app_state`; el campo es opcional para compatibilidad y se limita al cooldown
   configurado al restaurar;
+- Overclock guarda fase normalizada, cooldown, duración activa, multiplicador e
+  instrucción disponible en `states.overclock`; la ventana no conserva una copia;
 - minería por ventana, cooldown, máquina de recarga y tick de reparación;
 - arquetipo, posición, vida, stats runtime y cooldown de ataque de cada enemigo.
 
@@ -339,6 +346,8 @@ Estado normalizado:
 - Area Shot pendiente se cancela y vuelve a evaluarse normalmente;
 - target, orientación visual, tracer, recoil y drag de Turret se descartan; cada
   instancia restaurada vuelve a buscar un enemigo cuando Desktop reanuda;
+- historial, texto parcial, caret y foco de Overclock se descartan; `TYPING` se
+  serializa como `READY` con la misma instrucción;
 - ventanas se restauran funcionalmente sin costo de compra y luego se revelan
   mediante una animación local que no emite señales funcionales de apertura;
 - un Miner capturado antes de iniciar su proceso restaura inactivo.

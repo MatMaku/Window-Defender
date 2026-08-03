@@ -13,6 +13,8 @@
 [ext_resource type="Script" uid="uid://bweelcyv4aibv" path="res://Scripts/Autoload/GameRunState.gd" id="10_win1h"]
 [ext_resource type="Script" uid="uid://dsgxrwcny7j33" path="res://Scripts/Autoload/GameEnemySnapshotState.gd" id="11_s4716"]
 [ext_resource type="Script" uid="uid://dnacbjtuien1" path="res://Scripts/Autoload/GameClockState.gd" id="12_clock"]
+[ext_resource type="Script" path="res://Scripts/Autoload/GameOverclockState.gd" id="13_overclock_state"]
+[ext_resource type="Resource" path="res://Data/Overclock/OverclockConfig.tres" id="14_overclock_config"]
 
 [node name="GameState" type="Node" unique_id=1229002845]
 script = ExtResource("1_8cwqe")
@@ -32,6 +34,10 @@ script = ExtResource("5_b0ej5")
 
 [node name="EconomyState" type="Node" parent="." unique_id=381000355]
 script = ExtResource("6_waqk8")
+
+[node name="OverclockState" type="Node" parent="."]
+script = ExtResource("13_overclock_state")
+config = ExtResource("14_overclock_config")
 
 [node name="RamState" type="Node" parent="." unique_id=1151680550]
 script = ExtResource("7_pb4kp")

@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_program")
 program_id = &"Turret"
-display_name = "turret.exe"
+display_name = "Turret.exe"
 icon = ExtResource("1_h0gd3")
 window_scene = ExtResource("3_window")
 allow_multiple_instances = true

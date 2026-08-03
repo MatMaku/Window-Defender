@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://brxq417it84se"]
+
+[ext_resource type="Texture2D" uid="uid://cvr0xb7bi33tv" path="res://Sprites/Icons/Overclock Icon.png" id="1_1djb6"]
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_program"]
+[ext_resource type="PackedScene" uid="uid://dy1yeod6h3bo5" path="res://Apps/Overclock/OverclockWindow.tscn" id="3_window"]
+
+[resource]
+script = ExtResource("1_program")
+program_id = &"Overclock"
+display_name = "Overclock.exe"
+icon = ExtResource("1_1djb6")
+window_scene = ExtResource("3_window")
+default_window_size = Vector2(680, 390)
+ram_cost = 16

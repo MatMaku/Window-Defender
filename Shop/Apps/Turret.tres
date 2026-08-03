@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="ShopAppOfferData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ShopAppOfferData" format=3 uid="uid://b60n054ux37hy"]
 
-[ext_resource type="Script" path="res://Data/Shop/ShopAppOfferData.gd" id="1_offer"]
-[ext_resource type="Resource" path="res://Apps/Turret/TurretProgram.tres" id="2_program"]
+[ext_resource type="Script" uid="uid://dwpx0a6fvly2m" path="res://Data/Shop/ShopAppOfferData.gd" id="1_offer"]
+[ext_resource type="Resource" uid="uid://dxnrdw7cil2hk" path="res://Apps/Turret/TurretProgram.tres" id="2_program"]
 
 [resource]
 script = ExtResource("1_offer")

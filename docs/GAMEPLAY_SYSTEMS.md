@@ -73,6 +73,8 @@ Fuentes:
   vida; establecerla o rotarla no cambia ese costo.
 - **Implementado:** cada instancia de Turret reserva 24 RAM durante toda su vida;
   cerrar una torreta no afecta el shortcut ni las demás instancias.
+- **Implementado:** Overclock es de instancia única y reserva 16 RAM únicamente
+  mientras su ventana está abierta; cerrar la ventana no cancela efecto ni cooldown.
 - **Planeado:** `get_runtime_speed_multiplier()` calcula una penalización de
   velocidad, pero no tiene consumidores.
 - **Desconocido (Q-GAME-001):** definir qué procesos deben ralentizarse por
@@ -92,6 +94,11 @@ Fuentes:
 - **Implementado:** Miner empieza después de terminar su animación de apertura.
 - **Implementado:** upgrades pueden cambiar cantidad e intervalo.
 - **Implementado:** matar un virus entrega datos y aumenta muertes totales.
+- **Implementado:** `GameEconomyState` aplica el multiplicador activo de
+  Overclock al acreditar crypto, virus data o recompensas de enemigos. Usa
+  `floor(base × multiplier)` y nunca entrega menos que la cantidad base.
+- **Implementado:** gastos, refunds administrativos, valores iniciales y restore
+  no reciben el multiplicador.
 - **Implementado:** cada Miner abierto conserva si estaba activo y el tiempo
   transcurrido hasta su siguiente tick.
 - **Desconocido (Q-GAME-002):** confirmar si la multiplicación lineal por
@@ -118,6 +125,36 @@ Fuentes:
   helper no utilizado para crearlo.
 - **Riesgo:** una mejora con efecto `NONE` puede cobrar recursos y contar la
   compra; solo genera un warning.
+
+### 6.1 overclock.exe
+
+Fuentes:
+
+- `Data/Overclock/OverclockConfig.tres`
+- `Scripts/Autoload/GameOverclockState.gd`
+- `Scripts/Overclock/OverclockManager.gd`
+- `Scripts/Overclock/OverclockWindow.gd`
+- `Apps/Overclock/OverclockWindow.tscn`
+
+- **Implementado:** se compra por 300 crypto provisional, crea un shortcut
+  persistente y usa una ventana singleton de 16 RAM con superficie CMD.
+- **Implementado:** comienza con cooldown y alterna
+  `COOLDOWN → READY → TYPING → ACTIVE → COOLDOWN`; un intento incorrecto vuelve
+  directamente a cooldown sin bonus.
+- **Implementado:** Enter compara exactamente la línea completa, con mayúsculas,
+  espacios y símbolos. Shift+Enter no envía. El input completo es verde mientras
+  coincide con el prefijo y rojo desde la primera discrepancia.
+- **Implementado:** las instrucciones se seleccionan desde un Resource y no se
+  repite inmediatamente la anterior cuando existen alternativas.
+- **Implementado:** cerrar la ventana descarta el texto parcial sin considerarlo
+  fallo, conserva la instrucción y no detiene efecto ni cooldown.
+- **Implementado:** el manager avanza en segundos de gameplay y se detiene con
+  `SceneTree.paused`; el SystemTray mantiene un borde/tint verde mientras el
+  efecto está activo.
+- **Configuración provisional:** cooldown inicial 30 s, efecto 120 s, cooldown
+  normal 180 s y multiplicador 2,0×. No constituye balance definitivo.
+- **Implementado:** fase, tiempos, multiplicador e instrucción se guardan. El
+  historial, texto parcial, foco y colores se normalizan al cargar.
 
 ## 7. Integridad y System.exe
 

@@ -41,6 +41,9 @@ Las etiquetas usadas en todos los documentos significan:
 - **Implementado:** `turret.exe` se compra una vez y permite abrir múltiples
   ventanas-torreta con RAM independiente. Cada instancia adquiere un virus
   visible, lo sigue durante su cooldown y dispara sin atravesar ventanas.
+- **Implementado:** `overclock.exe` ofrece un minijuego de tipeo singleton cuyo
+  éxito activa temporalmente un multiplicador global de ingresos productivos de
+  crypto y virus data, persistente aunque la ventana se cierre.
 - **Parcialmente implementado:** fin de partida, feedback de algunos rechazos,
   cambio de resolución con reacomodo y presentación del ciclo diario.
 - **Planeado:** diseño visual definitivo del menú principal, efectos runtime de
@@ -124,6 +127,10 @@ docs/       Documentación funcional y técnica.
 - `Apps/Firewall/FirewallWindow.tscn`
 - `Scripts/Turret/TurretWindow.gd`
 - `Apps/Turret/TurretWindow.tscn`
+- `Scripts/Autoload/GameOverclockState.gd`
+- `Scripts/Overclock/OverclockManager.gd`
+- `Scripts/Overclock/OverclockWindow.gd`
+- `Apps/Overclock/OverclockWindow.tscn`
 - `Stages/Daily/DailyWaveSequence.tres`
 - `Data/GameState/GameStart.tres`
 

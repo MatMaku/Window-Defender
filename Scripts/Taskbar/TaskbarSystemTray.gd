@@ -12,10 +12,12 @@ class_name TaskbarSystemTray
 @onready var data_label: Label = %DataLabel
 @onready var clock_label: Label = %ClockLabel
 @onready var date_label: Label = %DateLabel
+@onready var overclock_indicator: Control = %OverclockIndicator
 
 var _ram_state: GameRamState
 var _economy_state: GameEconomyState
 var _clock_state: GameClockState
+var _overclock_state: GameOverclockState
 
 
 func _ready() -> void:
@@ -24,6 +26,7 @@ func _ready() -> void:
 	_ram_state = GameState.ram_state
 	_economy_state = GameState.economy_state
 	_clock_state = GameState.clock_state
+	_overclock_state = GameState.overclock_state
 
 	if not _validate_dependencies():
 		return
@@ -68,6 +71,13 @@ func _connect_state_signals() -> void:
 			_on_clock_day_changed
 		)
 
+	if not _overclock_state.phase_changed.is_connected(
+		_on_overclock_phase_changed
+	):
+		_overclock_state.phase_changed.connect(
+			_on_overclock_phase_changed
+		)
+
 
 func _refresh_all_values() -> void:
 	_on_ram_changed(
@@ -85,6 +95,7 @@ func _refresh_all_values() -> void:
 
 	_refresh_time_label()
 	_refresh_date_label()
+	_refresh_overclock_indicator()
 
 
 func _on_ram_changed(
@@ -133,6 +144,10 @@ func _on_clock_day_changed(
 	_refresh_date_label()
 
 
+func _on_overclock_phase_changed(_phase: int) -> void:
+	_refresh_overclock_indicator()
+
+
 func _refresh_time_label() -> void:
 	var hour_24: int = _clock_state.get_hour_24()
 	var minute: int = _clock_state.get_minute()
@@ -165,6 +180,12 @@ func _refresh_date_label() -> void:
 	]
 
 
+func _refresh_overclock_indicator() -> void:
+	overclock_indicator.visible = (
+		_overclock_state.is_effect_active()
+	)
+
+
 func _validate_dependencies() -> bool:
 	if _ram_state == null:
 		push_error(
@@ -181,6 +202,12 @@ func _validate_dependencies() -> bool:
 	if _clock_state == null:
 		push_error(
 			"TaskbarSystemTray requires GameClockState."
+		)
+		return false
+
+	if _overclock_state == null:
+		push_error(
+			"TaskbarSystemTray requires GameOverclockState."
 		)
 		return false
 
@@ -211,6 +238,12 @@ func _validate_dependencies() -> bool:
 	if date_label == null:
 		push_error(
 			"TaskbarSystemTray could not find DateLabel."
+		)
+		return false
+
+	if overclock_indicator == null:
+		push_error(
+			"TaskbarSystemTray could not find OverclockIndicator."
 		)
 		return false
 

@@ -159,7 +159,7 @@ func _on_app_purchase_requested(
 
 	if executable == null:
 		if price > 0:
-			_economy_state.add_crypto(price)
+			_economy_state.refund_crypto(price)
 
 		shop_window.rebuild_shop()
 		return

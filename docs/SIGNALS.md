@@ -31,6 +31,13 @@ forman parte importante del flujo.
 | `GameEconomyState` | `crypto_changed(current)` | `ShopWindow`, `TaskbarSystemTray` | Implementado |
 | `GameEconomyState` | `virus_data_changed(current)` | `ShopWindow`, `TaskbarSystemTray` | Implementado |
 | `GameEconomyState` | `enemy_kills_changed(total)` | Ninguno | Parcialmente implementado |
+| `GameOverclockState` | `phase_changed(phase)` | `OverclockWindow`, `TaskbarSystemTray` | Implementado |
+| `GameOverclockState` | `overclock_ready()` | Punto de extensión | Implementado |
+| `GameOverclockState` | `overclock_started(multiplier, duration)` | Punto de extensión | Implementado |
+| `GameOverclockState` | `overclock_time_changed(remaining)` | `OverclockWindow` | Implementado; sólo cambia por segundo visible |
+| `GameOverclockState` | `overclock_finished()` | Punto de extensión | Implementado |
+| `GameOverclockState` | `overclock_cooldown_changed(remaining)` | `OverclockWindow` | Implementado; sólo cambia por segundo visible |
+| `GameOverclockState` | `attempt_resolved(success)` | `OverclockWindow` | Implementado |
 | `GameRamState` | `ram_changed(used, max)` | `TaskbarSystemTray` | Implementado |
 | `GameDesktopState` | `desktop_resolution_changed(resolution, tier)` | `DisplayManager` | Implementado |
 | `GameDesktopState` | `desktop_shortcuts_changed(snapshot)` | Ninguno | Planeado |
@@ -206,6 +213,11 @@ emite señales funcionales de apertura de ventana.
   invalidar rutas; los enemigos no se conectan a cada Firewall.
 - `TaskbarSystemTray` conecta el tiempo y el día del `GameClockState` que resolvió
   al inicializarse.
+- `OverclockManager` conecta las intenciones de la única `OverclockWindow` al
+  abrirla y normaliza `TYPING` al cerrarla; el estado y sus timers no pertenecen
+  a la ventana.
+- `TaskbarSystemTray` conecta `phase_changed` de `GameOverclockState` y actualiza
+  el indicador sin polling por frame.
 - `EnemySpawnDirector` conecta cambios de modo de `GameRunState` y consulta el
   `GameClockState` que resolvió al inicializarse.
 - `DesktopSaveCoordinator` conecta `Taskbar.save_requested` y

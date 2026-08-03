@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ShopAppOfferData" format=3 uid="uid://c87yion7csnip"]
+
+[ext_resource type="Script" uid="uid://dwpx0a6fvly2m" path="res://Data/Shop/ShopAppOfferData.gd" id="1_offer"]
+[ext_resource type="Resource" uid="uid://brxq417it84se" path="res://Apps/Overclock/OverclockProgram.tres" id="2_program"]
+
+[resource]
+script = ExtResource("1_offer")
+offer_id = &"Overclock"
+program_data = ExtResource("2_program")
+price = 300

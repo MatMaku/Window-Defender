@@ -594,6 +594,57 @@ static func _validate_states(
 			"Run day does not match the fictional clock."
 		)
 
+	if states.has("overclock"):
+		var overclock_result: PersistenceResult = (
+			_validate_optional_overclock_state(
+				states.get("overclock")
+			)
+		)
+		if not overclock_result.success:
+			return overclock_result
+
+	return PersistenceResult.ok()
+
+
+static func _validate_optional_overclock_state(
+	state_variant: Variant
+) -> PersistenceResult:
+	if not state_variant is Dictionary:
+		return _invalid_field("states.overclock")
+
+	var overclock: Dictionary = state_variant as Dictionary
+	for numeric_field: String in [
+		"phase",
+		"cooldown_remaining",
+		"effect_remaining",
+		"income_multiplier"
+	]:
+		if not SaveDataCodec.is_number(
+			overclock.get(numeric_field)
+		):
+			return _invalid_field(
+				"states.overclock.%s" % numeric_field
+			)
+
+	if typeof(overclock.get("current_instruction")) != TYPE_STRING:
+		return _invalid_field(
+			"states.overclock.current_instruction"
+		)
+
+	var phase: int = int(overclock.get("phase", -1))
+	if (
+		phase < GameOverclockState.Phase.COOLDOWN
+		or phase > GameOverclockState.Phase.ACTIVE
+	):
+		return _invalid_field("states.overclock.phase")
+
+	if (
+		float(overclock.get("cooldown_remaining", -1.0)) < 0.0
+		or float(overclock.get("effect_remaining", -1.0)) < 0.0
+		or float(overclock.get("income_multiplier", 0.0)) < 1.0
+	):
+		return _invalid_field("states.overclock")
+
 	return PersistenceResult.ok()
 
 

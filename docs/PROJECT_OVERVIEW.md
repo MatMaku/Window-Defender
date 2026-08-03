@@ -48,6 +48,8 @@ Fuentes principales:
     virus sin cerrar todas las entradas hacia `System.exe`.
 14. `turret.exe` permite gastar RAM por cada ventana abierta para mantener una
     defensa automática con rango y línea de visión propios.
+15. `overclock.exe` permite completar periódicamente una instrucción de consola
+    para multiplicar temporalmente todos los ingresos productivos.
 
 Estado del loop:
 
@@ -97,6 +99,7 @@ Accesos directos iniciales definidos en `Scenes/Desktop/Desktop.tscn`:
 | Repair | Tienda | Cura por contacto con System | Implementado |
 | Firewall | Tienda | Pared multiinstancia y navegación dinámica | Implementado |
 | Turret | Tienda | Ventana-torreta automática multiinstancia | Implementado |
+| Overclock | Tienda | Minijuego de tipeo y bonus global temporal | Implementado |
 | Test | No integrado | Ventana de prueba | Desconocido |
 
 Fuentes:
@@ -114,6 +117,8 @@ Fuentes:
 - **Implementado:** upgrades pueden costar criptomonedas y datos.
 - **Implementado:** los upgrades modifican arma, recarga, minería, RAM,
   resolución y automatizaciones.
+- **Implementado:** Overclock multiplica centralmente los ingresos productivos
+  de crypto y virus data; gastos, refunds, reset y restore no reciben el bonus.
 - **Implementado:** perfiles locales conservan una partida por perfil mediante
   snapshot semántico versionado.
 - **Parcialmente implementado:** no hay metaprogresión, autosave, múltiples

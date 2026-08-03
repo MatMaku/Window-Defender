@@ -23,6 +23,7 @@ var _weapon_state: GameWeaponState
 var _reload_stats_state: GameReloadStatsState
 var _miner_state: GameMinerState
 var _economy_state: GameEconomyState
+var _overclock_state: GameOverclockState
 var _ram_state: GameRamState
 var _desktop_state: GameDesktopState
 var _upgrade_state: GameUpgradeState
@@ -73,6 +74,7 @@ func _create_save_snapshot() -> PersistenceResult:
 			),
 			"miner": _miner_state.create_save_snapshot(),
 			"economy": _economy_state.create_save_snapshot(),
+			"overclock": _overclock_state.create_save_snapshot(),
 			"ram": _ram_state.create_save_snapshot(),
 			"desktop": _desktop_state.create_save_snapshot(),
 			"upgrades": _upgrade_state.create_save_snapshot(),
@@ -369,6 +371,9 @@ func _restore_specialized_states(states: Dictionary) -> void:
 	_economy_state.restore_from_save_snapshot(
 		states.get("economy", {}) as Dictionary
 	)
+	_overclock_state.restore_from_save_snapshot(
+		states.get("overclock", {}) as Dictionary
+	)
 	_ram_state.restore_from_save_snapshot(
 		states.get("ram", {}) as Dictionary
 	)
@@ -432,6 +437,7 @@ func _resolve_states() -> void:
 	_reload_stats_state = GameState.reload_stats_state
 	_miner_state = GameState.miner_state
 	_economy_state = GameState.economy_state
+	_overclock_state = GameState.overclock_state
 	_ram_state = GameState.ram_state
 	_desktop_state = GameState.desktop_state
 	_upgrade_state = GameState.upgrade_state
@@ -481,6 +487,7 @@ func _validate_dependencies() -> PersistenceResult:
 		or _reload_stats_state == null
 		or _miner_state == null
 		or _economy_state == null
+		or _overclock_state == null
 		or _ram_state == null
 		or _desktop_state == null
 		or _upgrade_state == null

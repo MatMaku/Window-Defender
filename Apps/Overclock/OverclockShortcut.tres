@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DesktopShortcutData" format=3 uid="uid://bto2edwjx1yqw"]
+
+[ext_resource type="Script" uid="uid://cyngw31l11lkj" path="res://Data/Programs/DesktopShortcutData.gd" id="1_c33q5"]
+[ext_resource type="Resource" uid="uid://brxq417it84se" path="res://Apps/Overclock/OverclockProgram.tres" id="1_pu7rg"]
+
+[resource]
+script = ExtResource("1_c33q5")
+program_data = ExtResource("1_pu7rg")
+metadata/_custom_type_script = "uid://cyngw31l11lkj"

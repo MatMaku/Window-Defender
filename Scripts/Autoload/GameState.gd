@@ -8,6 +8,7 @@ class_name RuntimeGameState
 @onready var reload_stats_state: GameReloadStatsState = $ReloadStatsState
 @onready var miner_state: GameMinerState = $MinerState
 @onready var economy_state: GameEconomyState = $EconomyState
+@onready var overclock_state: GameOverclockState = $OverclockState
 @onready var ram_state: GameRamState = $RamState
 @onready var desktop_state: GameDesktopState = $DesktopState
 @onready var upgrade_state: GameUpgradeState = $UpgradeState
@@ -18,6 +19,9 @@ class_name RuntimeGameState
 
 func _ready() -> void:
 	_ensure_start_data()
+	economy_state.configure_income_multiplier_source(
+		overclock_state
+	)
 	reset_run()
 
 
@@ -28,6 +32,7 @@ func reset_run() -> void:
 	weapon_state.reset_from_start_data(start_data)
 	reload_stats_state.reset_from_start_data(start_data)
 	miner_state.reset_from_start_data(start_data)
+	overclock_state.reset()
 	economy_state.reset_from_start_data(start_data)
 	ram_state.reset_from_start_data(start_data)
 

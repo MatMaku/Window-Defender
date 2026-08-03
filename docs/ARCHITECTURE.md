@@ -87,6 +87,7 @@ El nodo `Managers` contiene:
 - `ShopManager`
 - `DisplayManager`
 - `GameClockManager`
+- `OverclockManager`
 - `EnemyManager`
 - `EnemySpawnDirector`
 - `UpgradeManager`
@@ -105,7 +106,7 @@ ciclo de inicialización/restore.
 ## 4. Estado compartido
 
 `Scripts/Autoload/GameState.gd` (`RuntimeGameState`) es el contenedor estable del
-estado jugable. `Scenes/Autoload/GameState.tscn` compone once nodos
+estado jugable. `Scenes/Autoload/GameState.tscn` compone doce nodos
 especializados; no conoce perfiles ni archivos.
 
 | Componente | Estado propietario |
@@ -115,6 +116,7 @@ especializados; no conoce perfiles ni archivos.
 | `GameReloadStatsState` | Tiempos de recarga |
 | `GameMinerState` | Producción e intervalo |
 | `GameEconomyState` | Criptomonedas, datos y muertes |
+| `GameOverclockState` | Fase, instrucción, cooldown, duración y multiplicador de Overclock |
 | `GameRamState` | RAM máxima y utilizada |
 | `GameDesktopState` | Resolución y posiciones de shortcuts |
 | `GameUpgradeState` | Compras y automatizaciones |
@@ -142,7 +144,7 @@ API pública final del contenedor:
 
 - `start_data`
 - `system_state`, `weapon_state`, `reload_stats_state`, `miner_state`
-- `economy_state`, `ram_state`, `desktop_state`, `upgrade_state`
+- `economy_state`, `overclock_state`, `ram_state`, `desktop_state`, `upgrade_state`
 - `clock_state`, `run_state`, `enemy_snapshot_state`
 - `reset_run()`
 
@@ -158,6 +160,7 @@ arquitectónica actual.
 | `WindowManager` | Ventanas únicas, error activo y z-index |
 | `TaskbarManager` | Botones por instancia y ventana enfocada |
 | `GameClockManager` | Estado activo/inactivo del avance del reloj |
+| `OverclockManager` | Avance en segundos y coordinación de la ventana de Overclock |
 | `ShootingManager` | Ventana Shooting activa, cooldown y lock de recarga |
 | `ReloadManager` | Máquina de estados y timers de recarga |
 | `EnemyManager` | Array de enemigos vivos |
@@ -199,6 +202,11 @@ Desktop -> GameDesktopState
 DesktopExecutable -> WindowManager -> RamManager -> GameRamState
 
 GameClockManager -> GameClockState
+
+OverclockWindow -> GameOverclockState
+                -> OverclockManager -> GameOverclockState
+GameEconomyState -> consulta el multiplicador productivo de GameOverclockState
+TaskbarSystemTray -> GameOverclockState
 
 EnemySpawnDirector -> GameClockState
                    -> GameRunState
@@ -285,8 +293,11 @@ y costo de RAM. `WindowManager.open_program()`:
 
 ## 8. Lógica y presentación
 
-- **Implementado:** Shooting, Reload, Repair, Shop y System separan mayormente
+- **Implementado:** Shooting, Reload, Repair, Shop, Overclock y System separan mayormente
   managers de ventanas de presentación.
+- **Implementado:** `OverclockWindow` presenta el minijuego y emite intenciones;
+  `OverclockManager` avanza y coordina, mientras `GameOverclockState` conserva
+  las invariantes y el estado persistente aunque la ventana se cierre.
 - **Implementado:** la primera versión de Turret mantiene su lógica local por
   instancia porque la propia ventana es la entidad defensiva. Consulta registros
   propietarios (`EnemyManager`/`WindowManager`) y no replica sus colecciones.
@@ -353,6 +364,9 @@ descartan el path cacheado cuando el próximo tramo deja de ser transitable.
   upgrades y arquetipos por IDs estables.
 - **Implementado:** cada estado especializado produce/restaura su sección;
   ventanas, procesos y enemigos usan contratos semánticos propios.
+- **Implementado:** `states.overclock` es opcional dentro del schema 1 para
+  aceptar saves anteriores. Al faltar se restaura el cooldown inicial; un intento
+  parcial se normaliza a `READY` y no persiste texto ni historial.
 - **Implementado:** cada `FirewallWindow` persiste orientación y estado
   establecido dentro de `app_state`. El registro y el mapa de navegación no se
   serializan: `FirewallNavigationManager` los reconstruye en bloque desde las

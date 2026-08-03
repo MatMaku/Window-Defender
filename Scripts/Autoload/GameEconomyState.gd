@@ -20,6 +20,13 @@ var total_enemy_kills: int:
 var _crypto: int = 0
 var _virus_data: int = 0
 var _total_enemy_kills: int = 0
+var _income_multiplier_source: GameOverclockState
+
+
+func configure_income_multiplier_source(
+	source: GameOverclockState
+) -> void:
+	_income_multiplier_source = source
 
 
 func reset_from_start_data(start_data: GameStartData) -> void:
@@ -41,6 +48,15 @@ func reset_from_start_data(start_data: GameStartData) -> void:
 
 
 func add_crypto(amount: int) -> bool:
+	if amount <= 0:
+		return false
+
+	_crypto += _apply_productive_income_multiplier(amount)
+	crypto_changed.emit(_crypto)
+	return true
+
+
+func refund_crypto(amount: int) -> bool:
 	if amount <= 0:
 		return false
 
@@ -69,6 +85,15 @@ func try_spend_crypto(amount: int) -> bool:
 
 
 func add_virus_data(amount: int) -> bool:
+	if amount <= 0:
+		return false
+
+	_virus_data += _apply_productive_income_multiplier(amount)
+	virus_data_changed.emit(_virus_data)
+	return true
+
+
+func refund_virus_data(amount: int) -> bool:
 	if amount <= 0:
 		return false
 
@@ -101,8 +126,7 @@ func register_enemy_kill(virus_data_reward: int = 1) -> void:
 	enemy_kills_changed.emit(_total_enemy_kills)
 
 	if virus_data_reward > 0:
-		_virus_data += virus_data_reward
-		virus_data_changed.emit(_virus_data)
+		add_virus_data(virus_data_reward)
 
 
 func can_afford_resources(
@@ -161,3 +185,18 @@ func restore_from_save_snapshot(snapshot: Dictionary) -> void:
 	crypto_changed.emit(_crypto)
 	virus_data_changed.emit(_virus_data)
 	enemy_kills_changed.emit(_total_enemy_kills)
+
+
+func _apply_productive_income_multiplier(
+	base_amount: int
+) -> int:
+	var multiplier: float = 1.0
+	if _income_multiplier_source != null:
+		multiplier = (
+			_income_multiplier_source.get_income_multiplier()
+		)
+
+	return maxi(
+		base_amount,
+		floori(float(base_amount) * maxf(1.0, multiplier))
+	)

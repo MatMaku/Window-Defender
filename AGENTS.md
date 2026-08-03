@@ -22,6 +22,12 @@ waves driven by a fictional in-game clock.
 - Prefer data-driven Resources for configurable gameplay content.
 - Treat `GameClockState` as the only source of fictional game time.
   `GameClockManager` is the only component that advances it.
+- Treat `GameOverclockState` as the owner of overclock phase, timers,
+  instruction and active multiplier. `OverclockManager` is the only component
+  that advances its gameplay seconds.
+- Apply temporary income bonuses centrally in `GameEconomyState`. Productive
+  income commands may use the multiplier; spending, refunds, reset and restore
+  must remain unmodified.
 - Configure enemy progression through `WaveSequenceData`, `DailyWaveData`,
   `WaveEnemyEntry`, and `EnemyArchetypeData`; do not reintroduce elapsed-time
   progression parallel to the daily-wave system.

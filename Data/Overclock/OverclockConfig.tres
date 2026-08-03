@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="OverclockConfigData" format=3]
+
+[ext_resource type="Script" path="res://Data/Overclock/OverclockConfigData.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+initial_cooldown_seconds = 30.0
+effect_duration_seconds = 120.0
+cooldown_duration_seconds = 180.0
+income_multiplier = 2.0
+instructions = Array[String](["overclock economy --crypto-output 200 --virus-data-output 200", "optimize mining-process --global-income-multiplier 2.00", "execute boost_protocol --target crypto,virus_data --mode temporary", "systemctl enable economy-overclock --apply-to all-income-sources", "run performance_patch --crypto bonus --virus-data bonus --confirm", "patch income_pipeline --crypto 2x --virus-data 2x --verify"])
