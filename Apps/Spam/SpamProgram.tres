@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://cv1fmv5l6t3yn"]
+
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="1_program"]
+[ext_resource type="Texture2D" uid="uid://cu81w1rbrbgmk" path="res://icon.svg" id="2_icon"]
+[ext_resource type="PackedScene" uid="uid://c5nvqp8rhmmq7" path="res://Apps/Spam/SpamWindow.tscn" id="3_window"]
+
+[resource]
+script = ExtResource("1_program")
+program_id = &"SpamWindow"
+display_name = "Advertisement"
+icon = ExtResource("2_icon")
+window_scene = ExtResource("3_window")
+allow_multiple_instances = true
+requires_desktop_shortcut = false
+default_window_size = Vector2(350, 450)
+ram_cost = 16

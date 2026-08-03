@@ -7,4 +7,4 @@
 script = ExtResource("1_offer")
 offer_id = &"Overclock"
 program_data = ExtResource("2_program")
-price = 300
+price = 320

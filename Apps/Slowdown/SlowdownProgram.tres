@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ProgramData" format=3 uid="uid://853lcgh3b2gr"]
+
+[ext_resource type="Texture2D" uid="uid://btbk3gownbg4s" path="res://Sprites/Icons/Slowdown Icon.png" id="1_0nbev"]
+[ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="2_program"]
+[ext_resource type="PackedScene" uid="uid://baobdgopixbg1" path="res://Apps/Slowdown/SlowdownWindow.tscn" id="3_window"]
+
+[resource]
+script = ExtResource("2_program")
+program_id = &"Slowdown"
+display_name = "Slowdown.exe"
+icon = ExtResource("1_0nbev")
+window_scene = ExtResource("3_window")
+allow_multiple_instances = true
+default_window_size = Vector2(205, 160)
+ram_cost = 32

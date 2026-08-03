@@ -57,6 +57,14 @@ var _drag_offset: Vector2 = Vector2.ZERO
 var _visual_node: Control
 var _hit_tween: Tween
 
+var _base_control_size: Vector2 = Vector2.ZERO
+var _base_visual_scale: Vector2 = Vector2.ONE
+var _base_visual_modulate: Color = Color.WHITE
+var _visual_defaults_captured: bool = false
+var _archetype_visual_scale: float = 1.0
+var _archetype_collision_scale: float = 1.0
+var _archetype_visual_modulate: Color = Color.WHITE
+
 var _navigation_path: PackedVector2Array = (
 	PackedVector2Array()
 )
@@ -64,6 +72,7 @@ var _navigation_path_index: int = 0
 var _navigation_revision: int = -1
 var _navigation_target: Vector2 = Vector2.INF
 var _navigation_recovery_pending: bool = false
+var _active_slow_multiplier: float = 1.0
 
 
 func configure(
@@ -100,6 +109,30 @@ func apply_runtime_stats(
 		_reset_health_to_max()
 
 
+func apply_archetype_presentation(
+	archetype: EnemyArchetypeData
+) -> void:
+	if archetype == null:
+		return
+
+	_archetype_visual_scale = maxf(
+		0.1,
+		archetype.visual_scale
+	)
+	_archetype_collision_scale = maxf(
+		0.1,
+		archetype.collision_scale
+	)
+	_archetype_visual_modulate = (
+		archetype.visual_modulate
+	)
+
+	_apply_archetype_control_size()
+
+	if is_node_ready():
+		_apply_archetype_visual()
+
+
 func prepare_for_restore(
 	runtime_stats: EnemyRuntimeStats
 ) -> void:
@@ -114,11 +147,61 @@ func _ready() -> void:
 		get_node_or_null(visual_node_path)
 		as Control
 	)
+	_capture_visual_defaults()
+	_apply_archetype_control_size()
+	_apply_archetype_visual()
 
 	if _restore_prepared:
 		_current_health = max_health
 	else:
 		_reset_health_to_max()
+
+
+func _apply_archetype_control_size() -> void:
+	if _base_control_size == Vector2.ZERO:
+		_base_control_size = custom_minimum_size
+
+		if _base_control_size == Vector2.ZERO:
+			_base_control_size = size
+
+		if _base_control_size == Vector2.ZERO:
+			_base_control_size = Vector2(46.0, 46.0)
+
+	var scaled_size: Vector2 = (
+		_base_control_size * _archetype_collision_scale
+	)
+	custom_minimum_size = scaled_size
+	custom_maximum_size = scaled_size
+	size = scaled_size
+	pivot_offset = scaled_size * 0.5
+
+
+func _capture_visual_defaults() -> void:
+	if _visual_defaults_captured or _visual_node == null:
+		return
+
+	_base_visual_scale = _visual_node.scale
+	_base_visual_modulate = _visual_node.modulate
+	_visual_defaults_captured = true
+
+
+func _apply_archetype_visual() -> void:
+	if _visual_node == null:
+		return
+
+	_capture_visual_defaults()
+
+	var scale_relative_to_collision: float = (
+		_archetype_visual_scale
+		/ _archetype_collision_scale
+	)
+	_visual_node.pivot_offset = _visual_node.size * 0.5
+	_visual_node.scale = (
+		_base_visual_scale * scale_relative_to_collision
+	)
+	_visual_node.modulate = (
+		_base_visual_modulate * _archetype_visual_modulate
+	)
 
 
 func _process(delta: float) -> void:
@@ -204,6 +287,14 @@ func can_receive_separation_push() -> bool:
 		not _is_dead
 		and not _is_dragging
 	)
+
+
+func set_active_slow_multiplier(multiplier: float) -> void:
+	_active_slow_multiplier = clampf(multiplier, 0.0, 1.0)
+
+
+func get_active_slow_multiplier() -> float:
+	return _active_slow_multiplier
 
 
 func get_center_global_position() -> Vector2:

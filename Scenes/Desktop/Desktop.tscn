@@ -30,6 +30,7 @@
 [ext_resource type="Script" uid="uid://bkxitglcy8ur1" path="res://Scripts/Transitions/DesktopWindowRevealController.gd" id="35_transition_controller"]
 [ext_resource type="Script" uid="uid://cjilep531ee60" path="res://Scripts/Firewall/FirewallNavigationManager.gd" id="36_firewall_navigation"]
 [ext_resource type="Script" uid="uid://nhoq2xig6uy0" path="res://Scripts/Overclock/OverclockManager.gd" id="37_overclock_manager"]
+[ext_resource type="Resource" uid="uid://cv1fmv5l6t3yn" path="res://Apps/Spam/SpamProgram.tres" id="38_spam_program"]
 
 [node name="Desktop" type="Control" unique_id=583655013]
 layout_mode = 3
@@ -53,6 +54,7 @@ window_layer = NodePath("../../WindowLayer")
 ram_manager = NodePath("../RamManager")
 enemy_manager = NodePath("../EnemyManager")
 system_error_window_scene = ExtResource("10_b46w2")
+spam_program_data = ExtResource("38_spam_program")
 
 [node name="SystemManager" type="Node" parent="Managers" unique_id=766561543 node_paths=PackedStringArray("desktop", "window_manager")]
 unique_name_in_owner = true
@@ -108,7 +110,7 @@ window_manager = NodePath("../WindowManager")
 unique_name_in_owner = true
 script = ExtResource("30_clock_manager")
 system_manager = NodePath("../SystemManager")
-game_minutes_per_real_second = 10.0
+game_minutes_per_real_second = 14.4
 autostart = false
 
 [node name="OverclockManager" type="Node" parent="Managers" unique_id=581719052 node_paths=PackedStringArray("window_manager")]

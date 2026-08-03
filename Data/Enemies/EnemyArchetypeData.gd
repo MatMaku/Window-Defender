@@ -7,10 +7,23 @@ class_name EnemyArchetypeData
 @export var display_name: String = "Basic Virus"
 @export var enemy_scene: PackedScene
 
+@export_category("Presentation")
+
+@export_range(0.1, 4.0, 0.01)
+var visual_scale: float = 1.0
+
+@export var visual_modulate: Color = Color.WHITE
+
+@export_range(0.1, 4.0, 0.01)
+var collision_scale: float = 1.0
+
 @export_category("Base Stats")
 
 @export_range(0.1, 999.0, 0.1)
 var base_max_health: float = 2.0
+
+@export_range(0.0, 999.0, 0.1)
+var maximum_scaled_health: float = 0.0
 
 @export_range(0.0, 1000.0, 0.1)
 var base_movement_speed: float = 48.0

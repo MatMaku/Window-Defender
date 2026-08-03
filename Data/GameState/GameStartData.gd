@@ -19,13 +19,13 @@ class_name GameStartData
 
 @export_category("Miner")
 
-@export var miner_crypto_per_tick: int = 1
+@export var miner_crypto_per_tick: int = 3
 @export var miner_interval_seconds: float = 5.0
 
 @export_category("Economy")
 
-@export var starting_crypto: int = 1000
-@export var starting_virus_data: int = 1000
+@export var starting_crypto: int = 50
+@export var starting_virus_data: int = 0
 
 @export_category("RAM")
 

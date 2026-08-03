@@ -6,5 +6,8 @@
 
 [resource]
 script = ExtResource("2_day")
-display_name = "Day 1 - Provisional"
+display_name = "Slice 1 - Manual Defense"
+spawn_budget = 10.0
+spawn_interval_game_minutes = 144.0
+max_active_enemies = 6
 enemy_entries = Array[ExtResource("1_entry_script")]([ExtResource("3_entry")])

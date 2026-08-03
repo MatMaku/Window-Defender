@@ -66,7 +66,8 @@ Fuentes:
 - `Apps/*/*Program.tres`
 
 - **Implementado:** cada ventana reserva su `ram_cost` al abrir.
-- **Implementado:** una apertura sin RAM disponible muestra error.
+- **Implementado:** una apertura solicitada por el jugador sin RAM disponible
+  muestra error; el intento periódico de Adware es la excepción silenciosa.
 - **Implementado:** menor RAM disponible aumenta la duración de apertura.
 - **Implementado:** cerrar una ventana devuelve la RAM asignada.
 - **Implementado:** cada instancia de Firewall reserva 32 RAM durante toda su
@@ -75,6 +76,11 @@ Fuentes:
   cerrar una torreta no afecta el shortcut ni las demás instancias.
 - **Implementado:** Overclock es de instancia única y reserva 16 RAM únicamente
   mientras su ventana está abierta; cerrar la ventana no cancela efecto ni cooldown.
+- **Implementado:** cada instancia de Slowdown reserva 32 RAM; cerrar una antena
+  libera sólo su reserva y no elimina el shortcut ni las demás instancias.
+- **Implementado:** cada SpamWindow reserva 16 RAM. Si Adware intenta crearla sin
+  RAM disponible, el intento se descarta silenciosamente hasta el próximo
+  intervalo y no se acumulan aperturas atrasadas.
 - **Planeado:** `get_runtime_speed_multiplier()` calcula una penalización de
   velocidad, pero no tiene consumidores.
 - **Desconocido (Q-GAME-001):** definir qué procesos deben ralentizarse por
@@ -91,6 +97,9 @@ Fuentes:
 
 - **Implementado:** cada instancia abierta de Miner genera criptomonedas de forma
   independiente.
+- **Configuración de slice:** cada Miner comienza en 3 crypto cada 5 segundos,
+  equivalente a 36 crypto por minuto activo. Dos instancias base producen 72;
+  sus mejoras elevan cantidad y reducen intervalo sin crear otro timer global.
 - **Implementado:** Miner empieza después de terminar su animación de apertura.
 - **Implementado:** upgrades pueden cambiar cantidad e intervalo.
 - **Implementado:** matar un virus entrega datos y aumenta muertes totales.
@@ -120,7 +129,13 @@ Fuentes:
 - **Implementado:** aplicaciones ya instaladas se ocultan.
 - **Implementado:** compras validan recursos y requisitos.
 - **Implementado:** una compra de aplicación fallida reembolsa criptomonedas.
-- **Implementado:** upgrades maxeados o con requisitos incumplidos se ocultan.
+- **Implementado:** upgrades con requisitos incumplidos se ocultan. Las tres
+  mejoras defensivas repetibles conservan su fila al llegar al máximo y muestran
+  nivel actual/máximo, precio siguiente y estado `MAX`; las ofertas anteriores
+  mantienen su comportamiento de ocultarse al completarse.
+- **Configuración de slice:** las líneas principales tienen entre seis y ocho
+  niveles con curvas progresivas. Los precios completos y el pacing esperado
+  están en `docs/VERTICAL_SLICE_BALANCE.md`.
 - **Parcialmente implementado:** no se presenta un estado vacío aunque existe un
   helper no utilizado para crearlo.
 - **Riesgo:** una mejora con efecto `NONE` puede cobrar recursos y contar la
@@ -136,7 +151,7 @@ Fuentes:
 - `Scripts/Overclock/OverclockWindow.gd`
 - `Apps/Overclock/OverclockWindow.tscn`
 
-- **Implementado:** se compra por 300 crypto provisional, crea un shortcut
+- **Implementado:** se compra por 320 crypto provisional, crea un shortcut
   persistente y usa una ventana singleton de 16 RAM con superficie CMD.
 - **Implementado:** comienza con cooldown y alterna
   `COOLDOWN → READY → TYPING → ACTIVE → COOLDOWN`; un intento incorrecto vuelve
@@ -179,28 +194,48 @@ Fuentes:
 
 - `Scripts/Virus/DesktopVirus.gd`
 - `Scripts/Virus/BasicVirus.gd`
+- `Scripts/Virus/AdwareVirus.gd`
 - `Scripts/Virus/EnemyManager.gd`
 - `Scenes/Virus/BasicVirus.tscn`
+- `Scenes/Virus/AdwareVirus.tscn`
 - `Data/Enemies/EnemyArchetypeData.gd`
 - `Data/Enemies/EnemyRuntimeStats.gd`
 - `Stages/Daily/Archetypes/BasicVirus.tres`
+- `Stages/Daily/Archetypes/AdwareVirus.tres`
+- `Stages/Daily/Archetypes/RunnerVirus.tres`
+- `Stages/Daily/Archetypes/BruteVirus.tres`
 
 - **Implementado:** spawn desde un borde aleatorio.
 - **Implementado:** salud, daño, muerte y recompensa.
 - **Implementado:** BasicVirus avanza hacia el rectángulo de System y ataca por
   intervalos.
+- **Implementado:** RunnerVirus y BruteVirus reutilizan esa misma escena y
+  comportamiento. Runner es pequeño, rápido, tiene 0,75 de vida y muere con el
+  disparo base; Brute es grande, lento y conserva 12 de vida base para requerir
+  varios impactos durante toda la slice.
+- **Implementado:** AdwareVirus nunca ataca System. Elige la ventana elegible más
+  cercana, conserva ese objetivo, sigue un punto interior seguro y sólo se marca
+  oculto con al menos 90% de cobertura.
+- **Implementado:** oculto permanece inmóvil y genera Spam cada 12 ± 2 segundos
+  provisionales. Mover/cerrar la cobertura o arrastrar el Adware cancela el estado
+  oculto; expuesto no genera Spam.
+- **Implementado:** Firewall, Turret, Slowdown, Overclock y Spam no son escondites.
+  Las ventanas normales no se agregan al mapa de navegación; los Firewalls
+  establecidos siguen siendo obstáculos durante la aproximación.
 - **Implementado:** los virus pueden arrastrarse con el mouse.
 - **Implementado:** el arrastre se corta cuando el cursor entra sobre una ventana.
 - **Implementado:** separación entre pares evita acumulación excesiva.
 - **Implementado:** un disparo daña todos los enemigos que contienen el punto.
-- **Implementado:** cada arquetipo referencia su propia `PackedScene` y sus
-  estadísticas base.
+- **Implementado:** cada arquetipo referencia una `PackedScene`, sus estadísticas
+  base y presentación opcional. Varios arquetipos pueden compartir escena sin
+  mutar esa escena ni el Resource.
 - **Implementado:** cada instancia recibe un `EnemyRuntimeStats` nuevo calculado
   desde arquetipo × modificadores diarios × modificadores de entrada; los
   Resources compartidos no se modifican durante el spawn.
 - **Implementado:** cada enemigo vivo guarda arquetipo, posición, salud, stats
-  finales y cooldown de ataque; la restauración no entrega recompensa ni emite
-  un nuevo evento de spawn.
+  finales y estado de comportamiento. Basic conserva cooldown de ataque; Adware
+  conserva fase y tiempo hasta Spam. La restauración no entrega recompensa ni
+  emite un nuevo evento de spawn.
 - **Desconocido (Q-GAME-003):** confirmar si arrastrar virus es una mecánica
   definitiva.
 - **Desconocido (Q-GAME-004):** confirmar si dañar todos los enemigos superpuestos
@@ -253,6 +288,15 @@ Fuentes:
 - **Implementado:** móvil o establecido, Firewall conserva `blocks_shots` y
   provoca la liberación del drag de un virus igual que cualquier `AppWindow`.
   Los virus no lo atacan ni puede recibir daño.
+- **Implementado:** `Firewall Expansion` interpola en seis niveles con ratios
+  `[0,15; 0,30; 0,46; 0,62; 0,80; 1,00]` desde 340×150 hasta 460×190 en
+  horizontal y desde 180×310 hasta 220×430 en vertical.
+  Una compra conserva orientación y centro, hace clamp y actualiza todas las
+  instancias abiertas sin cambiar sus 32 RAM.
+- **Implementado:** una pared establecida se retira temporalmente del registro al
+  crecer y se vuelve a validar contra virus, shortcuts, otras paredes y caminos.
+  Si falla queda móvil; si es válida se reincorpora y los rebuilds diferidos se
+  agrupan por frame.
 
 ### 8.2 turret.exe
 
@@ -270,7 +314,7 @@ Fuentes:
   elimina esa defensa y libera únicamente sus 24 RAM.
 - **Implementado:** conserva el virus válido actual durante el cooldown y sólo
   busca el más cercano cuando pierde target. El target debe seguir registrado,
-  vivo, dentro del rango de 150 píxeles medido desde `AimOrigin` y visible desde
+  vivo, dentro del rango base de 200 píxeles medido desde `AimOrigin` y visible desde
   `MuzzlePoint`.
 - **Implementado:** `AimOrigin` coincide con el centro fijo de la textura. La
   torreta rota suavemente alrededor de ese punto incluso durante el cooldown,
@@ -296,10 +340,57 @@ Fuentes:
   rotación, disparo y avance del cooldown. Al soltar se busca un target nuevo.
 - **Implementado:** cada instancia persiste sólo `cooldown_remaining`; target,
   ángulo, tracer, recoil y drag se normalizan al cargar.
-- **Configuración provisional:** precio 200, RAM 24, daño 2, rango 150 y cooldown
+- **Implementado:** `Turret Performance` tiene seis niveles y deriva daño/rango/
+  fire rate. Sus multiplicadores finales son `2,0×`, `1,3×` y `1,55×`; el
+  cooldown efectivo es el cooldown base dividido por fire rate y respeta un
+  mínimo configurable de 0,35 s.
+- **Implementado:** comprar un nivel actualiza todas las torretas abiertas y
+  conserva la fracción restante de su cooldown; no altera target, rotación,
+  línea de visión, tracer, recoil, RAM ni tamaño.
+- **Configuración provisional:** precio 650, RAM 24, daño 2, rango 200 y cooldown
   1,25 segundos son valores editables y no constituyen balance definitivo.
-- **Planeado:** upgrades específicos de daño, rango, cooldown, rotación, RAM y
-  feedback visual. No existen todavía variantes ni prioridades configurables.
+- **Planeado:** mejoras adicionales de rotación, RAM y feedback visual. No
+  existen todavía variantes ni prioridades configurables.
+
+### 8.3 slowdown.exe
+
+Fuentes:
+
+- `Apps/Slowdown/SlowdownProgram.tres`
+- `Apps/Slowdown/SlowdownWindow.tscn`
+- `Data/Slowdown/SlowdownEffect.tres`
+- `Scripts/Slowdown/SlowdownWindow.gd`
+- `Scripts/Virus/EnemyManager.gd`
+- `Scripts/Virus/DesktopVirus.gd`
+- `Scripts/Virus/BasicVirus.gd`
+
+- **Implementado:** comprar la app crea un shortcut estable y cada apertura crea
+  una antena independiente si puede reservar sus 32 RAM. No existe límite de
+  instancias adicional.
+- **Implementado:** `EffectOrigin` define el centro global del área. La posición
+  se consulta desde la ventana cada 0,05 s, de modo que el área acompaña el drag
+  sin volver a registrar la fuente.
+- **Implementado:** todo virus cuyo centro global queda dentro del radio recibe
+  un multiplicador temporal de desplazamiento. Varias áreas superpuestas usan el
+  menor multiplicador, no un producto acumulativo.
+- **Implementado:** cerrar una instancia la desregistra y recalcula los efectos;
+  al salir de la última área el multiplicador vuelve a 1,0.
+- **Implementado:** el efecto atraviesa todas las ventanas, no consulta z-order
+  ni línea de visión, no bloquea disparos y no registra obstáculos de navegación.
+  Tampoco cambia vida, daño, ataque, cooldown, recompensa ni arrastre.
+- **Implementado:** posición, z-order y RAM usan el snapshot genérico de ventanas.
+  El registro, la lista de afectados y los multiplicadores derivados no se
+  serializan; al cargar se reconstruyen desde las ventanas restauradas.
+- **Configuración provisional:** precio 260, RAM 32, radio 180 píxeles y
+  multiplicador 0,65 son editables y no constituyen balance definitivo. Radio y
+  multiplicador base viven en un `SlowdownEffectData` compartido; cada instancia
+  deriva el valor efectivo desde el nivel persistente.
+- **Implementado:** `Slowdown Strength` conserva el radio y reduce el
+  multiplicador efectivo en seis niveles a 0,61, 0,57, 0,52, 0,47, 0,41 y 0,35.
+  Todas las ventanas y virus actualmente afectados se recalculan al comprar; las
+  áreas superpuestas siguen eligiendo sólo el menor multiplicador.
+- **Planeado:** upgrades de radio y RAM. No hay daño,
+  congelamiento, pulsos, activación manual ni visualización permanente del área.
 
 ## 9. Reloj de partida, ciclos diarios y spawn
 
@@ -326,11 +417,14 @@ Fuentes:
 - **Implementado:** `INFINITE` conserva la fase activa durante todo el día, sin
   omitir presupuesto, intervalo ni límites de enemigos.
 - **Implementado:** cada día reinicia su presupuesto y selecciona una
-  `DailyWaveData`; al superar la secuencia se conserva la última configuración.
+  `DailyWaveData`. La configuración de producción usa seis días de unos 100
+  segundos activos y un Resource infinito separado.
 - **Implementado:** el intervalo se expresa en minutos ficticios y se controla
   mediante timestamps del mismo reloj, sin un timer paralelo.
 - **Implementado:** la selección ponderada considera coste, límite global y
   `max_alive` por entrada.
+- **Implementado:** una evaluación puede crear un grupo configurado; aplica el
+  límite global después de cada instancia y nunca acumula grupos pendientes.
 - **Implementado:** al alcanzar un límite no se consume presupuesto ni se
   acumulan intentos; al liberarse espacio puede ocurrir como máximo un spawn en
   el siguiente intervalo válido.
@@ -338,10 +432,14 @@ Fuentes:
   vivos, minería, reparaciones y el reloj siguen activos.
 - **Implementado:** reloj y run se guardan y restauran antes de reactivar el
   director; el timestamp impide un spawn inmediato de recuperación.
-- **Planeado:** selección y desbloqueo de `INFINITE` desde UI.
-- **Configuración provisional:** el Resource de prueba usa `02:00–00:00`, un
-  único día repetible y sólo el enemigo básico. Sus tiempos y presupuesto no son
-  balance definitivo.
+- **Implementado:** al llegar al minuto ficticio 8.640 el modo cambia
+  automáticamente a `INFINITE`. Con la velocidad inicial de 14,4 minutos
+  ficticios por segundo ocurre a los 600 segundos activos; la pausa no cuenta.
+- **Implementado:** cada ciclo infinito aumenta presupuesto, salud, daño y límite
+  activo, reduce el intervalo hasta un mínimo y mantiene Adware con peso y máximo
+  bajos. La presión no tiene cola de recuperación ni pantalla de victoria.
+- **Parcialmente implementado:** los valores son una primera pasada de balance;
+  no existe selector manual de modo.
 
 ## 10. Disparo y munición
 

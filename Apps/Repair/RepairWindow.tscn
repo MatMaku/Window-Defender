@@ -39,6 +39,7 @@ pulse_duration = 0.42
 pulse_min_alpha = 0.18
 pulse_max_alpha = 0.75
 pulse_color = Color(0.15, 1, 0.35, 1)
+allows_adware_hiding = false
 
 [node name="RepairArea" type="Control" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=2087850473]
 unique_name_in_owner = true

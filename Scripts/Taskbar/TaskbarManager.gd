@@ -468,7 +468,7 @@ func _is_taskbar_eligible_window(
 	if window.program_id == StringName():
 		return false
 
-	return true
+	return window.should_show_in_taskbar()
 
 
 func _register_existing_windows() -> void:

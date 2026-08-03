@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="DesktopShortcutData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Data/Programs/DesktopShortcutData.gd" id="1_shortcut"]
+[ext_resource type="Resource" path="res://Apps/Slowdown/SlowdownProgram.tres" id="2_program"]
+
+[resource]
+script = ExtResource("1_shortcut")
+program_data = ExtResource("2_program")
+start_position = Vector2(0, 0)
+

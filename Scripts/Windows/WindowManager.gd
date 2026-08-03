@@ -14,6 +14,10 @@ signal window_focused(window: AppWindow)
 @export var ram_manager: RamManager
 @export var enemy_manager: EnemyManager
 @export var system_error_window_scene: PackedScene
+@export var spam_program_data: ProgramData
+
+@export_range(0.0, 100.0, 1.0)
+var spam_window_margin: float = 16.0
 
 var _z_index_counter: int = 100
 var _desktop_band_z_index_counter: int = 0
@@ -21,11 +25,13 @@ var _desktop_band_z_index_counter: int = 0
 var _single_instance_windows: Dictionary = {}
 var _error_window: SystemErrorWindow
 var _windows_pending_restore_reveal: Array[AppWindow] = []
+var _random: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
 func _ready() -> void:
 	_resolve_references()
 	_validate_dependencies()
+	_random.randomize()
 
 
 func _exit_tree() -> void:
@@ -47,6 +53,58 @@ func _exit_tree() -> void:
 func open_program(
 	program_data: ProgramData
 ) -> AppWindow:
+	return _open_program_internal(
+		program_data,
+		true,
+		false
+	)
+
+
+func open_spam_window() -> AppWindow:
+	if spam_program_data == null:
+		return null
+
+	return _open_program_internal(
+		spam_program_data,
+		false,
+		true
+	)
+
+
+func get_adware_hiding_windows() -> Array[AppWindow]:
+	var eligible_windows: Array[AppWindow] = []
+	for window: AppWindow in _get_app_windows():
+		if not is_adware_hiding_window_valid(window):
+			continue
+
+		eligible_windows.append(window)
+
+	return eligible_windows
+
+
+func is_adware_hiding_window_valid(
+	window: AppWindow
+) -> bool:
+	return (
+		window != null
+		and is_instance_valid(window)
+		and window.get_parent() == window_layer
+		and window.can_hide_adware_under()
+	)
+
+
+func get_window_area_global_rect() -> Rect2:
+	if window_layer == null:
+		return Rect2()
+
+	return window_layer.get_global_rect()
+
+
+func _open_program_internal(
+	program_data: ProgramData,
+	show_ram_error: bool,
+	use_random_position: bool
+) -> AppWindow:
 	if not _can_open_program_request(program_data):
 		return null
 
@@ -67,7 +125,8 @@ func open_program(
 	)
 
 	if not ram_manager.can_reserve_ram(ram_cost):
-		_show_insufficient_ram_error(program_data)
+		if show_ram_error:
+			_show_insufficient_ram_error(program_data)
 		return null
 
 	var open_duration_multiplier: float = (
@@ -77,7 +136,8 @@ func open_program(
 	)
 
 	if not ram_manager.reserve_ram(ram_cost):
-		_show_insufficient_ram_error(program_data)
+		if show_ram_error:
+			_show_insufficient_ram_error(program_data)
 		return null
 
 	var window: AppWindow = (
@@ -93,7 +153,10 @@ func open_program(
 	window.allocated_ram = ram_cost
 
 	window.setup(program_data)
-	window.position = _get_centered_position(window)
+	if use_random_position:
+		window.position = _get_random_window_position(window)
+	else:
+		window.position = _get_centered_position(window)
 
 	window.focus_requested.connect(focus_window)
 	window.close_requested.connect(close_window)
@@ -529,6 +592,11 @@ func _validate_dependencies() -> void:
 			+ "applications will remain inactive."
 		)
 
+	if spam_program_data == null:
+		push_warning(
+			"WindowManager has no SpamWindow ProgramData."
+		)
+
 
 func _can_open_program_request(
 	program_data: ProgramData
@@ -754,6 +822,46 @@ func _get_centered_position(
 		window_size = window.custom_minimum_size
 
 	return (layer_size - window_size) * 0.5
+
+
+func _get_random_window_position(
+	window: AppWindow
+) -> Vector2:
+	var layer_size: Vector2 = window_layer.size
+	var window_size: Vector2 = window.size
+	if window_size == Vector2.ZERO:
+		window_size = window.custom_minimum_size
+
+	var maximum_position: Vector2 = Vector2(
+		maxf(0.0, layer_size.x - window_size.x),
+		maxf(0.0, layer_size.y - window_size.y)
+	)
+	var safe_margin: float = maxf(0.0, spam_window_margin)
+	var minimum_position: Vector2 = Vector2(
+		minf(safe_margin, maximum_position.x),
+		minf(safe_margin, maximum_position.y)
+	)
+	var inner_maximum: Vector2 = Vector2(
+		maxf(
+			minimum_position.x,
+			maximum_position.x - safe_margin
+		),
+		maxf(
+			minimum_position.y,
+			maximum_position.y - safe_margin
+		)
+	)
+
+	return Vector2(
+		_random.randf_range(
+			minimum_position.x,
+			inner_maximum.x
+		),
+		_random.randf_range(
+			minimum_position.y,
+			inner_maximum.y
+		)
+	)
 
 
 func _register_window(

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="EnemyArchetypeData" load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://dx3ugjtr82ktb" path="res://Data/Enemies/EnemyArchetypeData.gd" id="1_archetype"]
+[ext_resource type="PackedScene" uid="uid://durl3mh3lugpi" path="res://Scenes/Virus/BasicVirus.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_archetype")
+enemy_id = &"runner_virus"
+display_name = "Runner Virus"
+enemy_scene = ExtResource("2_scene")
+visual_scale = 0.72
+visual_modulate = Color(0.35, 1, 0.65, 1)
+collision_scale = 0.72
+base_max_health = 0.75
+maximum_scaled_health = 1.0
+base_movement_speed = 85.0
+base_attack_damage = 0.2
+base_attack_interval_seconds = 1.5
+base_attack_arrival_distance = 0.75
+base_attack_overlap_distance = 0.0
+base_virus_data_reward = 1
+default_spawn_cost = 0.65

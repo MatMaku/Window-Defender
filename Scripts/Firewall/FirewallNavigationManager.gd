@@ -38,6 +38,7 @@ var spawn_validation_spacing: float = 32.0
 
 var _established_firewalls: Array[AppWindow] = []
 var _pending_restore_firewalls: Array[AppWindow] = []
+var _firewalls_in_geometry_update: Array[AppWindow] = []
 var _synchronized_obstacle_rects: Array[Rect2] = []
 
 var _navigation_revision: int = 0
@@ -109,6 +110,55 @@ func unestablish_firewall(
 	_notify_obstacles_changed()
 
 
+func begin_established_firewall_geometry_update(
+	firewall: AppWindow
+) -> bool:
+	if not is_instance_valid(firewall):
+		return false
+
+	if not _established_firewalls.has(firewall):
+		return false
+
+	_established_firewalls.erase(firewall)
+	if not _firewalls_in_geometry_update.has(firewall):
+		_firewalls_in_geometry_update.append(firewall)
+
+	return true
+
+
+func finish_established_firewall_geometry_update(
+	firewall: AppWindow
+) -> StringName:
+	if not is_instance_valid(firewall):
+		_firewalls_in_geometry_update.erase(firewall)
+		return ERROR_NAVIGATION_UNAVAILABLE
+
+	if not _firewalls_in_geometry_update.has(firewall):
+		return ERROR_NAVIGATION_UNAVAILABLE
+
+	_firewalls_in_geometry_update.erase(firewall)
+	var validation_error: StringName = (
+		_validate_firewall_candidate(firewall)
+	)
+	if validation_error == ESTABLISH_OK:
+		_established_firewalls.append(firewall)
+		firewall.call(
+			"apply_established_state_from_navigation",
+			true
+		)
+		window_manager.place_window_in_desktop_band(firewall)
+	else:
+		firewall.call(
+			"apply_established_state_from_navigation",
+			false
+		)
+		window_manager.restore_window_to_normal_band(firewall)
+		firewall_unestablished.emit(firewall)
+
+	_notify_obstacles_changed()
+	return validation_error
+
+
 func queue_restored_firewall(
 	firewall: AppWindow
 ) -> void:
@@ -126,6 +176,7 @@ func begin_restore() -> void:
 	_restore_in_progress = true
 	_navigation_change_generation += 1
 	_pending_restore_firewalls.clear()
+	_firewalls_in_geometry_update.clear()
 
 	for firewall: AppWindow in _established_firewalls:
 		if not is_instance_valid(firewall):
@@ -187,6 +238,7 @@ func cancel_restore() -> void:
 	_restore_in_progress = false
 	_pending_restore_firewalls.clear()
 	_established_firewalls.clear()
+	_firewalls_in_geometry_update.clear()
 	_notify_obstacles_changed()
 
 
@@ -371,9 +423,13 @@ func _on_window_closed(window: AppWindow) -> void:
 	if not _is_firewall_window(window):
 		return
 
-	var changed: bool = _established_firewalls.has(window)
+	var changed: bool = (
+		_established_firewalls.has(window)
+		or _firewalls_in_geometry_update.has(window)
+	)
 	_established_firewalls.erase(window)
 	_pending_restore_firewalls.erase(window)
+	_firewalls_in_geometry_update.erase(window)
 
 	if not changed:
 		return
@@ -1042,6 +1098,18 @@ func _prune_invalid_firewalls() -> void:
 			continue
 
 		_established_firewalls.remove_at(index)
+
+	for index: int in range(
+		_firewalls_in_geometry_update.size() - 1,
+		-1,
+		-1
+	):
+		if is_instance_valid(
+			_firewalls_in_geometry_update[index]
+		):
+			continue
+
+		_firewalls_in_geometry_update.remove_at(index)
 
 
 func _validate_dependencies() -> void:

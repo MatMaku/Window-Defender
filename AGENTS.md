@@ -48,6 +48,12 @@ waves driven by a fictional in-game clock.
   synchronized the rebuilt map. Invalidate every enemy path on obstacle changes,
   keep the synchronized obstacle snapshot aligned with that revision, and do not
   resume a restored session while navigation is pending.
+- Treat `EnemyManager` as the single runtime registry for `slowdown.exe` areas.
+  Slowdown modifies only the derived movement multiplier on `DesktopVirus`; it
+  must not mutate `EnemyRuntimeStats`, navigation, attacks or persisted enemy data.
+- Treat `WindowManager` as the only runtime source of Adware hiding candidates
+  and as the lifecycle owner of generated `SpamWindow` instances. Adware must not
+  reserve RAM, maintain a second window registry or persist Node references.
 - Coordinate capture and restore in `DesktopSaveCoordinator`; UI nodes and
   gameplay entities must not read or write save files directly.
 - Resolve required specialized states once during consumer initialization and

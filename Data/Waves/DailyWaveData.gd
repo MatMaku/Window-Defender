@@ -24,6 +24,9 @@ var spawn_interval_game_minutes: float = 30.0
 @export_range(0, 500, 1)
 var max_active_enemies: int = 4
 
+@export_range(1, 20, 1)
+var spawn_group_size: int = 1
+
 @export var enemy_entries: Array[WaveEnemyEntry] = []
 
 @export_category("Global Stat Multipliers")
@@ -62,4 +65,11 @@ func get_safe_max_active_enemies() -> int:
 	return maxi(
 		0,
 		max_active_enemies
+	)
+
+
+func get_safe_spawn_group_size() -> int:
+	return maxi(
+		1,
+		spawn_group_size
 	)

@@ -187,7 +187,7 @@ func _move_towards(
 	)
 
 	var movement_distance: float = minf(
-		movement_speed * delta,
+		movement_speed * get_active_slow_multiplier() * delta,
 		distance_to_target
 	)
 

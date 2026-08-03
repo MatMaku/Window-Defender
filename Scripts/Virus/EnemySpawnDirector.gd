@@ -54,6 +54,7 @@ func _process(_delta: float) -> void:
 	if not _is_running:
 		return
 
+	_update_automatic_spawn_mode()
 	_synchronize_current_day()
 	_update_phase()
 	_try_spawn_if_due()
@@ -76,9 +77,13 @@ func start_director(
 
 	director_started.emit()
 
-	_synchronize_current_day(
-		reset_progress
+	var entered_infinite_mode: bool = (
+		_update_automatic_spawn_mode()
 	)
+	if not entered_infinite_mode:
+		_synchronize_current_day(
+			reset_progress
+		)
 
 	_update_phase()
 
@@ -104,12 +109,24 @@ func get_current_game_day_index() -> int:
 
 
 func get_current_wave_configuration_index() -> int:
+	if (
+		_run_state.spawn_mode
+		== GameRunState.SpawnMode.INFINITE
+	):
+		return wave_sequence.days.size()
+
 	return wave_sequence.get_day_configuration_index(
 		get_current_game_day_index()
 	)
 
 
 func get_current_daily_wave() -> DailyWaveData:
+	if (
+		_run_state.spawn_mode
+		== GameRunState.SpawnMode.INFINITE
+	):
+		return wave_sequence.get_infinite_configuration()
+
 	return wave_sequence.get_day_configuration(
 		get_current_game_day_index()
 	)
@@ -234,7 +251,7 @@ func _synchronize_current_day(
 	):
 		_run_state.begin_game_day(
 			current_game_day_index,
-			daily_wave.get_safe_spawn_budget(),
+			_get_current_spawn_budget(daily_wave),
 			_clock_state.total_game_minutes
 		)
 
@@ -346,7 +363,9 @@ func _try_spawn_if_due() -> void:
 
 	if (
 		elapsed_since_attempt
-		< daily_wave.get_safe_spawn_interval_game_minutes()
+		< _get_current_spawn_interval_game_minutes(
+			daily_wave
+		)
 	):
 		return
 
@@ -357,81 +376,98 @@ func _try_spawn_if_due() -> void:
 	if _is_global_enemy_limit_reached(daily_wave):
 		return
 
-	var affordable_entries: Array[WaveEnemyEntry] = (
-		_get_affordable_entries(daily_wave)
+	_spawn_enemy_group(daily_wave)
+
+
+func _spawn_enemy_group(
+	daily_wave: DailyWaveData
+) -> void:
+	var group_size: int = (
+		daily_wave.get_safe_spawn_group_size()
 	)
 
-	if affordable_entries.is_empty():
-		_run_state.set_spawning_exhausted_for_period(
-			true
-		)
-		return
+	for _group_index: int in range(group_size):
+		if _is_global_enemy_limit_reached(daily_wave):
+			return
 
-	var eligible_entries: Array[WaveEnemyEntry] = (
-		_get_entries_below_archetype_limit(
-			affordable_entries
-		)
-	)
-
-	if eligible_entries.is_empty():
-		return
-
-	var selected_entry: WaveEnemyEntry = (
-		_choose_weighted_entry(
-			eligible_entries
-		)
-	)
-
-	if selected_entry == null:
-		_run_state.set_spawning_exhausted_for_period(
-			true
-		)
-		return
-
-	var spawned_enemy: DesktopVirus = (
-		enemy_manager.spawn_enemy_from_wave_entry(
-			selected_entry,
-			daily_wave
-		)
-	)
-
-	if spawned_enemy == null:
-		_run_state.set_spawning_exhausted_for_period(
-			true
-		)
-		return
-
-	var spawn_cost: float = (
-		selected_entry.get_spawn_cost()
-	)
-
-	if not _run_state.try_consume_spawn_budget(
-		spawn_cost
-	):
-		push_error(
-			"Spawn budget changed unexpectedly after spawning."
-		)
-		return
-
-	if debug_print_spawns:
-		print(
-			"Spawned ",
-			selected_entry.archetype.display_name,
-			" | budget: ",
-			_run_state.spawn_budget_remaining
+		var affordable_entries: Array[WaveEnemyEntry] = (
+			_get_affordable_entries(daily_wave)
 		)
 
-	if _get_affordable_entries(daily_wave).is_empty():
-		_run_state.set_spawning_exhausted_for_period(
-			true
+		if affordable_entries.is_empty():
+			_run_state.set_spawning_exhausted_for_period(
+				true
+			)
+			return
+
+		var eligible_entries: Array[WaveEnemyEntry] = (
+			_get_entries_below_archetype_limit(
+				affordable_entries
+			)
 		)
+
+		if eligible_entries.is_empty():
+			return
+
+		var selected_entry: WaveEnemyEntry = (
+			_choose_weighted_entry(
+				eligible_entries
+			)
+		)
+
+		if selected_entry == null:
+			_run_state.set_spawning_exhausted_for_period(
+				true
+			)
+			return
+
+		var spawned_enemy: DesktopVirus = (
+			enemy_manager.spawn_enemy_from_wave_entry(
+				selected_entry,
+				daily_wave,
+				_get_current_health_multiplier(),
+				_get_current_damage_multiplier()
+			)
+		)
+
+		if spawned_enemy == null:
+			_run_state.set_spawning_exhausted_for_period(
+				true
+			)
+			return
+
+		var spawn_cost: float = (
+			selected_entry.get_spawn_cost()
+		)
+
+		if not _run_state.try_consume_spawn_budget(
+			spawn_cost
+		):
+			push_error(
+				"Spawn budget changed unexpectedly after spawning."
+			)
+			return
+
+		if debug_print_spawns:
+			print(
+				"Spawned ",
+				selected_entry.archetype.display_name,
+				" | budget: ",
+				_run_state.spawn_budget_remaining
+			)
+
+		if _get_affordable_entries(daily_wave).is_empty():
+			_run_state.set_spawning_exhausted_for_period(
+				true
+			)
+			return
 
 
 func _is_global_enemy_limit_reached(
 	daily_wave: DailyWaveData
 ) -> bool:
 	var maximum_active_enemies: int = (
-		daily_wave.get_safe_max_active_enemies()
+		_get_current_max_active_enemies(daily_wave)
 	)
 
 	if maximum_active_enemies <= 0:
@@ -523,12 +559,100 @@ func _choose_weighted_entry(
 	return entries.back()
 
 
+func _update_automatic_spawn_mode() -> bool:
+	if (
+		_run_state.spawn_mode
+		== GameRunState.SpawnMode.INFINITE
+	):
+		return false
+
+	if not wave_sequence.should_enter_infinite_mode(
+		_clock_state.total_game_minutes
+	):
+		return false
+
+	return _run_state.set_spawn_mode(
+		GameRunState.SpawnMode.INFINITE
+	)
+
+
+func _get_current_spawn_budget(
+	daily_wave: DailyWaveData
+) -> float:
+	if (
+		_run_state.spawn_mode
+		== GameRunState.SpawnMode.INFINITE
+	):
+		return wave_sequence.get_infinite_spawn_budget(
+			_clock_state.total_game_minutes
+		)
+
+	return daily_wave.get_safe_spawn_budget()
+
+
+func _get_current_spawn_interval_game_minutes(
+	daily_wave: DailyWaveData
+) -> float:
+	if (
+		_run_state.spawn_mode
+		== GameRunState.SpawnMode.INFINITE
+	):
+		return (
+			wave_sequence
+			.get_infinite_spawn_interval_game_minutes(
+				_clock_state.total_game_minutes
+			)
+		)
+
+	return daily_wave.get_safe_spawn_interval_game_minutes()
+
+
+func _get_current_max_active_enemies(
+	daily_wave: DailyWaveData
+) -> int:
+	if (
+		_run_state.spawn_mode
+		== GameRunState.SpawnMode.INFINITE
+	):
+		return wave_sequence.get_infinite_max_active_enemies(
+			_clock_state.total_game_minutes
+		)
+
+	return daily_wave.get_safe_max_active_enemies()
+
+
+func _get_current_health_multiplier() -> float:
+	if (
+		_run_state.spawn_mode
+		!= GameRunState.SpawnMode.INFINITE
+	):
+		return 1.0
+
+	return wave_sequence.get_infinite_health_multiplier(
+		_clock_state.total_game_minutes
+	)
+
+
+func _get_current_damage_multiplier() -> float:
+	if (
+		_run_state.spawn_mode
+		!= GameRunState.SpawnMode.INFINITE
+	):
+		return 1.0
+
+	return wave_sequence.get_infinite_damage_multiplier(
+		_clock_state.total_game_minutes
+	)
+
+
 func _on_spawn_mode_changed(
 	_mode: GameRunState.SpawnMode
 ) -> void:
 	if not _is_running:
 		return
 
+	_observed_game_day_index = -1
+	_synchronize_current_day(true)
 	_update_phase()
 
 

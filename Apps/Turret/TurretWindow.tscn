@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://bfoam3hy1k77n" path="res://Scripts/Turret/TurretWindow.gd" id="2_script"]
 [ext_resource type="PackedScene" path="res://Apps/Turret/TurretShotTracer.tscn" id="4_tracer"]
 [ext_resource type="Texture2D" uid="uid://bw6n4s8ljxi78" path="res://Sprites/Torreta.png" id="4_vwp5w"]
+[ext_resource type="Resource" path="res://Shop/Upgrades/TurretPerformance.tres" id="5_upgrade"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_iwu7j"]
 texture = ExtResource("2_dro2j")
@@ -22,12 +23,15 @@ offset_right = 175.0
 offset_bottom = 165.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_iwu7j")
 script = ExtResource("2_script")
+allows_adware_hiding = false
 attack_damage = 2.0
-attack_range = 150.0
+attack_range = 200.0
 fire_cooldown_seconds = 1.25
+minimum_fire_cooldown_seconds = 0.35
 rotation_speed_radians = 12.0
 aim_tolerance_degrees = 2.0
 sprite_angle_offset_degrees = 0.0
+performance_upgrade_offer = ExtResource("5_upgrade")
 tracer_scene = ExtResource("4_tracer")
 tracer_duration_seconds = 0.2
 recoil_distance = 6.0

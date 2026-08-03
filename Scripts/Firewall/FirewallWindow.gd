@@ -11,8 +11,14 @@ const ORIENTATION_VERTICAL: String = "vertical"
 
 @export_category("Firewall Layout")
 
+@export var horizontal_base_size: Vector2 = Vector2(340.0, 150.0)
+@export var vertical_base_size: Vector2 = Vector2(180.0, 310.0)
 @export var horizontal_size: Vector2 = Vector2(460.0, 190.0)
 @export var vertical_size: Vector2 = Vector2(220.0, 430.0)
+
+@export_category("Upgrade")
+
+@export var size_upgrade_offer: ShopUpgradeOfferData
 
 @export_range(0.0, 1.0, 0.05)
 var mobile_wall_alpha: float = 0.5
@@ -36,10 +42,14 @@ var _restore_established_requested: bool = false
 
 var _navigation_manager: Node
 var _established_drag_press_position: Vector2 = Vector2.ZERO
+var _upgrade_state: GameUpgradeState
+var _effective_horizontal_size: Vector2 = Vector2.ZERO
+var _effective_vertical_size: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
 	super._ready()
+	_resolve_upgrade_state()
 
 	rotate_button.pressed.connect(
 		_on_rotate_button_pressed
@@ -66,6 +76,7 @@ func set_navigation_manager(
 	navigation_manager: Node
 ) -> void:
 	_navigation_manager = navigation_manager
+	_apply_size_upgrade()
 
 	if _restore_established_requested:
 		_navigation_manager.call(
@@ -238,10 +249,16 @@ func _apply_orientation(
 		get_global_rect().get_center()
 	)
 	var target_size: Vector2 = (
-		horizontal_size
+		_effective_horizontal_size
 		if _orientation == Orientation.HORIZONTAL
-		else vertical_size
+		else _effective_vertical_size
 	)
+	if target_size == Vector2.ZERO:
+		target_size = (
+			horizontal_base_size
+			if _orientation == Orientation.HORIZONTAL
+			else vertical_base_size
+		)
 
 	custom_minimum_size = target_size
 	custom_maximum_size = target_size
@@ -253,6 +270,99 @@ func _apply_orientation(
 		)
 
 	pivot_offset = size * 0.5
+
+
+func _resolve_upgrade_state() -> void:
+	_upgrade_state = GameState.upgrade_state
+	if _upgrade_state == null:
+		push_error("FirewallWindow requires GameUpgradeState.")
+		_effective_horizontal_size = horizontal_base_size
+		_effective_vertical_size = vertical_base_size
+		return
+
+	if not _upgrade_state.upgrade_purchase_counts_changed.is_connected(
+		_on_upgrade_purchase_counts_changed
+	):
+		_upgrade_state.upgrade_purchase_counts_changed.connect(
+			_on_upgrade_purchase_counts_changed
+		)
+
+	_apply_size_upgrade()
+
+
+func _on_upgrade_purchase_counts_changed(
+	_purchase_counts_snapshot: Dictionary
+) -> void:
+	_apply_size_upgrade()
+
+
+func _apply_size_upgrade() -> void:
+	var purchase_count: int = 0
+	var size_progress: float = 0.0
+	if _upgrade_state != null and size_upgrade_offer != null:
+		purchase_count = _upgrade_state.get_upgrade_purchase_count(
+			size_upgrade_offer.offer_id
+		)
+		size_progress = (
+			size_upgrade_offer.get_primary_effect_for_purchase_count(
+				purchase_count,
+				0.0
+			)
+		)
+
+	size_progress = clampf(size_progress, 0.0, 1.0)
+	var next_horizontal_size: Vector2 = horizontal_base_size.lerp(
+		horizontal_size,
+		size_progress
+	)
+	var next_vertical_size: Vector2 = vertical_base_size.lerp(
+		vertical_size,
+		size_progress
+	)
+	if (
+		next_horizontal_size.is_equal_approx(
+			_effective_horizontal_size
+		)
+		and next_vertical_size.is_equal_approx(
+			_effective_vertical_size
+		)
+	):
+		return
+
+	var geometry_update_started: bool = false
+	if _is_established:
+		if _navigation_manager == null:
+			push_error(
+				"Cannot resize an established Firewall without navigation."
+			)
+			return
+
+		geometry_update_started = bool(
+			_navigation_manager.call(
+				"begin_established_firewall_geometry_update",
+				self
+			)
+		)
+		if not geometry_update_started:
+			return
+
+	_effective_horizontal_size = next_horizontal_size
+	_effective_vertical_size = next_vertical_size
+	_apply_orientation(true)
+
+	if not geometry_update_started:
+		return
+
+	var validation_error: StringName = StringName(
+		_navigation_manager.call(
+			"finish_established_firewall_geometry_update",
+			self
+		)
+	)
+	if validation_error != StringName():
+		_show_status_message(
+			_get_establish_error_message(validation_error)
+		)
 
 
 func _refresh_firewall_visuals() -> void:

@@ -4,6 +4,4 @@
 
 [resource]
 script = ExtResource("1_cepga")
-starting_crypto = 10000
-starting_virus_data = 10000
 metadata/_custom_type_script = "uid://btbojp1go54l8"

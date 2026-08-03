@@ -1,18 +1,9 @@
-[gd_resource type="Resource" script_class="EnemyArchetypeData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="EnemyArchetypeData" format=3 uid="uid://d26bomg7s5xnn"]
 
 [ext_resource type="Script" uid="uid://dx3ugjtr82ktb" path="res://Data/Enemies/EnemyArchetypeData.gd" id="1_archetype"]
-[ext_resource type="PackedScene" path="res://Scenes/Virus/BasicVirus.tscn" id="2_scene"]
+[ext_resource type="PackedScene" uid="uid://durl3mh3lugpi" path="res://Scenes/Virus/BasicVirus.tscn" id="2_scene"]
 
 [resource]
 script = ExtResource("1_archetype")
-enemy_id = &"basic_virus"
-display_name = "Basic Virus"
 enemy_scene = ExtResource("2_scene")
-base_max_health = 2.0
-base_movement_speed = 48.0
-base_attack_damage = 0.5
-base_attack_interval_seconds = 1.25
-base_attack_arrival_distance = 0.75
-base_attack_overlap_distance = 0.0
-base_virus_data_reward = 1
-default_spawn_cost = 1.0
+base_virus_data_reward = 2

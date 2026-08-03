@@ -18,7 +18,8 @@ campo de batalla.
   `System.exe` y reducen la integridad del sistema.
 - **Implementado:** el jugador genera recursos, compra herramientas y mejora sus
   estadísticas para responder a una amenaza creciente.
-- **Desconocido:** no hay una condición de victoria demostrable en el código.
+- **Implementado:** la vertical slice no tiene condición de victoria; después de
+  diez minutos continúa en modo infinito.
 
 Fuentes principales:
 
@@ -50,10 +51,12 @@ Fuentes principales:
     defensa automática con rango y línea de visión propios.
 15. `overclock.exe` permite completar periódicamente una instrucción de consola
     para multiplicar temporalmente todos los ingresos productivos.
+16. `slowdown.exe` permite mantener áreas móviles que reducen la velocidad de
+    desplazamiento de los virus a cambio de RAM por instancia.
 
 Estado del loop:
 
-- **Implementado:** pasos 1 a 11 y 13 a 14 tienen flujos conectados.
+- **Implementado:** pasos 1 a 11 y 13 a 16 tienen flujos conectados.
 - **Parcialmente implementado:** el paso 12 depende de comprar, abrir y posicionar
   aplicaciones; algunos estados de error no tienen feedback conectado.
 - **Parcialmente implementado:** la destrucción del sistema detiene nuevos
@@ -69,12 +72,12 @@ Estado del loop:
 - Cooldown: 1 segundo.
 - Munición máxima: 6.
 - Recarga normal: 1,45 segundos.
-- Producción minera: 1 criptomoneda cada 5 segundos por instancia abierta.
+- Producción minera: 3 criptomonedas cada 5 segundos por instancia abierta.
 - RAM máxima: 100.
 - Resolución lógica inicial: 1280 × 720.
 - Fecha y hora inicial: 01/01/1998 00:00.
-- Criptomonedas iniciales: 10.000.
-- Datos de virus iniciales: 10.000.
+- Criptomonedas iniciales: 50.
+- Datos de virus iniciales: 0.
 
 Accesos directos iniciales definidos en `Scenes/Desktop/Desktop.tscn`:
 
@@ -83,8 +86,8 @@ Accesos directos iniciales definidos en `Scenes/Desktop/Desktop.tscn`:
 - `Shop.exe`
 
 - **Implementado:** estos valores se aplican en `GameState.reset_run()`.
-- **Desconocido (Q-PROD-001):** confirmar si los 10.000 recursos iniciales son
-  balance objetivo o configuración de desarrollo.
+- **Resuelto (Q-PROD-001):** los 10.000 recursos eran configuración de desarrollo;
+  la vertical slice usa 50 crypto y 0 virus data.
 
 ## 5. Aplicaciones
 
@@ -100,6 +103,8 @@ Accesos directos iniciales definidos en `Scenes/Desktop/Desktop.tscn`:
 | Firewall | Tienda | Pared multiinstancia y navegación dinámica | Implementado |
 | Turret | Tienda | Ventana-torreta automática multiinstancia | Implementado |
 | Overclock | Tienda | Minijuego de tipeo y bonus global temporal | Implementado |
+| Slowdown | Tienda | Área móvil multiinstancia de ralentización | Implementado |
+| SpamWindow | Generada por Adware | Molestia visual multiinstancia con costo de RAM | Implementado |
 | Test | No integrado | Ventana de prueba | Desconocido |
 
 Fuentes:
@@ -116,11 +121,15 @@ Fuentes:
 - **Implementado:** aplicaciones cuestan criptomonedas.
 - **Implementado:** upgrades pueden costar criptomonedas y datos.
 - **Implementado:** los upgrades modifican arma, recarga, minería, RAM,
-  resolución y automatizaciones.
+  resolución, automatizaciones, tamaño de Firewall, potencia de Slowdown y
+  rendimiento conjunto de Turret.
 - **Implementado:** Overclock multiplica centralmente los ingresos productivos
   de crypto y virus data; gastos, refunds, reset y restore no reciben el bonus.
 - **Implementado:** perfiles locales conservan una partida por perfil mediante
   snapshot semántico versionado.
+- **Implementado:** precios y curvas de mejora forman una progresión provisional
+  de diez minutos; `docs/VERTICAL_SLICE_BALANCE.md` registra sus supuestos y
+  proyección minuto a minuto.
 - **Parcialmente implementado:** no hay metaprogresión, autosave, múltiples
   slots ni renombrado de perfiles. El borrado confirmado desde MainMenu sí está
   implementado.
@@ -143,8 +152,9 @@ ese procesamiento.
 
 La configuración activa es `Stages/Daily/DailyWaveSequence.tres`.
 
-- **Implementado:** `DAILY_CYCLE` alterna descanso y actividad según minutos del
-  día; el horario común inicial es 02:00–00:00.
+- **Implementado:** `DAILY_CYCLE` conserva soporte para descanso y actividad;
+  la secuencia de la vertical slice configura inicio igual a fin para mantener
+  amenaza durante todo el día ficticio.
 - **Implementado:** horarios que cruzan medianoche usan inicio inclusivo y fin
   exclusivo.
 - **Implementado:** `INFINITE` mantiene la fase activa durante todo el día, pero
@@ -155,10 +165,19 @@ La configuración activa es `Stages/Daily/DailyWaveSequence.tres`.
   no producen ráfagas posteriores.
 - **Implementado:** cada arquetipo referencia su propia `PackedScene`; los stats
   finales se calculan por instancia sin mutar Resources compartidos.
-- **Implementado:** al superar la lista `days`, se reutiliza la última
-  configuración.
-- **Parcialmente implementado:** existe una sola configuración provisional de
-  prueba y no hay UI para elegir o desbloquear `INFINITE`.
+- **Implementado:** `AdwareVirus` no ataca System; busca una ventana que admita
+  ocultamiento, se dirige a su zona interior y genera Spam sólo mientras mantiene
+  cobertura suficiente.
+- **Implementado:** seis configuraciones de unos 100 segundos introducen Basic,
+  Runner, Brute y Adware; Runner y Brute reutilizan la escena y comportamiento
+  de Basic con stats y presentación definidos por arquetipo.
+- **Implementado:** al llegar a 8.640 minutos ficticios —unos 600 segundos
+  activos con la velocidad inicial— el director cambia automáticamente a
+  `INFINITE`, sin victoria ni descanso.
+- **Implementado:** cada nuevo ciclo infinito incrementa presupuesto, salud,
+  daño y límite activo, y reduce el intervalo hasta límites configurables.
+- **Parcialmente implementado:** el balance numérico es una primera pasada y no
+  existe UI para seleccionar manualmente el modo.
 
 ## 8. Fallo y final de partida
 
@@ -170,8 +189,8 @@ La configuración activa es `Stages/Daily/DailyWaveSequence.tres`.
   transición de escena, resumen, reinicio ni menú de derrota.
 - **Desconocido (Q-PROD-002):** definir el flujo deseado después de system
   failure.
-- **Desconocido (Q-PROD-003):** definir si existe condición de victoria y cómo se
-  relaciona con los modos diario e infinito.
+- **Resuelto (Q-PROD-003):** no existe victoria al finalizar la slice; continúa
+  el modo infinito.
 
 ## 9. Funciones visibles y alcance actual
 
@@ -202,10 +221,12 @@ sin consulta:
 
 Estas preguntas deben formularse cuando una tarea dependa de ellas:
 
-- **Q-PROD-001:** ¿los 10.000 recursos iniciales son configuración de pruebas?
+- **Resuelto (Q-PROD-001):** los 10.000 recursos eran configuración de pruebas;
+  la slice comienza con 50 crypto y 0 data.
 - **Q-PROD-002:** ¿cuál es el flujo exacto de derrota, reinicio o continuación?
-- **Q-PROD-003:** ¿cómo concluye el modo diario y qué relación tiene con la
-  supervivencia infinita?
+- **Resuelto (Q-PROD-003):** la slice no presenta victoria; cambia
+  automáticamente a supervivencia infinita y continúa hasta que System sea
+  destruido o el jugador abandone la sesión.
 - **Q-PROD-004:** ¿múltiples instancias de Miner son una estrategia definitiva?
 - **Resuelto (Q-PROD-005):** Save Game preserva consecuencias productivas,
   ventanas, shortcuts, enemigos y procesos temporales documentados en

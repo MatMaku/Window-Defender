@@ -9,6 +9,7 @@ class_name ProgramData
 @export var window_scene: PackedScene
 
 @export var allow_multiple_instances: bool = false
+@export var requires_desktop_shortcut: bool = true
 
 @export_category("Window")
 

@@ -70,7 +70,7 @@ func can_show_upgrade(
 	if offer.offer_id == StringName():
 		return false
 
-	if is_upgrade_maxed(offer):
+	if is_upgrade_maxed(offer) and not offer.show_when_maxed:
 		return false
 
 	if not _has_required_program(offer):
@@ -86,6 +86,9 @@ func can_purchase_upgrade(
 	offer: ShopUpgradeOfferData
 ) -> bool:
 	if not can_show_upgrade(offer):
+		return false
+
+	if is_upgrade_maxed(offer):
 		return false
 
 	return _economy_state.can_afford_resources(
@@ -136,7 +139,29 @@ func get_display_name(
 	if offer == null:
 		return "Unknown Upgrade"
 
-	var level_index: int = get_purchase_count(offer)
+	var purchase_count: int = get_purchase_count(offer)
+	var maximum_count: int = maxi(
+		1,
+		offer.max_purchase_count
+	)
+	if offer.show_when_maxed:
+		if is_upgrade_maxed(offer):
+			return "%s %d/%d MAX" % [
+				offer.display_name,
+				purchase_count,
+				maximum_count
+			]
+
+		return "%s %d/%d" % [
+			offer.display_name,
+			purchase_count,
+			maximum_count
+		]
+
+	if is_upgrade_maxed(offer):
+		return "%s MAX" % offer.display_name
+
+	var level_index: int = purchase_count
 
 	if (
 		level_index >= 0
@@ -185,6 +210,9 @@ func get_virus_data_cost(
 func get_price_text(
 	offer: ShopUpgradeOfferData
 ) -> String:
+	if is_upgrade_maxed(offer):
+		return "MAX"
+
 	return "$%d / D %d" % [
 		get_crypto_cost(offer),
 		get_virus_data_cost(offer)
@@ -281,6 +309,15 @@ func _apply_upgrade_effect(
 
 		ShopUpgradeOfferData.EffectType.UNLOCK_AUTO_RELOAD:
 			_upgrade_state.set_auto_reload_unlocked(true)
+
+		ShopUpgradeOfferData.EffectType.FIREWALL_SIZE_LEVEL:
+			pass
+
+		ShopUpgradeOfferData.EffectType.SLOWDOWN_STRENGTH_LEVEL:
+			pass
+
+		ShopUpgradeOfferData.EffectType.TURRET_PERFORMANCE_LEVEL:
+			pass
 
 		_:
 			push_warning(

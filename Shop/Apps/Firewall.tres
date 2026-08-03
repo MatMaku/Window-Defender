@@ -1,10 +1,10 @@
-[gd_resource type="Resource" script_class="ShopAppOfferData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ShopAppOfferData" format=3 uid="uid://dpqurwxvu44xr"]
 
-[ext_resource type="Script" path="res://Data/Shop/ShopAppOfferData.gd" id="1_offer"]
-[ext_resource type="Resource" path="res://Apps/Firewall/FirewallProgram.tres" id="2_program"]
+[ext_resource type="Script" uid="uid://dwpx0a6fvly2m" path="res://Data/Shop/ShopAppOfferData.gd" id="1_offer"]
+[ext_resource type="Resource" uid="uid://hwvuhh6og7t2" path="res://Apps/Firewall/FirewallProgram.tres" id="2_program"]
 
 [resource]
 script = ExtResource("1_offer")
 offer_id = &"Firewall"
 program_data = ExtResource("2_program")
-price = 250
+price = 120

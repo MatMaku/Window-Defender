@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://baobdgopixbg1"]
+
+[ext_resource type="PackedScene" uid="uid://hbauorlh8j83" path="res://Scenes/Windows/AppWindow.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://djbujo50x2p4x" path="res://Scripts/Slowdown/SlowdownWindow.gd" id="2_script"]
+[ext_resource type="Texture2D" uid="uid://dbh1pn4nwcnxs" path="res://Sprites/Windows/Window_Base_Hollow.png" id="3_frame"]
+[ext_resource type="Texture2D" uid="uid://co8yr5bfv882l" path="res://Sprites/Slowdown/AntennaPlaceholder.svg" id="4_antenna_placeholder"]
+[ext_resource type="Resource" path="res://Data/Slowdown/SlowdownEffect.tres" id="5_effect_data"]
+[ext_resource type="Resource" uid="uid://bsod1dfjan8o4" path="res://Shop/Upgrades/SlowdownStrength.tres" id="6_upgrade"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_frame"]
+texture = ExtResource("3_frame")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="SlowdownWindow" unique_id=325295068 instance=ExtResource("1_base")]
+custom_minimum_size = Vector2(205, 160)
+custom_maximum_size = Vector2(205, 160)
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 205.0
+offset_bottom = 140.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_frame")
+script = ExtResource("2_script")
+effect_data = ExtResource("5_effect_data")
+strength_upgrade_offer = ExtResource("6_upgrade")
+allows_adware_hiding = false
+
+[node name="TitleLabel" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="1" unique_id=278973000]
+text = "slowdown.exe"
+
+[node name="SlowdownContent" type="CenterContainer" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=1484362510]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="AntennaAnchor" type="Control" parent="MainVBox/ContentRoot/SlowdownContent" index="0" unique_id=1406540897]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="AntennaTexture" type="TextureRect" parent="MainVBox/ContentRoot/SlowdownContent/AntennaAnchor" index="0" unique_id=1517191160]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_antenna_placeholder")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EffectOrigin" type="Marker2D" parent="MainVBox/ContentRoot/SlowdownContent/AntennaAnchor" index="1" unique_id=1313566454]
+unique_name_in_owner = true
+position = Vector2(40, 40)

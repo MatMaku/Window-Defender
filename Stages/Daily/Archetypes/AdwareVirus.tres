@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyArchetypeData" format=3 uid="uid://btrxc5qdjyf3m"]
+
+[ext_resource type="Script" uid="uid://dx3ugjtr82ktb" path="res://Data/Enemies/EnemyArchetypeData.gd" id="1_archetype"]
+[ext_resource type="PackedScene" uid="uid://bybabfgmk4wmu" path="res://Scenes/Virus/AdwareVirus.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_archetype")
+enemy_id = &"adware_virus"
+display_name = "Adware Virus"
+enemy_scene = ExtResource("2_scene")
+base_max_health = 3.0
+base_movement_speed = 42.0
+base_attack_damage = 0.0
+base_attack_interval_seconds = 1.0
+base_attack_arrival_distance = 0.0
+base_virus_data_reward = 4
+default_spawn_cost = 3.0

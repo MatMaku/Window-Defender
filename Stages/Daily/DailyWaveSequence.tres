@@ -2,8 +2,16 @@
 
 [ext_resource type="Script" uid="uid://bobll52pxcoaj" path="res://Data/Waves/DailyWaveData.gd" id="1_day_script"]
 [ext_resource type="Script" uid="uid://ngmxv4m0nmoa" path="res://Data/Waves/WaveSequenceData.gd" id="2_sequence"]
-[ext_resource type="Resource" path="res://Stages/Daily/Days/Day01.tres" id="3_day"]
+[ext_resource type="Resource" uid="uid://cukba6mab6m3v" path="res://Stages/Daily/Days/Day01.tres" id="3_day"]
+[ext_resource type="Resource" path="res://Stages/Daily/Days/Day02.tres" id="4_day"]
+[ext_resource type="Resource" path="res://Stages/Daily/Days/Day03.tres" id="5_day"]
+[ext_resource type="Resource" path="res://Stages/Daily/Days/Day04.tres" id="6_day"]
+[ext_resource type="Resource" path="res://Stages/Daily/Days/Day05.tres" id="7_day"]
+[ext_resource type="Resource" path="res://Stages/Daily/Days/Day06.tres" id="8_day"]
+[ext_resource type="Resource" path="res://Stages/Daily/InfiniteWave.tres" id="9_infinite"]
 
 [resource]
 script = ExtResource("2_sequence")
-days = Array[ExtResource("1_day_script")]([ExtResource("3_day")])
+default_active_start_minute = 0
+days = Array[ExtResource("1_day_script")]([ExtResource("3_day"), ExtResource("4_day"), ExtResource("5_day"), ExtResource("6_day"), ExtResource("7_day"), ExtResource("8_day")])
+infinite_wave = ExtResource("9_infinite")

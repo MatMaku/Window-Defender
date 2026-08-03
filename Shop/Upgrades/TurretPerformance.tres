@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://ctwmtyclice5j"]
+
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="1_upgrade"]
+[ext_resource type="Texture2D" uid="uid://d4b0hf0a3u0ea" path="res://Sprites/Icons/Turret Icon.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_upgrade")
+offer_id = &"TurretPerformance"
+display_name = "Turret Performance"
+icon = ExtResource("2_icon")
+description = "Mejora el daño, el alcance y la velocidad de disparo de Turret.exe."
+max_purchase_count = 6
+show_when_maxed = true
+crypto_costs = Array[int]([75, 120, 180, 270, 410, 620])
+virus_data_costs = Array[int]([3, 5, 8, 13, 21, 34])
+required_program_id = &"Turret"
+effect_type = 15
+effect_values = Array[float]([1.15, 1.3, 1.45, 1.6, 1.8, 2.0])
+secondary_effect_values = Array[float]([1.05, 1.1, 1.15, 1.2, 1.25, 1.3])
+tertiary_effect_values = Array[float]([1.08, 1.16, 1.25, 1.35, 1.45, 1.55])

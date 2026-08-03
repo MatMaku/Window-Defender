@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="DailyWaveData" format=3 uid="uid://dt02kkm2tfuq4"]
+
+[ext_resource type="Script" uid="uid://bobll52pxcoaj" path="res://Data/Waves/DailyWaveData.gd" id="1_day"]
+[ext_resource type="Script" uid="uid://0wil4xt52iv4" path="res://Data/Waves/WaveEnemyEntry.gd" id="2_entry"]
+[ext_resource type="Resource" uid="uid://d26bomg7s5xnn" path="res://Stages/Daily/Archetypes/BasicVirus.tres" id="3_basic"]
+[ext_resource type="Resource" path="res://Stages/Daily/Archetypes/RunnerVirus.tres" id="4_runner"]
+[ext_resource type="Resource" path="res://Stages/Daily/Archetypes/BruteVirus.tres" id="5_brute"]
+[ext_resource type="Resource" uid="uid://btrxc5qdjyf3m" path="res://Stages/Daily/Archetypes/AdwareVirus.tres" id="6_adware"]
+
+[sub_resource type="Resource" id="BasicEntry"]
+script = ExtResource("2_entry")
+archetype = ExtResource("3_basic")
+weight = 3.0
+
+[sub_resource type="Resource" id="RunnerEntry"]
+script = ExtResource("2_entry")
+archetype = ExtResource("4_runner")
+weight = 6.0
+max_alive = 16
+
+[sub_resource type="Resource" id="BruteEntry"]
+script = ExtResource("2_entry")
+archetype = ExtResource("5_brute")
+weight = 1.5
+max_alive = 4
+
+[sub_resource type="Resource" id="AdwareEntry"]
+script = ExtResource("2_entry")
+archetype = ExtResource("6_adware")
+weight = 0.14
+max_alive = 1
+
+[resource]
+script = ExtResource("1_day")
+display_name = "Slice 5 - Defensive Synergy"
+spawn_budget = 75.0
+spawn_interval_game_minutes = 72.0
+max_active_enemies = 22
+spawn_group_size = 2
+enemy_entries = Array[ExtResource("2_entry")]([SubResource("BasicEntry"), SubResource("RunnerEntry"), SubResource("BruteEntry"), SubResource("AdwareEntry")])
+health_multiplier = 1.1
+speed_multiplier = 1.04
+damage_multiplier = 1.05

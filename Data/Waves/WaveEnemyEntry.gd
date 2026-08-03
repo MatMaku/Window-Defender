@@ -54,7 +54,9 @@ func get_spawn_cost() -> float:
 
 
 func create_runtime_stats(
-	daily_wave: DailyWaveData
+	daily_wave: DailyWaveData,
+	additional_health_multiplier: float = 1.0,
+	additional_damage_multiplier: float = 1.0
 ) -> EnemyRuntimeStats:
 	if archetype == null:
 		return null
@@ -87,12 +89,19 @@ func create_runtime_stats(
 	stats.enemy_id = archetype.enemy_id
 	stats.display_name = archetype.display_name
 
-	stats.max_health = maxf(
+	var scaled_max_health: float = maxf(
 		0.1,
 		archetype.base_max_health
 		* maxf(0.01, day_health_multiplier)
 		* maxf(0.01, health_multiplier)
+		* maxf(0.01, additional_health_multiplier)
 	)
+	if archetype.maximum_scaled_health > 0.0:
+		scaled_max_health = minf(
+			scaled_max_health,
+			maxf(0.1, archetype.maximum_scaled_health)
+		)
+	stats.max_health = scaled_max_health
 
 	stats.movement_speed = maxf(
 		0.0,
@@ -106,6 +115,7 @@ func create_runtime_stats(
 		archetype.base_attack_damage
 		* maxf(0.0, day_damage_multiplier)
 		* maxf(0.0, damage_multiplier)
+		* maxf(0.0, additional_damage_multiplier)
 	)
 
 	stats.attack_interval_seconds = maxf(

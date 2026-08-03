@@ -9,7 +9,7 @@ decisiones de diseño que todavía deben confirmarse.
 
 ## Estado de la documentación
 
-Estado verificado el 2026-07-29.
+Estado verificado el 2026-08-03.
 
 Las etiquetas usadas en todos los documentos significan:
 
@@ -44,12 +44,26 @@ Las etiquetas usadas en todos los documentos significan:
 - **Implementado:** `overclock.exe` ofrece un minijuego de tipeo singleton cuyo
   éxito activa temporalmente un multiplicador global de ingresos productivos de
   crypto y virus data, persistente aunque la ventana se cierre.
+- **Implementado:** `slowdown.exe` admite múltiples ventanas con RAM independiente;
+  cada una genera un área que reduce temporalmente el movimiento de los virus sin
+  modificar sus rutas, ataques ni stats persistidos.
+- **Implementado:** Shop ofrece mejoras persistentes y repetibles de tamaño de
+  Firewall, potencia de Slowdown y rendimiento conjunto de Turret. Las instancias
+  abiertas recalculan inmediatamente sus valores derivados.
+- **Implementado:** `AdwareVirus` busca una ventana elegible, se oculta bajo ella
+  y genera ventanas publicitarias que consumen 16 RAM. Las ventanas de Spam se
+  arrastran, cierran y restauran por el flujo normal, pero no crean shortcut ni
+  botón de Taskbar.
+- **Implementado:** una vertical slice data-driven recorre seis tramos de amenaza
+  en aproximadamente diez minutos activos, introduce RunnerVirus y BruteVirus y
+  entra automáticamente en un modo infinito con presión creciente.
 - **Parcialmente implementado:** fin de partida, feedback de algunos rechazos,
   cambio de resolución con reacomodo y presentación del ciclo diario.
 - **Planeado:** diseño visual definitivo del menú principal, efectos runtime de
   presión de RAM y acciones adicionales del menú Inicio.
-- **Desconocido:** balance definitivo, condición de victoria, plataformas
-  soportadas y varias reglas de interacción están pendientes de decisión.
+- **Desconocido:** balance definitivo, plataformas soportadas y varias reglas de
+  interacción están pendientes de decisión. La slice no tiene victoria y deriva
+  al modo infinito.
 
 ## Requisitos observados
 
@@ -101,6 +115,8 @@ docs/       Documentación funcional y técnica.
   jugable.
 - [`docs/DATA_MODEL.md`](docs/DATA_MODEL.md): Resources, IDs y estado runtime.
 - [`docs/SIGNALS.md`](docs/SIGNALS.md): contratos de señales y consumidores.
+- [`docs/VERTICAL_SLICE_BALANCE.md`](docs/VERTICAL_SLICE_BALANCE.md): modelo
+  numérico, precios, curvas y pacing provisional de los primeros diez minutos.
 - [`AGENTS.md`](AGENTS.md): reglas obligatorias para trabajar en el proyecto.
 
 ## Puntos de entrada relevantes
@@ -127,6 +143,8 @@ docs/       Documentación funcional y técnica.
 - `Apps/Firewall/FirewallWindow.tscn`
 - `Scripts/Turret/TurretWindow.gd`
 - `Apps/Turret/TurretWindow.tscn`
+- `Scripts/Slowdown/SlowdownWindow.gd`
+- `Apps/Slowdown/SlowdownWindow.tscn`
 - `Scripts/Autoload/GameOverclockState.gd`
 - `Scripts/Overclock/OverclockManager.gd`
 - `Scripts/Overclock/OverclockWindow.gd`

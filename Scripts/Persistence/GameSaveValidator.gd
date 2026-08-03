@@ -193,6 +193,33 @@ static func validate(
 				"enemies.behavior_state.attack_cooldown_remaining"
 			)
 
+		if enemy_id == &"adware_virus":
+			var adware_phase: String = str(
+				behavior_state.get("phase", "")
+			)
+			if adware_phase not in [
+				"searching",
+				"moving",
+				"hidden"
+			]:
+				return _invalid_field(
+					"enemies.behavior_state.phase"
+				)
+
+			if not SaveDataCodec.is_number(
+				behavior_state.get("spam_time_remaining")
+			):
+				return _invalid_field(
+					"enemies.behavior_state.spam_time_remaining"
+				)
+
+			if float(
+				behavior_state.get("spam_time_remaining", -1.0)
+			) < 0.0:
+				return _invalid_field(
+					"enemies.behavior_state.spam_time_remaining"
+				)
+
 	var processes_variant: Variant = snapshot.get("processes")
 	if not processes_variant is Dictionary:
 		return _missing_field("processes")
@@ -281,19 +308,22 @@ static func _validate_desktop(
 		var program_id: StringName = StringName(
 			str(window_data.get("program_id", ""))
 		)
-		if not shortcut_programs.has(str(program_id)):
-			return PersistenceResult.failure(
-				&"window_without_shortcut",
-				"Window '%s' has no saved shortcut."
-					% str(program_id)
-			)
-
 		var program: ProgramData = content_registry.get_program(
 			program_id
 		)
 		if program == null:
 			return _invalid_field(
 				"desktop.windows.program_id"
+			)
+
+		if (
+			program.requires_desktop_shortcut
+			and not shortcut_programs.has(str(program_id))
+		):
+			return PersistenceResult.failure(
+				&"window_without_shortcut",
+				"Window '%s' has no saved shortcut."
+					% str(program_id)
 			)
 
 		var app_state: Dictionary = (
@@ -357,6 +387,21 @@ static func _validate_desktop(
 					return _invalid_field(
 						"desktop.windows.app_state.cooldown_remaining"
 					)
+
+		if program_id == &"SpamWindow":
+			if not SaveDataCodec.is_number(
+				app_state.get("advertisement_index")
+			):
+				return _invalid_field(
+					"desktop.windows.app_state.advertisement_index"
+				)
+
+			if int(
+				app_state.get("advertisement_index", -2)
+			) < -1:
+				return _invalid_field(
+					"desktop.windows.app_state.advertisement_index"
+				)
 
 		required_ram += maxi(0, program.ram_cost)
 		if not program.allow_multiple_instances:

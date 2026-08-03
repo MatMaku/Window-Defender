@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://bgoufk2kf5yux"]
+
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="1_upgrade"]
+[ext_resource type="Texture2D" uid="uid://dyifie4u5vkxb" path="res://Sprites/Icons/Firewall Icon.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_upgrade")
+offer_id = &"FirewallSize"
+display_name = "Firewall Expansion"
+icon = ExtResource("2_icon")
+description = "Aumenta el tamaño horizontal y vertical de todas las ventanas de Firewall.exe."
+max_purchase_count = 6
+show_when_maxed = true
+crypto_costs = Array[int]([35, 60, 95, 145, 220, 340])
+virus_data_costs = Array[int]([1, 2, 4, 7, 12, 20])
+required_program_id = &"Firewall"
+effect_type = 13
+effect_values = Array[float]([0.15, 0.3, 0.46, 0.62, 0.8, 1.0])

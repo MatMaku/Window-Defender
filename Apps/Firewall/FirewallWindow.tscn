@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://t7xcsxm6ui6v" path="res://Sprites/Windows/Windows_Button.png" id="5_button"]
 [ext_resource type="Texture2D" uid="uid://dr6wtytg5nie8" path="res://Sprites/Windows/Windows_Button_Pressed.png" id="6_pressed"]
 [ext_resource type="Texture2D" uid="uid://cd7asksermu23" path="res://Sprites/Windows/Windows_Button_Focus.png" id="7_focus"]
+[ext_resource type="Resource" path="res://Shop/Upgrades/FirewallSize.tres" id="8_upgrade"]
 
 [sub_resource type="StyleBoxTexture" id="StyleButton"]
 texture = ExtResource("5_button")
@@ -30,25 +31,29 @@ texture_margin_right = 5.0
 texture_margin_bottom = 5.0
 
 [node name="FirewallWindow" unique_id=1261919005 instance=ExtResource("1_base")]
-custom_minimum_size = Vector2(460, 190)
-custom_maximum_size = Vector2(460, 190)
+custom_minimum_size = Vector2(340, 150)
+custom_maximum_size = Vector2(340, 150)
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_right = 460.0
-offset_bottom = 190.0
+offset_right = 340.0
+offset_bottom = 150.0
 script = ExtResource("2_script")
+horizontal_base_size = Vector2(340, 150)
+vertical_base_size = Vector2(180, 310)
 horizontal_size = Vector2(460, 190)
 vertical_size = Vector2(220, 430)
+size_upgrade_offer = ExtResource("8_upgrade")
 mobile_wall_alpha = 0.5
 unestablish_drag_threshold = 4.0
 status_message_duration = 2.5
+allows_adware_hiding = false
 
 [node name="FirewallContent" type="VBoxContainer" parent="MainVBox/ContentRoot" parent_id_path=PackedInt32Array(651446137) index="0" unique_id=258456970]
 layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="WallArea" type="Control" parent="MainVBox/ContentRoot/FirewallContent" index="0" unique_id=2118808271]
-custom_minimum_size = Vector2(0, 90)
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 1
@@ -59,6 +64,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 1.7166138e-05
+offset_bottom = 1.5258789e-05
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

@@ -13,13 +13,14 @@ identidad observadas. Las rutas `.tres` son parte de la configuración jugable.
 | `ProgramData` | `Data/Programs/ProgramData.gd` | Identidad y ventana de una app | Implementado |
 | `DesktopShortcutData` | `Data/Programs/DesktopShortcutData.gd` | App y posición inicial | Implementado |
 | `ShopAppOfferData` | `Data/Shop/ShopAppOfferData.gd` | Oferta de aplicación | Implementado |
-| `ShopUpgradeOfferData` | `Data/Shop/ShopUpgradeOfferData.gd` | Costos, requisitos y efecto | Implementado |
-| `EnemyArchetypeData` | `Data/Enemies/EnemyArchetypeData.gd` | Escena y stats base de un arquetipo | Implementado |
+| `ShopUpgradeOfferData` | `Data/Shop/ShopUpgradeOfferData.gd` | ID, costos, requisitos y hasta tres canales de progresión por nivel | Implementado |
+| `EnemyArchetypeData` | `Data/Enemies/EnemyArchetypeData.gd` | Escena, presentación opcional y stats base de un arquetipo | Implementado |
 | `WaveEnemyEntry` | `Data/Waves/WaveEnemyEntry.gd` | Peso, coste, límite y multiplicadores | Implementado |
-| `DailyWaveData` | `Data/Waves/DailyWaveData.gd` | Presupuesto y reglas de un día | Implementado |
-| `WaveSequenceData` | `Data/Waves/WaveSequenceData.gd` | Horario común y secuencia de días | Implementado |
+| `DailyWaveData` | `Data/Waves/DailyWaveData.gd` | Presupuesto, grupo y reglas de un día | Implementado |
+| `WaveSequenceData` | `Data/Waves/WaveSequenceData.gd` | Secuencia guiada y escalado infinito | Implementado |
 | `GameContentRegistry` | `Data/Persistence/GameContentRegistry.gd` | Registro de IDs persistentes | Implementado |
 | `OverclockConfigData` | `Data/Overclock/OverclockConfigData.gd` | Tiempos, multiplicador e instrucciones | Implementado |
+| `SlowdownEffectData` | `Data/Slowdown/SlowdownEffectData.gd` | Radio y multiplicador base compartidos | Implementado |
 
 ## 3. GameStartData
 
@@ -37,8 +38,8 @@ Campos:
 
 - **Implementado:** los estados especializados validan mínimos al resetear.
 - **Riesgo:** el Resource no incluye versión de esquema.
-- **Desconocido (Q-DATA-001):** confirmar si los overrides de 10.000 son datos de
-  desarrollo.
+- **Resuelto (Q-DATA-001):** los overrides de 10.000 eran datos de desarrollo;
+  producción y recursos iniciales ahora pertenecen al balance de la slice.
 
 ## 4. ProgramData y shortcuts
 
@@ -49,6 +50,7 @@ Campos:
 - `icon`
 - `window_scene`
 - `allow_multiple_instances`
+- `requires_desktop_shortcut`
 - posición y tamaño por defecto
 - `ram_cost`
 
@@ -66,6 +68,8 @@ Programas actuales:
 | Firewall | 32 | Sí | Tienda |
 | Turret | 24 | Sí | Tienda |
 | Overclock | 16 | No | Tienda |
+| slowdown | 32 | Sí | Tienda |
+| SpamWindow | 16 | Sí | Generada por Adware; sin shortcut |
 | test | 20 | Sí | No integrado |
 
 Fuentes: `Apps/*/*Program.tres`.
@@ -76,7 +80,7 @@ Shortcuts iniciales activos:
 - `Apps/Miner/MinerShortcut.tres`
 - `Apps/Shop/ShopShortcut.tres`
 
-Los shortcuts de Shooting, Ammo, Reload, Repair, Firewall, Turret y Test existen,
+Los shortcuts de Shooting, Ammo, Reload, Repair, Firewall, Turret, Slowdown y Test existen,
 pero no están referenciados por `Desktop.tscn`; las compras crean
 `DesktopShortcutData` en runtime a partir del `ProgramData`.
 
@@ -95,6 +99,7 @@ pero no están referenciados por `Desktop.tscn`; las compras crean
 | Firewall | 250 crypto (provisional) |
 | Turret | 200 crypto (provisional) |
 | Overclock | 300 crypto (provisional) |
+| slowdown | 400 crypto (provisional) |
 
 Fuentes: `Shop/Apps/*.tres`.
 
@@ -116,7 +121,10 @@ Tipos de efecto declarados en `Data/Shop/ShopUpgradeOfferData.gd`:
 - desbloquear Auto Fire;
 - desbloquear Area Shot;
 - sumar objetivos de Area Shot;
-- desbloquear Auto Reload.
+- desbloquear Auto Reload;
+- derivar nivel de tamaño de Firewall;
+- derivar potencia de Slowdown;
+- derivar daño, rango y fire rate de Turret.
 
 Resources activos en `Apps/Shop/ShopWindow.tscn`:
 
@@ -131,10 +139,19 @@ Resources activos en `Apps/Shop/ShopWindow.tscn`:
 - `AutoReload.tres`
 - `AutoShoot.tres`
 - `AreaShoot.tres`
+- `FirewallSize.tres`
+- `SlowdownStrength.tres`
+- `TurretPerformance.tres`
 
 - **Implementado:** costos por nivel usan el último valor si el índice excede el
   tamaño del Array.
 - **Implementado:** algunos upgrades requieren programa u otro upgrade.
+- **Implementado:** `FirewallSize`, `SlowdownStrength` y `TurretPerformance`
+  tienen seis niveles, conservan su fila en `MAX` y usan el contador persistente
+  de `GameUpgradeState`; las curvas viven en sus propios Resources.
+- **Implementado:** daño, cooldown, munición, producción minera y RAM tienen ocho
+  niveles; recarga tiene siete y velocidad de Miner seis. Los niveles agregados
+  reutilizan los mismos IDs, efectos y contadores persistentes.
 - **Parcialmente implementado:** `AREA_SHOT_TARGETS_ADD` no tiene una oferta
   configurada; Area Shot fuerza al menos un objetivo.
 - **Implementado:** `GameContentRegistry.tres` valida unicidad de los
@@ -144,14 +161,18 @@ Resources activos en `Apps/Shop/ShopWindow.tscn`:
 
 ## 7. Arquetipos y stats de enemigos
 
-Arquetipo activo:
+Arquetipos activos:
 
 - `Stages/Daily/Archetypes/BasicVirus.tres`
+- `Stages/Daily/Archetypes/AdwareVirus.tres`
+- `Stages/Daily/Archetypes/RunnerVirus.tres`
+- `Stages/Daily/Archetypes/BruteVirus.tres`
 
 `EnemyArchetypeData` define:
 
 - ID, nombre y `PackedScene`;
-- salud, velocidad, daño e intervalo de ataque base;
+- escala visual, modulación y escala del área interactiva opcionales;
+- salud, tope opcional de salud escalada, velocidad, daño e intervalo de ataque base;
 - distancias de llegada y overlap;
 - recompensa base y coste de spawn por defecto.
 
@@ -162,15 +183,21 @@ Arquetipo activo:
 `RefCounted` nueva por spawn. El valor final es:
 
 ```text
-base del arquetipo × multiplicador del día × multiplicador de la entrada
+base del arquetipo × día × entrada × escalado del ciclo infinito
 ```
 
 - **Implementado:** la instancia copia esos valores antes de entrar al árbol.
 - **Implementado:** no se mutan el arquetipo, el día ni la entrada compartidos.
 - **Implementado:** el arquetipo Basic conserva los defaults actuales de
   `Scenes/Virus/BasicVirus.tscn`.
-- **Planeado:** FastVirus y TankVirus podrán usar escenas y arquetipos propios;
-  todavía no existen.
+- **Implementado:** Runner y Brute reutilizan `BasicVirus.tscn`. Runner tiene
+  0,75 de vida, tope escalado 1 y escala 0,72; Brute tiene 12 de vida y escala 1,4. El `enemy_id`
+  resuelve la presentación también durante restore sin persistir datos derivados.
+- **Implementado:** Adware usa su propia escena, coste 3, límite bajo en las
+  entradas y daño cero; su intervalo de Spam pertenece a la escena
+  del comportamiento, no a `EnemyRuntimeStats`.
+- **Planeado:** futuros comportamientos distintos pueden usar escenas propias sin
+  convertir la escena Basic en una escena universal.
 
 ## 8. Secuencia y configuración diaria
 
@@ -178,31 +205,29 @@ Resource de producción:
 
 - `Stages/Daily/DailyWaveSequence.tres`
 
-Dependencias:
+Dependencias de producción:
 
-- `Stages/Daily/Days/Day01.tres`
-- `Stages/Daily/Entries/BasicVirusEntry.tres`
-- `Stages/Daily/Archetypes/BasicVirus.tres`
+- `Stages/Daily/Days/Day01.tres` a `Day06.tres`;
+- `Stages/Daily/InfiniteWave.tres`;
+- los cuatro arquetipos de `Stages/Daily/Archetypes/`.
 
-Configuración provisional:
-
-| Campo | Valor editable |
-|---|---:|
-| Inicio activo común | 120 (02:00) |
-| Fin activo común | 0 (00:00) |
-| Presupuesto diario | 8 |
-| Intervalo | 30 minutos ficticios |
-| Máximo activo | 4 |
-| Arquetipos | BasicVirus |
+La secuencia activa usa seis días de 1.440 minutos ficticios. Con 14,4 minutos
+ficticios por segundo, cada día dura unos 100 segundos activos y el cambio
+automático a infinito ocurre en el minuto total 8.640. Cada `DailyWaveData`
+configura presupuesto, intervalo, `spawn_group_size`, máximo activo, mezcla y
+multiplicadores. El Resource infinito agrega crecimiento por ciclo, intervalo
+mínimo y máximo global de enemigos.
 
 - **Implementado:** cada día puede usar el horario común o activar un override.
 - **Implementado:** inicio igual a fin representa actividad todo el día.
 - **Implementado:** horarios con inicio mayor que fin cruzan medianoche.
-- **Implementado:** si el índice excede `days`, se mantiene el último Resource.
+- **Implementado:** fuera del flujo automático, consultar un día por encima de la
+  lista mantiene el último Resource; en producción el director cambia al Resource
+  infinito dedicado.
 - **Implementado:** el peso se expresa una sola vez; no se duplican entradas en
   el Array.
-- **Parcialmente implementado:** los valores son configuración de prueba, no
-  balance final.
+- **Parcialmente implementado:** las cifras son balance de vertical slice y
+  requieren una segunda pasada después de pruebas manuales.
 
 ## 9. Estado runtime
 
@@ -310,7 +335,7 @@ Ownership del snapshot:
 | `states.run` | `GameRunState` |
 | `desktop.shortcuts` | `Desktop` |
 | `desktop.windows` | `WindowManager` + `AppWindow` |
-| `enemies` | `EnemyManager` + `DesktopVirus`/`BasicVirus` |
+| `enemies` | `EnemyManager` + `DesktopVirus`/variantes Basic/`AdwareVirus` |
 | `processes` | Shooting, Reload y Repair managers |
 
 Los IDs persistentes registrados en
@@ -330,14 +355,22 @@ Estado productivo conservado:
 - shortcuts, posiciones de ventanas y z-order;
 - cada instancia de Firewall guarda `orientation` (`horizontal` o `vertical`) e
   `is_established` dentro de `app_state`; el mapa y los RIDs de navegación se
-  derivan y no se persisten;
+  derivan y no se persisten; el tamaño se deriva de `FirewallSize` y tampoco se
+  duplica en el snapshot;
 - cada instancia de Turret guarda únicamente `cooldown_remaining` dentro de
   `app_state`; el campo es opcional para compatibilidad y se limita al cooldown
-  configurado al restaurar;
+  efectivo al restaurar; daño, rango y cooldown total se derivan de
+  `TurretPerformance`;
+- cada instancia de Slowdown usa el snapshot genérico de ventana; radio,
+  multiplicador y lista de enemigos afectados son datos configurados o derivados
+  desde `SlowdownStrength` y no se persisten;
+- cada SpamWindow guarda `program_id = "SpamWindow"`, posición, z-order y
+  `advertisement_index`; no existe shortcut asociado;
 - Overclock guarda fase normalizada, cooldown, duración activa, multiplicador e
   instrucción disponible en `states.overclock`; la ventana no conserva una copia;
 - minería por ventana, cooldown, máquina de recarga y tick de reparación;
-- arquetipo, posición, vida, stats runtime y cooldown de ataque de cada enemigo.
+- arquetipo, posición, vida y stats runtime de cada enemigo; Basic agrega cooldown
+  de ataque y Adware agrega fase y `spam_time_remaining`.
 
 Estado normalizado:
 
@@ -346,6 +379,11 @@ Estado normalizado:
 - Area Shot pendiente se cancela y vuelve a evaluarse normalmente;
 - target, orientación visual, tracer, recoil y drag de Turret se descartan; cada
   instancia restaurada vuelve a buscar un enemigo cuando Desktop reanuda;
+- el registro de áreas Slowdown y el multiplicador efectivo se reconstruyen desde
+  posiciones restauradas; `EnemyRuntimeStats.movement_speed` permanece intacto;
+- la ventana objetivo de Adware no se serializa. Si guardó fase oculta, se vuelve
+  a resolver una ventana elegible que cubra su rectángulo; si no existe, busca una
+  nueva. Un cooldown vencido se normaliza a un intervalo completo;
 - historial, texto parcial, caret y foco de Overclock se descartan; `TYPING` se
   serializa como `READY` con la misma instrucción;
 - ventanas se restauran funcionalmente sin costo de compra y luego se revelan

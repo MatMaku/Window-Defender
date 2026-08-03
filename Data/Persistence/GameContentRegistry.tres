@@ -8,7 +8,7 @@
 [ext_resource type="Resource" uid="uid://c6wibp66c2w8f" path="res://Apps/Reload/ReloadProgram.tres" id="6_reload"]
 [ext_resource type="Resource" uid="uid://cuduk7dmsm0p0" path="res://Apps/Repair/RepairProgram.tres" id="7_repair"]
 [ext_resource type="Resource" uid="uid://dgemqxjydyfyj" path="res://Apps/Shooting/ShootingProgram.tres" id="8_shooting"]
-[ext_resource type="Resource" path="res://Stages/Daily/Archetypes/BasicVirus.tres" id="9_basic_virus"]
+[ext_resource type="Resource" uid="uid://d26bomg7s5xnn" path="res://Stages/Daily/Archetypes/BasicVirus.tres" id="9_basic_virus"]
 [ext_resource type="Resource" uid="uid://bi4fej6lb5h13" path="res://Shop/Upgrades/Ammo.tres" id="10_ammo_upgrade"]
 [ext_resource type="Resource" uid="uid://dmxi4sb148os4" path="res://Shop/Upgrades/AreaShoot.tres" id="11_area_shoot"]
 [ext_resource type="Resource" uid="uid://p7etoy7itino" path="res://Shop/Upgrades/AutoReload.tres" id="12_auto_reload"]
@@ -22,13 +22,21 @@
 [ext_resource type="Resource" uid="uid://k5v8apaqigod" path="res://Shop/Upgrades/Resolution.tres" id="20_resolution"]
 [ext_resource type="Resource" uid="uid://hwvuhh6og7t2" path="res://Apps/Firewall/FirewallProgram.tres" id="21_firewall"]
 [ext_resource type="Resource" uid="uid://dxnrdw7cil2hk" path="res://Apps/Turret/TurretProgram.tres" id="22_turret"]
-[ext_resource type="Resource" path="res://Apps/Overclock/OverclockProgram.tres" id="23_overclock"]
+[ext_resource type="Resource" uid="uid://brxq417it84se" path="res://Apps/Overclock/OverclockProgram.tres" id="23_overclock"]
+[ext_resource type="Resource" uid="uid://853lcgh3b2gr" path="res://Apps/Slowdown/SlowdownProgram.tres" id="24_slowdown"]
+[ext_resource type="Resource" uid="uid://cv1fmv5l6t3yn" path="res://Apps/Spam/SpamProgram.tres" id="25_spam"]
+[ext_resource type="Resource" path="res://Stages/Daily/Archetypes/AdwareVirus.tres" id="26_adware_virus"]
+[ext_resource type="Resource" path="res://Shop/Upgrades/FirewallSize.tres" id="27_firewall_size"]
+[ext_resource type="Resource" path="res://Shop/Upgrades/SlowdownStrength.tres" id="28_slowdown_strength"]
+[ext_resource type="Resource" path="res://Shop/Upgrades/TurretPerformance.tres" id="29_turret_performance"]
+[ext_resource type="Resource" path="res://Stages/Daily/Archetypes/RunnerVirus.tres" id="30_runner_virus"]
+[ext_resource type="Resource" path="res://Stages/Daily/Archetypes/BruteVirus.tres" id="31_brute_virus"]
 [ext_resource type="Script" uid="uid://dx3ugjtr82ktb" path="res://Data/Enemies/EnemyArchetypeData.gd" id="enemy_type"]
 [ext_resource type="Script" uid="uid://cwpxv30ekbea1" path="res://Data/Programs/ProgramData.gd" id="program_type"]
 [ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="upgrade_type"]
 
 [resource]
 script = ExtResource("1_registry")
-programs = Array[ExtResource("program_type")]([ExtResource("2_system"), ExtResource("3_miner"), ExtResource("4_shop"), ExtResource("5_ammo"), ExtResource("6_reload"), ExtResource("7_repair"), ExtResource("8_shooting"), ExtResource("21_firewall"), ExtResource("22_turret"), ExtResource("23_overclock")])
-enemy_archetypes = Array[ExtResource("enemy_type")]([ExtResource("9_basic_virus")])
-upgrades = Array[ExtResource("upgrade_type")]([ExtResource("10_ammo_upgrade"), ExtResource("11_area_shoot"), ExtResource("12_auto_reload"), ExtResource("13_auto_shoot"), ExtResource("14_cooldown"), ExtResource("15_damage"), ExtResource("16_miner_tick"), ExtResource("17_miner_time"), ExtResource("18_ram"), ExtResource("19_reload_upgrade"), ExtResource("20_resolution")])
+programs = Array[ExtResource("program_type")]([ExtResource("2_system"), ExtResource("3_miner"), ExtResource("4_shop"), ExtResource("5_ammo"), ExtResource("6_reload"), ExtResource("7_repair"), ExtResource("8_shooting"), ExtResource("21_firewall"), ExtResource("22_turret"), ExtResource("23_overclock"), ExtResource("24_slowdown"), ExtResource("25_spam")])
+enemy_archetypes = Array[ExtResource("enemy_type")]([ExtResource("9_basic_virus"), ExtResource("26_adware_virus"), ExtResource("30_runner_virus"), ExtResource("31_brute_virus")])
+upgrades = Array[ExtResource("upgrade_type")]([ExtResource("10_ammo_upgrade"), ExtResource("11_area_shoot"), ExtResource("12_auto_reload"), ExtResource("13_auto_shoot"), ExtResource("14_cooldown"), ExtResource("15_damage"), ExtResource("16_miner_tick"), ExtResource("17_miner_time"), ExtResource("18_ram"), ExtResource("19_reload_upgrade"), ExtResource("20_resolution"), ExtResource("27_firewall_size"), ExtResource("28_slowdown_strength"), ExtResource("29_turret_performance")])

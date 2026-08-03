@@ -39,11 +39,18 @@ var enemy_separation_strength: float = 80.0
 @export_range(0.0, 30.0, 0.5)
 var max_separation_push_per_frame: float = 3.0
 
+@export_category("Slowdown Areas")
+
+@export_range(0.01, 1.0, 0.01)
+var slowdown_evaluation_interval_seconds: float = 0.05
+
 var _active_enemies: Array[DesktopVirus] = []
+var _slowdown_sources: Array[SlowdownAreaSource] = []
 var _random: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var _test_enemy_spawned: bool = false
 var _economy_state: GameEconomyState
+var _slowdown_evaluation_elapsed: float = 0.0
 
 
 func _ready() -> void:
@@ -67,10 +74,63 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_update_slowdown_areas(delta)
+
 	if not _can_apply_enemy_separation():
 		return
 
 	_apply_enemy_separation(delta)
+
+
+func _exit_tree() -> void:
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		enemy.set_active_slow_multiplier(1.0)
+
+	_slowdown_sources.clear()
+
+
+func register_slowdown_source(source: SlowdownAreaSource) -> void:
+	if source == null or not source.is_active():
+		return
+
+	_prune_invalid_slowdown_sources()
+	var runtime_id: int = source.get_runtime_id()
+	for registered_source: SlowdownAreaSource in _slowdown_sources:
+		if registered_source == source:
+			return
+
+		if (
+			runtime_id != 0
+			and registered_source.get_runtime_id() == runtime_id
+		):
+			return
+
+	if runtime_id == 0:
+		return
+
+	_slowdown_sources.append(source)
+	_evaluate_slowdown_areas()
+
+
+func unregister_slowdown_source(source: SlowdownAreaSource) -> void:
+	if source == null:
+		return
+
+	_slowdown_sources.erase(source)
+	_evaluate_slowdown_areas()
+
+
+func refresh_slowdown_source(source: SlowdownAreaSource) -> void:
+	if source == null:
+		return
+
+	if not _slowdown_sources.has(source):
+		return
+
+	_evaluate_slowdown_areas()
 
 
 func spawn_basic_virus_from_random_edge() -> BasicVirus:
@@ -108,7 +168,9 @@ func spawn_enemy_from_random_edge(
 
 func spawn_enemy_from_wave_entry(
 	wave_entry: WaveEnemyEntry,
-	daily_wave: DailyWaveData
+	daily_wave: DailyWaveData,
+	additional_health_multiplier: float = 1.0,
+	additional_damage_multiplier: float = 1.0
 ) -> DesktopVirus:
 	if wave_entry == null:
 		push_error("Cannot spawn enemy: wave entry is null.")
@@ -133,13 +195,16 @@ func spawn_enemy_from_wave_entry(
 
 	var runtime_stats: EnemyRuntimeStats = (
 		wave_entry.create_runtime_stats(
-			daily_wave
+			daily_wave,
+			additional_health_multiplier,
+			additional_damage_multiplier
 		)
 	)
 
 	if runtime_stats == null:
 		return null
 
+	enemy.apply_archetype_presentation(archetype)
 	enemy.apply_runtime_stats(runtime_stats)
 
 	if not _register_spawned_enemy(enemy):
@@ -183,8 +248,18 @@ func get_active_enemies() -> Array[DesktopVirus]:
 
 	var enemies: Array[DesktopVirus] = []
 
-	for enemy: DesktopVirus in _active_enemies:
-		if not is_instance_valid(enemy):
+	for enemy_value: Variant in _active_enemies:
+		if enemy_value == null:
+			continue
+
+		if not is_instance_valid(enemy_value):
+			continue
+
+		if not enemy_value is DesktopVirus:
+			continue
+
+		var enemy: DesktopVirus = enemy_value as DesktopVirus
+		if enemy == null:
 			continue
 
 		enemies.append(enemy)
@@ -273,6 +348,7 @@ func restore_enemies(
 				runtime_stats_variant as Dictionary
 			)
 		)
+		enemy.apply_archetype_presentation(archetype)
 		enemy.prepare_for_restore(runtime_stats)
 
 		if not _attach_enemy(enemy):
@@ -530,7 +606,85 @@ func _attach_enemy(enemy: DesktopVirus) -> bool:
 		enemy.died.connect(_on_enemy_died)
 
 	_active_enemies.append(enemy)
+	_apply_slowdown_to_enemy(enemy)
 	return true
+
+
+func _update_slowdown_areas(delta: float) -> void:
+	_slowdown_evaluation_elapsed += maxf(0.0, delta)
+
+	var interval: float = maxf(
+		0.01,
+		slowdown_evaluation_interval_seconds
+	)
+	if _slowdown_evaluation_elapsed < interval:
+		return
+
+	_slowdown_evaluation_elapsed = fmod(
+		_slowdown_evaluation_elapsed,
+		interval
+	)
+	_evaluate_slowdown_areas()
+
+
+func _evaluate_slowdown_areas() -> void:
+	_prune_invalid_slowdown_sources()
+	_prune_invalid_enemies()
+
+	for enemy: DesktopVirus in _active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+
+		_apply_slowdown_to_enemy(enemy)
+
+
+func _apply_slowdown_to_enemy(enemy: DesktopVirus) -> void:
+	if enemy == null or not is_instance_valid(enemy):
+		return
+
+	if enemy.is_dead():
+		enemy.set_active_slow_multiplier(1.0)
+		return
+
+	var enemy_center: Vector2 = enemy.get_center_global_position()
+	var effective_multiplier: float = 1.0
+
+	for source: SlowdownAreaSource in _slowdown_sources:
+		if source == null or not source.is_active():
+			continue
+
+		var radius: float = source.get_effect_radius()
+		if radius <= 0.0:
+			continue
+
+		var source_center: Vector2 = (
+			source.get_center_global_position()
+		)
+		if (
+			source_center.distance_squared_to(enemy_center)
+			> radius * radius
+		):
+			continue
+
+		effective_multiplier = minf(
+			effective_multiplier,
+			source.get_speed_multiplier()
+		)
+
+	enemy.set_active_slow_multiplier(effective_multiplier)
+
+
+func _prune_invalid_slowdown_sources() -> void:
+	for index: int in range(
+		_slowdown_sources.size() - 1,
+		-1,
+		-1
+	):
+		var source: SlowdownAreaSource = _slowdown_sources[index]
+		if source != null and source.is_active():
+			continue
+
+		_slowdown_sources.remove_at(index)
 
 
 func _place_enemy_at_random_edge(enemy: DesktopVirus) -> void:
@@ -888,9 +1042,13 @@ func _prune_invalid_enemies() -> void:
 		-1,
 		-1
 	):
-		var enemy: DesktopVirus = _active_enemies[index]
+		var enemy_value: Variant = _active_enemies[index]
 
-		if is_instance_valid(enemy):
+		if (
+			enemy_value != null
+			and is_instance_valid(enemy_value)
+			and enemy_value is DesktopVirus
+		):
 			continue
 
 		_active_enemies.remove_at(index)

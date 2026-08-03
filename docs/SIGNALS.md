@@ -41,7 +41,7 @@ forman parte importante del flujo.
 | `GameRamState` | `ram_changed(used, max)` | `TaskbarSystemTray` | Implementado |
 | `GameDesktopState` | `desktop_resolution_changed(resolution, tier)` | `DisplayManager` | Implementado |
 | `GameDesktopState` | `desktop_shortcuts_changed(snapshot)` | Ninguno | Planeado |
-| `GameUpgradeState` | `upgrade_purchase_counts_changed(snapshot)` | `ShopWindow` | Implementado |
+| `GameUpgradeState` | `upgrade_purchase_counts_changed(snapshot)` | `ShopWindow`, `FirewallWindow`, `SlowdownWindow`, `TurretWindow` | Implementado |
 | `GameUpgradeState` | `auto_reload_changed(enabled)` | `ReloadManager` | Implementado |
 | `GameUpgradeState` | `auto_fire_changed(enabled)` | `ShootingManager` | Implementado |
 | `GameUpgradeState` | `area_shot_changed(unlocked, max_targets)` | `ShootingManager` | Implementado |
@@ -104,6 +104,21 @@ instanciarla; la torreta consulta enemigos registrados, línea de visión y apli
 daño mediante llamadas tipadas directas. El tracer y el recoil son feedback local
 sin eventos de gameplay.
 
+`SlowdownWindow` tampoco agrega señales públicas. Recibe `EnemyManager` por el
+mismo contrato, registra/desregistra su fuente mediante llamadas tipadas y el
+manager deriva el multiplicador efectivo. No se crean señales por frame ni una
+conexión por pareja de ventana/enemigo.
+
+Las tres defensas escuchan directamente
+`GameUpgradeState.upgrade_purchase_counts_changed`: Firewall actualiza y
+revalida geometría, Slowdown refresca su fuente ya registrada y Turret recalcula
+stats conservando la proporción del cooldown. `UpgradeManager` no agrega relays.
+
+`AdwareVirus` tampoco introduce señales globales. Consulta candidatos mediante
+llamadas tipadas a `WindowManager`; la creación de Spam reutiliza
+`window_opened/window_closed`, mientras `TaskbarManager` ignora esas instancias por
+la capacidad `show_in_taskbar = false`.
+
 ## 5. Shooting y recarga
 
 | Señal | Emisor | Consumidor | Estado |
@@ -137,7 +152,7 @@ sin eventos de gameplay.
 | `system_destroyed()` | `SystemManager` | `EnemySpawnDirector`, `GameClockManager` | Implementado |
 | `health_changed(current, max)` | `DesktopVirus` | Ninguno | Desconocido |
 | `died(virus)` | `DesktopVirus` | `EnemyManager` | Implementado |
-| `dragging_changed(virus, active)` | `DesktopVirus` | Ninguno | Desconocido |
+| `dragging_changed(virus, active)` | `DesktopVirus` | `AdwareVirus` (su propia instancia) | Implementado para cancelar ocultamiento |
 | `enemy_spawned(enemy)` | `EnemyManager` | Ninguno | Desconocido |
 | `enemy_removed(enemy)` | `EnemyManager` | Ninguno | Desconocido |
 | `director_started()` | `EnemySpawnDirector` | Ninguno | Desconocido |
@@ -148,6 +163,11 @@ sin eventos de gameplay.
 | `repair_started()` | `RepairManager` | Ninguno | Desconocido |
 | `repair_stopped()` | `RepairManager` | Ninguno | Desconocido |
 | `repair_tick(amount)` | `RepairManager` | Ninguno | Desconocido |
+
+El cambio automático al infinito usa
+`GameRunState.spawn_mode_changed(INFINITE)`. No se agregó una señal de stage ni
+un evento por grupo: cada enemigo de spawn normal conserva una única emisión de
+`EnemyManager.enemy_spawned`, mientras restore no la emite.
 
 ## 7. Shop y upgrades
 
@@ -199,8 +219,9 @@ emite señales funcionales de apertura de ventana.
 ## 10. Conexiones dinámicas
 
 - `WindowManager` conecta `focus_requested` y `close_requested` al instanciar.
-- `WindowManager` entrega sus servicios runtime a cada `AppWindow`; solamente
-  `TurretWindow` consume actualmente `EnemyManager` mediante ese contrato.
+- `WindowManager` entrega sus servicios runtime a cada `AppWindow`;
+  `TurretWindow` y `SlowdownWindow` consumen actualmente `EnemyManager` mediante
+  ese contrato.
 - `ShootingManager` conecta/desconecta Shooting y AmmoWindows según apertura.
 - `ReloadManager` conecta ReloadWindow al descubrirla.
 - `ShopManager` registra cada ShopWindow y sus solicitudes.

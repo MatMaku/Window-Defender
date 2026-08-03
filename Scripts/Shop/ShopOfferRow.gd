@@ -78,7 +78,16 @@ func _refresh_upgrade_visuals() -> void:
 		return
 
 	icon_texture.texture = _upgrade_offer.icon
-	buy_button.text = "BUY"
+	buy_button.text = (
+		"MAX"
+		if (
+			_upgrade_manager != null
+			and _upgrade_manager.is_upgrade_maxed(
+				_upgrade_offer
+			)
+		)
+		else "BUY"
+	)
 
 	if _upgrade_manager == null:
 		name_label.text = _upgrade_offer.display_name

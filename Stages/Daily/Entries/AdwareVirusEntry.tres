@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WaveEnemyEntry" format=3]
+
+[ext_resource type="Script" uid="uid://0wil4xt52iv4" path="res://Data/Waves/WaveEnemyEntry.gd" id="1_entry"]
+[ext_resource type="Resource" path="res://Stages/Daily/Archetypes/AdwareVirus.tres" id="2_archetype"]
+
+[resource]
+script = ExtResource("1_entry")
+archetype = ExtResource("2_archetype")
+weight = 0.35
+max_alive = 1

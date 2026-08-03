@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="SlowdownEffectData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Data/Slowdown/SlowdownEffectData.gd" id="1_effect_data"]
+
+[resource]
+script = ExtResource("1_effect_data")
+effect_radius = 180.0
+speed_multiplier = 0.65

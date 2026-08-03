@@ -11,5 +11,5 @@ display_name = "Firewall.exe"
 icon = ExtResource("1_2tv12")
 window_scene = ExtResource("3_window")
 allow_multiple_instances = true
-default_window_size = Vector2(460, 190)
+default_window_size = Vector2(340, 150)
 ram_cost = 32

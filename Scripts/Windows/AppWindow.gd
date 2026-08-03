@@ -19,6 +19,8 @@ signal opening_finished(window: AppWindow)
 @export_category("Gameplay")
 
 @export var blocks_shots: bool = true
+@export var allows_adware_hiding: bool = true
+@export var show_in_taskbar: bool = true
 
 @onready var title_bar: Control = %TitleBar
 @onready var window_icon: TextureRect = %WindowIcon
@@ -33,6 +35,7 @@ var allocated_ram: int = 0
 
 var _is_dragging: bool = false
 var _is_opening: bool = false
+var _is_restore_reveal_pending: bool = false
 
 var _drag_offset: Vector2 = Vector2.ZERO
 var _open_tween: Tween
@@ -151,6 +154,26 @@ func is_being_dragged() -> bool:
 	return _is_dragging
 
 
+func can_hide_adware_under() -> bool:
+	return (
+		allows_adware_hiding
+		and is_inside_tree()
+		and (
+			not _is_opening
+			or _is_restore_reveal_pending
+		)
+		and (
+			is_visible_in_tree()
+			or _is_restore_reveal_pending
+		)
+		and not is_queued_for_deletion()
+	)
+
+
+func should_show_in_taskbar() -> bool:
+	return show_in_taskbar
+
+
 func cancel_drag_for_save() -> void:
 	_is_dragging = false
 	_drag_offset = Vector2.ZERO
@@ -171,6 +194,7 @@ func prepare_after_restore() -> void:
 	_open_tween = null
 	_is_dragging = false
 	_is_opening = false
+	_is_restore_reveal_pending = false
 	scale = Vector2.ONE
 	modulate = Color(
 		modulate.r,
@@ -188,6 +212,7 @@ func prepare_for_restore_reveal() -> void:
 	_open_tween = null
 	_is_dragging = false
 	_is_opening = true
+	_is_restore_reveal_pending = true
 	pivot_offset = size * 0.5
 	scale = Vector2.ONE
 	content_root.visible = false
@@ -249,6 +274,7 @@ func play_restore_reveal_animation(
 	content_root.visible = true
 	opening_input_blocker.visible = false
 	_is_opening = false
+	_is_restore_reveal_pending = false
 	_open_tween = null
 
 

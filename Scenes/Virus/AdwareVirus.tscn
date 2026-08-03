@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://bybabfgmk4wmu"]
+
+[ext_resource type="Script" uid="uid://2tgw4dyt4n2o" path="res://Scripts/Virus/AdwareVirus.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://de5gndqubvfy1" path="res://Sprites/Bad Godot.png" id="2_placeholder"]
+
+[node name="AdwareVirus" type="Control" unique_id=399212295]
+custom_minimum_size = Vector2(46, 46)
+custom_maximum_size = Vector2(46, 46)
+layout_mode = 3
+anchor_left = -0.009000001
+anchor_top = -0.016
+anchor_right = 0.009000001
+anchor_bottom = 0.016
+offset_left = 0.040000916
+offset_top = 0.040000916
+offset_right = -0.040000916
+offset_bottom = -0.040000916
+pivot_offset = Vector2(23, 23)
+script = ExtResource("1_script")
+minimum_hidden_coverage_ratio = 1.0
+hiding_inner_margin = 0.0
+hiding_arrival_distance = 0.5
+enemy_id = &"adware_virus"
+display_name = "Adware Virus"
+
+[node name="VirusTexture" type="TextureRect" parent="." unique_id=1173975808]
+modulate = Color(1, 0.82, 0.35, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_placeholder")
+expand_mode = 1
+stretch_mode = 5

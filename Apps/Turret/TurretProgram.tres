@@ -12,4 +12,4 @@ icon = ExtResource("1_h0gd3")
 window_scene = ExtResource("3_window")
 allow_multiple_instances = true
 default_window_size = Vector2(175, 165)
-ram_cost = 24
+ram_cost = 35

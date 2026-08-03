@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ShopUpgradeOfferData" format=3 uid="uid://bsod1dfjan8o4"]
+
+[ext_resource type="Script" uid="uid://87o5h1b251i0" path="res://Data/Shop/ShopUpgradeOfferData.gd" id="1_upgrade"]
+[ext_resource type="Texture2D" uid="uid://btbk3gownbg4s" path="res://Sprites/Icons/Slowdown Icon.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_upgrade")
+offer_id = &"SlowdownStrength"
+display_name = "Slowdown Strength"
+icon = ExtResource("2_icon")
+description = "Reduce aún más la velocidad de movimiento de los enemigos dentro de las áreas de Slowdown.exe."
+max_purchase_count = 6
+show_when_maxed = true
+crypto_costs = Array[int]([50, 80, 125, 190, 285, 430])
+virus_data_costs = Array[int]([2, 3, 5, 8, 13, 22])
+required_program_id = &"Slowdown"
+effect_type = 14
+effect_values = Array[float]([0.61, 0.57, 0.52, 0.47, 0.41, 0.35])

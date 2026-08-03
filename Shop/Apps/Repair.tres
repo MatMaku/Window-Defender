@@ -7,5 +7,5 @@
 script = ExtResource("1_1n2iy")
 offer_id = &"Repair"
 program_data = ExtResource("1_ejso0")
-price = 45
+price = 90
 metadata/_custom_type_script = "uid://dwpx0a6fvly2m"

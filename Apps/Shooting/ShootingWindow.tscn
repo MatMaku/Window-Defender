@@ -57,6 +57,7 @@ area_shot_marker_fade_duration = 0.1
 area_shot_marker_start_scale = 0.65
 area_shot_marker_end_scale = 0.8500000000000001
 keep_area_marker_fully_inside_window = false
+allows_adware_hiding = false
 
 [node name="TitleLabel" parent="MainVBox/TitleBar/TitleHBox" parent_id_path=PackedInt32Array(1179717193) index="1" unique_id=278973000]
 text = "Shooting.exe"

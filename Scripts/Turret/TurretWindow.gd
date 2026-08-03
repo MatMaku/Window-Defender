@@ -16,6 +16,9 @@ var attack_range: float = 150.0
 @export_range(0.05, 60.0, 0.05)
 var fire_cooldown_seconds: float = 1.25
 
+@export_range(0.05, 60.0, 0.05)
+var minimum_fire_cooldown_seconds: float = 0.35
+
 @export_range(0.0, 30.0, 0.1)
 var rotation_speed_radians: float = 12.0
 
@@ -24,6 +27,10 @@ var aim_tolerance_degrees: float = 2.0
 
 @export_range(-360.0, 360.0, 0.5)
 var sprite_angle_offset_degrees: float = 0.0
+
+@export_category("Upgrade")
+
+@export var performance_upgrade_offer: ShopUpgradeOfferData
 
 @export_category("Tracer")
 
@@ -55,6 +62,10 @@ var _cooldown_remaining: float = 0.0
 var _was_dragging: bool = false
 var _recoil_base_position: Vector2 = Vector2.ZERO
 var _recoil_tween: Tween
+var _upgrade_state: GameUpgradeState
+var _effective_attack_damage: float = 0.0
+var _effective_attack_range: float = 0.0
+var _effective_fire_cooldown_seconds: float = 0.0
 
 
 func configure_runtime_services(
@@ -68,9 +79,13 @@ func configure_runtime_services(
 func _ready() -> void:
 	super._ready()
 
+	_resolve_upgrade_state()
 	_configure_rotation_geometry()
 	_recoil_base_position = recoil_container.position
-	_cooldown_remaining = maxf(0.0, fire_cooldown_seconds)
+	_cooldown_remaining = maxf(
+		0.0,
+		_effective_fire_cooldown_seconds
+	)
 
 	if _window_manager == null:
 		push_error("TurretWindow requires WindowManager.")
@@ -105,6 +120,9 @@ func _process(delta: float) -> void:
 		0.0,
 		_cooldown_remaining - delta
 	)
+
+	if _target != null and not is_instance_valid(_target):
+		_target = null
 
 	var active_enemies: Array[DesktopVirus] = (
 		_enemy_manager.get_active_enemies()
@@ -142,13 +160,13 @@ func create_save_snapshot() -> Dictionary:
 func restore_from_save_snapshot(snapshot: Dictionary) -> void:
 	_cooldown_remaining = clampf(
 		float(
-			snapshot.get(
-				"cooldown_remaining",
-				fire_cooldown_seconds
-			)
-		),
+				snapshot.get(
+					"cooldown_remaining",
+					_effective_fire_cooldown_seconds
+				)
+			),
 		0.0,
-		fire_cooldown_seconds
+		_effective_fire_cooldown_seconds
 	)
 	_target = null
 	_was_dragging = false
@@ -177,12 +195,16 @@ func _suspend_for_drag() -> void:
 func _find_nearest_visible_enemy(
 	active_enemies: Array[DesktopVirus]
 ) -> DesktopVirus:
-	var nearest_enemy: DesktopVirus
+	var nearest_enemy: DesktopVirus = null
 	var nearest_distance_squared: float = INF
 	var origin: Vector2 = aim_origin.global_position
 
-	for enemy: DesktopVirus in active_enemies:
-		if not _is_target_valid(enemy, active_enemies):
+	for enemy_value: Variant in active_enemies:
+		if not _is_target_valid(enemy_value, active_enemies):
+			continue
+
+		var enemy: DesktopVirus = enemy_value as DesktopVirus
+		if enemy == null:
 			continue
 
 		var distance_squared: float = origin.distance_squared_to(
@@ -198,10 +220,20 @@ func _find_nearest_visible_enemy(
 
 
 func _is_target_valid(
-	enemy: DesktopVirus,
+	enemy_value: Variant,
 	active_enemies: Array[DesktopVirus]
 ) -> bool:
-	if enemy == null or not is_instance_valid(enemy):
+	if enemy_value == null:
+		return false
+
+	if not is_instance_valid(enemy_value):
+		return false
+
+	if not enemy_value is DesktopVirus:
+		return false
+
+	var enemy: DesktopVirus = enemy_value as DesktopVirus
+	if enemy == null:
 		return false
 
 	if enemy.is_dead() or not active_enemies.has(enemy):
@@ -211,7 +243,7 @@ func _is_target_valid(
 	var target_position: Vector2 = (
 		enemy.get_center_global_position()
 	)
-	if range_origin.distance_to(target_position) > attack_range:
+	if range_origin.distance_to(target_position) > _effective_attack_range:
 		return false
 
 	return not _window_manager.is_shot_path_blocked(
@@ -278,6 +310,7 @@ func _is_aim_aligned(enemy: DesktopVirus) -> bool:
 
 func _fire_at_target(enemy: DesktopVirus) -> void:
 	if enemy == null or not is_instance_valid(enemy):
+		_target = null
 		return
 
 	var start_global_position: Vector2 = (
@@ -294,11 +327,14 @@ func _fire_at_target(enemy: DesktopVirus) -> void:
 		_target = null
 		return
 
+	# receive_damage() can synchronously kill and free the enemy. Do not keep
+	# the potentially stale reference as this turret's current target.
+	_target = null
+
 	var applied_damage: float = enemy.receive_damage(
-		maxf(0.0, attack_damage)
+		maxf(0.0, _effective_attack_damage)
 	)
 	if applied_damage <= 0.0:
-		_target = null
 		return
 
 	_spawn_tracer(
@@ -308,11 +344,11 @@ func _fire_at_target(enemy: DesktopVirus) -> void:
 	_play_recoil()
 	_cooldown_remaining = maxf(
 		0.0,
-		fire_cooldown_seconds
+		_effective_fire_cooldown_seconds
 	)
 
-	if enemy.is_dead():
-		_target = null
+	if is_instance_valid(enemy) and not enemy.is_dead():
+		_target = enemy
 
 
 func _spawn_tracer(
@@ -389,3 +425,91 @@ func _reset_recoil() -> void:
 	_recoil_tween = null
 	if recoil_container != null:
 		recoil_container.position = _recoil_base_position
+
+
+func _resolve_upgrade_state() -> void:
+	_upgrade_state = GameState.upgrade_state
+	if _upgrade_state == null:
+		push_error("TurretWindow requires GameUpgradeState.")
+		_apply_performance_upgrade(false)
+		return
+
+	if not _upgrade_state.upgrade_purchase_counts_changed.is_connected(
+		_on_upgrade_purchase_counts_changed
+	):
+		_upgrade_state.upgrade_purchase_counts_changed.connect(
+			_on_upgrade_purchase_counts_changed
+		)
+
+	_apply_performance_upgrade(false)
+
+
+func _on_upgrade_purchase_counts_changed(
+	_purchase_counts_snapshot: Dictionary
+) -> void:
+	_apply_performance_upgrade(true)
+
+
+func _apply_performance_upgrade(
+	preserve_cooldown_progress: bool
+) -> void:
+	var purchase_count: int = 0
+	if _upgrade_state != null and performance_upgrade_offer != null:
+		purchase_count = _upgrade_state.get_upgrade_purchase_count(
+			performance_upgrade_offer.offer_id
+		)
+
+	var damage_multiplier: float = 1.0
+	var range_multiplier: float = 1.0
+	var fire_rate_multiplier: float = 1.0
+	if performance_upgrade_offer != null:
+		damage_multiplier = (
+			performance_upgrade_offer.get_primary_effect_for_purchase_count(
+				purchase_count,
+				1.0
+			)
+		)
+		range_multiplier = (
+			performance_upgrade_offer.get_secondary_effect_for_purchase_count(
+				purchase_count,
+				1.0
+			)
+		)
+		fire_rate_multiplier = (
+			performance_upgrade_offer.get_tertiary_effect_for_purchase_count(
+				purchase_count,
+				1.0
+			)
+		)
+
+	var previous_cooldown_duration: float = maxf(
+		0.0,
+		_effective_fire_cooldown_seconds
+	)
+	_effective_attack_damage = maxf(
+		0.0,
+		attack_damage * maxf(0.0, damage_multiplier)
+	)
+	_effective_attack_range = maxf(
+		0.0,
+		attack_range * maxf(0.0, range_multiplier)
+	)
+	_effective_fire_cooldown_seconds = maxf(
+		maxf(0.05, minimum_fire_cooldown_seconds),
+		fire_cooldown_seconds / maxf(0.01, fire_rate_multiplier)
+	)
+
+	if not preserve_cooldown_progress:
+		return
+
+	if previous_cooldown_duration <= 0.0:
+		return
+
+	var remaining_ratio: float = clampf(
+		_cooldown_remaining / previous_cooldown_duration,
+		0.0,
+		1.0
+	)
+	_cooldown_remaining = (
+		_effective_fire_cooldown_seconds * remaining_ratio
+	)

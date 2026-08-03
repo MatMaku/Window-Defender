@@ -157,19 +157,22 @@ arquitectónica actual.
 | Propietario | Estado local |
 |---|---|
 | `Desktop` | Ejecutables por `program_id` |
-| `WindowManager` | Ventanas únicas, error activo y z-index |
+| `WindowManager` | Ventanas, error activo, z-index, candidatos de ocultamiento y creación de Spam |
 | `TaskbarManager` | Botones por instancia y ventana enfocada |
 | `GameClockManager` | Estado activo/inactivo del avance del reloj |
 | `OverclockManager` | Avance en segundos y coordinación de la ventana de Overclock |
 | `ShootingManager` | Ventana Shooting activa, cooldown y lock de recarga |
 | `ReloadManager` | Máquina de estados y timers de recarga |
-| `EnemyManager` | Array de enemigos vivos |
+| `EnemyManager` | Enemigos vivos y registro runtime de áreas Slowdown |
 | `EnemySpawnDirector` | Día observado y RNG; el progreso pertenece a `GameRunState` |
 | `RepairManager` | Ventana activa y progreso de tick |
 | `ShopManager` | Ventanas Shop activas |
 | `SystemManager` | Referencias al shortcut y ventana System |
 | `MinerWindow` | Timer de minería por instancia |
-| `TurretWindow` | Target, orientación, cooldown y recoil por instancia |
+| `TurretWindow` | Target, orientación, cooldown, recoil y stats derivados del nivel persistente |
+| `SlowdownWindow` | Centro runtime y multiplicador derivado del nivel persistente |
+| `AdwareVirus` | Fase, ventana objetivo y tiempo restante hasta el próximo Spam |
+| `SpamWindow` | Variante visual publicitaria por instancia |
 | `ProfileService` | Perfil activo e intención pendiente de nueva/carga |
 | `DesktopSaveCoordinator` | Captura coherente y secuencia de restauración |
 
@@ -212,7 +215,7 @@ EnemySpawnDirector -> GameClockState
                    -> GameRunState
                    -> WaveSequenceData
                    -> EnemyManager -> GameEconomyState
-                                   -> DesktopVirus/BasicVirus
+                                   -> DesktopVirus/BasicVirus variants/AdwareVirus
                                    -> SystemManager -> GameSystemState
 
 FirewallWindow -> FirewallNavigationManager -> NavigationServer2D
@@ -224,6 +227,11 @@ DesktopVirus -> FirewallNavigationManager
 TurretWindow -> EnemyManager
              -> WindowManager -> consulta de línea de visión
              -> TurretShotTracer
+
+SlowdownWindow -> EnemyManager -> DesktopVirus/BasicVirus
+
+AdwareVirus -> WindowManager -> AppWindow elegibles
+                            `-> RamManager -> GameRamState
 
 ShootingWindow -> ShootingManager -> EnemyManager
                          |-> GameWeaponState
@@ -239,6 +247,13 @@ ShopWindow -> ShopManager -> GameEconomyState
 TaskbarManager <- WindowManager
 DisplayManager <- GameDesktopState
 ```
+
+`WaveSequenceData` contiene seis configuraciones de slice y una configuración
+infinita. `EnemySpawnDirector` deriva del minuto total cuándo cambia de modo y
+los multiplicadores del ciclo infinito; no mantiene un reloj ni un contador de
+stage paralelo. RunnerVirus y BruteVirus son arquetipos que reutilizan
+`BasicVirus.tscn`, y `EnemyManager` aplica su presentación declarativa tanto al
+spawn normal como al restore.
 
 Fuentes:
 
@@ -279,6 +294,16 @@ y costo de RAM. `WindowManager.open_program()`:
 - **Implementado:** `Turret` reutiliza el mismo flujo multiinstancia. La fábrica
   de ventanas le entrega referencias explícitas a `WindowManager` y
   `EnemyManager`; no existe un `TurretManager`, autoload ni búsqueda global.
+- **Implementado:** `slowdown.exe` reutiliza ese flujo multiinstancia y recibe
+  `EnemyManager` por el mismo contrato de servicios runtime. Cada ventana se
+  registra una vez; cerrar o liberar la instancia retira inmediatamente su área.
+- **Implementado:** `AppWindow.can_hide_adware_under()` expone una capacidad
+  explícita. Firewall, Turret, Slowdown, Overclock y Spam optan fuera; overlays,
+  Taskbar, MainMenu y ventanas sin `program_id` nunca entran en la enumeración.
+- **Implementado:** `WindowManager.open_spam_window()` usa el mismo pipeline de
+  instancia, RAM, foco, cierre y snapshot que una ventana normal, pero omite el
+  error visual cuando no alcanza la RAM y la posiciona aleatoriamente dentro del
+  Desktop. `SpamWindow` no requiere shortcut ni botón de Taskbar.
 - **Implementado:** `WindowManager` conserva tanto la consulta de bloqueo en un
   punto usada por Shooting como la consulta de intersección de un segmento
   usada por Turret. Ambas respetan `blocks_shots` y permiten ignorar la ventana
@@ -301,6 +326,17 @@ y costo de RAM. `WindowManager.open_program()`:
 - **Implementado:** la primera versión de Turret mantiene su lógica local por
   instancia porque la propia ventana es la entidad defensiva. Consulta registros
   propietarios (`EnemyManager`/`WindowManager`) y no replica sus colecciones.
+- **Implementado:** Firewall, Slowdown y Turret resuelven una vez
+  `GameUpgradeState`, observan su diccionario de niveles y derivan stats desde el
+  mismo `ShopUpgradeOfferData` registrado en Shop. Las ventanas no persisten una
+  segunda copia de esos valores.
+- **Implementado:** `EnemyManager` es el único registro de áreas Slowdown y cada
+  0,05 s deriva el menor multiplicador aplicable para cada virus. `DesktopVirus`
+  conserva sólo ese valor efectivo y `BasicVirus` lo usa en desplazamiento; no
+  intervienen línea de visión, navegación, stats base ni timers de ataque.
+- **Implementado:** `AdwareVirus` conserva sólo su comportamiento local. Obtiene
+  candidatos desde `WindowManager`, reutiliza las rutas de `DesktopVirus` para
+  respetar Firewalls y delega completamente la creación de Spam.
 - **Parcialmente implementado:** `MinerWindow` contiene el timer y muta economía
   directamente.
 - **Parcialmente implementado:** `DesktopVirus` y `BasicVirus` combinan estado,
@@ -330,6 +366,9 @@ agrupan un único rebuild diferido del mapa vivo. El manager conserva el rebuild
 como pendiente hasta el siguiente frame de física, cuando `NavigationServer2D`
 ya sincronizó la región; sólo entonces incrementa la revisión que observan los
 enemigos y reemplaza el snapshot de rectángulos asociado a esa revisión.
+El mismo contrato permite retirar temporalmente una pared establecida cuando una
+mejora cambia su geometría, revalidarla y producir un solo cambio agregado de
+obstáculos; varios cambios sincrónicos comparten el rebuild diferido.
 `EnemyManager` invalida explícitamente todas las rutas al recibir
 `firewall_obstacles_changed`; mientras el rebuild está pendiente, los virus se
 detienen en vez de consultar o cachear el mapa anterior. Cada path y segmento
@@ -372,6 +411,18 @@ descartan el path cacheado cuando el próximo tramo deja de ser transitable.
   serializan: `FirewallNavigationManager` los reconstruye en bloque desde las
   ventanas restauradas y `DesktopSaveCoordinator` espera la revisión
   sincronizada antes de completar la carga o reanudar gameplay.
+- **Implementado:** los contadores `FirewallSize`, `SlowdownStrength` y
+  `TurretPerformance` se restauran con `states.upgrades` antes de reconstruir
+  ventanas. Saves anteriores omiten esas claves y equivalen a nivel cero sin
+  cambiar schema.
+- **Implementado:** Slowdown no agrega `app_state`: posición, z-order y RAM se
+  restauran por el contrato genérico de ventanas. Las áreas se registran desde
+  las ventanas reconstruidas y el multiplicador de cada enemigo se vuelve a
+  derivar; no se guardan fuentes ni listas de afectados.
+- **Implementado:** Spam persiste como una ventana `SpamWindow` con posición,
+  z-order y `advertisement_index`; su RAM se reconstruye una sola vez al restaurar.
+  Adware persiste fase y tiempo restante, pero no una referencia de Node: una
+  fase oculta vuelve a resolver por cobertura después de reconstruir ventanas.
 - **Implementado:** la RAM usada no se duplica: se restaura el máximo y las
   ventanas reconstruyen el uso al reservar sus costos actuales.
 - **Implementado:** la captura preserva el estado previo de pausa y no serializa
